@@ -1,0 +1,39 @@
+name: publish
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: 'temurin'
+          server-id: sonatype-nexus-staging
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Add mirror
+        run: |
+          sed -i 's|</settings>|  <mirrors>\
+            <mirror>\
+              <id>central-repo1</id>\
+              <mirrorOf>central</mirrorOf>\
+              <url>https://repo1.maven.org/maven2/</url>\
+            </mirror>\
+          </mirrors></settings>|' ~/.m2/settings.xml
+      - name: Install GPG secret key
+        run: |
+          cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+      - name: Publish package
+        run: |
+          mvn -B versions:set -DnewVersion=${GITHUB_REF##*/}
+          mvn -B -Prelease-sign-artifacts -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} package javadoc:aggregate-jar deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}

@@ -1,0 +1,30 @@
+name: build
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'feature/**'
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: 21
+        distribution: 'temurin'
+    - name: Build with Maven
+      run: mvn -B package jacoco:report --file pom.xml
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: int4-org/FX
