@@ -13,6 +13,7 @@
   <url>https://github.com/int4-org/FX</url>
 
   <modules>
+    <module>fx-builders</module>
     <module>fx-values</module>
   </modules>
 
@@ -79,10 +80,20 @@
         <artifactId>common-function</artifactId>
         <version>${common.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.int4.fx</groupId>
+        <artifactId>fx-values</artifactId>
+        <version>${revision}</version>
+      </dependency>
 
       <dependency>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-base</artifactId>
+        <version>${fx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
         <version>${fx.version}</version>
       </dependency>
 
