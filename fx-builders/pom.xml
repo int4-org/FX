@@ -9,6 +9,8 @@
 
   <artifactId>fx-builders</artifactId>
 
+  <name>FX builders</name>
+
   <dependencies>
     <dependency>
       <groupId>org.int4.fx</groupId>

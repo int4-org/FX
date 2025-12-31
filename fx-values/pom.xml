@@ -9,6 +9,8 @@
 
   <artifactId>fx-values</artifactId>
 
+  <name>FX values</name>
+
   <dependencies>
     <dependency>
       <groupId>org.openjfx</groupId>
