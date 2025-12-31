@@ -14,6 +14,7 @@
 
   <modules>
     <module>fx-builders</module>
+    <module>fx-samples</module>
     <module>fx-values</module>
   </modules>
 
@@ -79,6 +80,11 @@
         <groupId>org.int4.common</groupId>
         <artifactId>common-function</artifactId>
         <version>${common.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.int4.fx</groupId>
+        <artifactId>fx-builders</artifactId>
+        <version>${revision}</version>
       </dependency>
       <dependency>
         <groupId>org.int4.fx</groupId>
