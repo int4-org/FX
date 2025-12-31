@@ -20,7 +20,7 @@ import org.int4.fx.builders.FX;
 import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
 import org.int4.fx.builders.StyleSheets;
-import org.int4.fx.values.Observe;
+import org.int4.fx.values.util.Observe;
 
 /**
  * Sample application demonstrating the use of the {@code org.int4.fx.builders}

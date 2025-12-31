@@ -1,4 +1,4 @@
-package org.int4.fx.values;
+package org.int4.fx.values.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
