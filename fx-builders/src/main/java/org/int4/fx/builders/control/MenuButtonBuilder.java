@@ -1,19 +1,15 @@
 package org.int4.fx.builders.control;
 
-import java.util.Objects;
-
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.MenuButton;
 
-import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.builders.common.NodeEventHandler;
-import org.int4.fx.builders.internal.Builders;
 
 /**
  * Builder for {@link MenuButton} instances.
  */
-public final class MenuButtonBuilder extends AbstractControlBuilder<MenuButton, MenuButtonBuilder> {
+public final class MenuButtonBuilder extends AbstractButtonBaseBuilder<MenuButton, MenuButtonBuilder> {
 
   /**
    * Creates a new builder with optional style classes.
@@ -22,31 +18,6 @@ public final class MenuButtonBuilder extends AbstractControlBuilder<MenuButton, 
    */
   public MenuButtonBuilder(String... styleClasses) {
     super(MenuButton::new, styleClasses);
-  }
-
-  /**
-   * Sets the text of the menu button.
-   *
-   * @param text the text to set, may be {@code null}
-   * @return the fluent builder, never {@code null}
-   * @see MenuButton#setText(String)
-   */
-  public MenuButtonBuilder text(String text) {
-    return apply(c -> c.setText(text));
-  }
-
-  /**
-   * Sets the graphic of the menu button.
-   *
-   * @param graphic a graphic node or other supported object, cannot be {@code null}
-   * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code graphic} is {@code null}
-   * @see MenuButton#setGraphic(javafx.scene.Node)
-   */
-  public MenuButtonBuilder graphic(Object graphic) {
-    Objects.requireNonNull(graphic, "graphic");
-
-    return apply(c -> c.setGraphic(Builders.toNode(graphic)));
   }
 
   /**
