@@ -6,12 +6,10 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.control.ComboBox;
 
-import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.ChoiceModel;
 
@@ -22,7 +20,7 @@ import org.int4.fx.values.model.ChoiceModel;
  * @param <C> the concrete {@link ComboBox} type
  * @param <B> the concrete builder type
  */
-public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extends AbstractComboBoxBuilder<T, C, B>> extends AbstractControlBuilder<C, B> {
+public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extends AbstractComboBoxBuilder<T, C, B>> extends AbstractComboBoxBaseBuilder<T, C, B> {
   private Comparator<T> comparator;
 
   /**
@@ -53,39 +51,20 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
   }
 
   /**
-   * Binds the selected value bidirectionally to a property.
-   *
-   * @param property the property to bind to, cannot be {@code null}
-   * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code property} is {@code null}
-   * @see ComboBox#getSelectionModel()
-   */
-  public final B value(Property<T> property) {
-    Objects.requireNonNull(property, "property");
-
-    return apply(c -> {
-      property.subscribe(v -> c.getSelectionModel().select(v));
-      c.getSelectionModel().selectedItemProperty().subscribe(property::setValue);
-    });
-  }
-
-  /**
    * Sets the items from a fixed list.
    *
    * @param items the items to set, cannot be {@code null} but can be empty
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
-  public final C items(List<T> items) {
-    C node = build();
+  public final B items(List<T> items) {
+    return apply(c -> {
+      if(comparator != null) {
+        c.setItems(new SortedList<>(c.getItems(), comparator));
+      }
 
-    if(comparator != null) {
-      node.setItems(new SortedList<>(node.getItems(), comparator));
-    }
-
-    node.getItems().setAll(Objects.requireNonNull(items, "items"));
-
-    return node;
+      c.getItems().setAll(Objects.requireNonNull(items, "items"));
+    });
   }
 
   /**
@@ -95,12 +74,8 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
-  public final C items(ObservableList<T> items) {
-    C node = build();
-
-    node.setItems(comparator == null ? items : new SortedList<>(items, comparator));
-
-    return node;
+  public final B items(ObservableList<T> items) {
+    return apply(c -> c.setItems(comparator == null ? items : new SortedList<>(items, comparator)));
   }
 
   /**

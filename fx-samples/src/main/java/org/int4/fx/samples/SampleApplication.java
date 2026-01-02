@@ -103,7 +103,7 @@ public class SampleApplication extends Application {
       Panes.grid("form")
         .row(
           "Trip Type",
-          FX.<String>comboBox().value(tripType).items(List.of("One way", "Return"))
+          FX.<String>comboBox().items(List.of("One way", "Return")).value(tripType)
         )
         .row(
           "Departure Date",
