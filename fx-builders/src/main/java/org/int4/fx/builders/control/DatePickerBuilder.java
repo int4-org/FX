@@ -28,7 +28,7 @@ public final class DatePickerBuilder extends AbstractComboBoxBaseBuilder<LocalDa
    * @throws NullPointerException if {@code model} is {@code null}
    * @see DatePicker#valueProperty()
    */
-  public DatePicker value(ObjectModel<LocalDate> model) {
+  public DatePicker model(ObjectModel<LocalDate> model) {
     DatePicker node = build();
 
     ModelLinker.link(

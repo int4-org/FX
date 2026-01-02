@@ -92,7 +92,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C value(IntegerModel model) {
+  public final C model(IntegerModel model) {
     C node = build();
 
     link(node, model, v -> Integer.toString(v), Integer::parseInt);
@@ -107,7 +107,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C value(LongModel model) {
+  public final C model(LongModel model) {
     C node = build();
 
     link(node, model, v -> Long.toString(v), Long::parseLong);
@@ -122,7 +122,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C value(DoubleModel model) {
+  public final C model(DoubleModel model) {
     C node = build();
 
     link(node, model, v -> Double.toString(v), Double::parseDouble);
@@ -137,7 +137,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C value(StringModel model) {
+  public final C model(StringModel model) {
     C node = build();
 
     link(node, model, Function.identity(), Function.identity());
@@ -145,7 +145,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
     return node;
   }
 
-  private <T> void link(C node, ValueModel<T> master, Function<T, String> printer, Function<String, T> parser) {
+  private <T> void link(C node, ValueModel<T> model, Function<T, String> printer, Function<String, T> parser) {
 
     /*
      * As null is not representable in a text control, all nulls are translated to empty strings when displaying
@@ -154,7 +154,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
 
     ModelLinker.link(
       node,
-      master,
+      model,
       () -> node.getText(),
       v -> node.setText(v == null ? "" : printer.apply(v)),
       r -> r == null || r.isBlank() ? null : parser.apply(r),

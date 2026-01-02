@@ -27,7 +27,7 @@ public final class ColorPickerBuilder extends AbstractComboBoxBaseBuilder<Color,
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ColorPicker#valueProperty()
    */
-  public ColorPicker value(ObjectModel<Color> model) {
+  public ColorPicker model(ObjectModel<Color> model) {
     ColorPicker node = build();
 
     ModelLinker.link(

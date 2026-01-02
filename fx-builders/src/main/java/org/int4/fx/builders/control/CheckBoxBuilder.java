@@ -41,7 +41,7 @@ public final class CheckBoxBuilder extends AbstractButtonBaseBuilder<CheckBox, C
    * @return the built CheckBox, never {@code null}
    * @see CheckBox#selectedProperty()
    */
-  public CheckBox value(BooleanModel model) {
+  public CheckBox model(BooleanModel model) {
     CheckBox node = build();
 
     ModelLinker.link(

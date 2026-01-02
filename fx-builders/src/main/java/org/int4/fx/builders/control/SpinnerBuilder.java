@@ -142,7 +142,7 @@ public final class SpinnerBuilder extends AbstractControlBuilder<Spinner<?>, Spi
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public Spinner<Integer> value(IntegerModel model) {
+  public Spinner<Integer> model(IntegerModel model) {
     return create(model, Integer::parseInt);
   }
 
@@ -153,7 +153,7 @@ public final class SpinnerBuilder extends AbstractControlBuilder<Spinner<?>, Spi
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public Spinner<Double> value(DoubleModel model) {
+  public Spinner<Double> model(DoubleModel model) {
     return create(model, Double::parseDouble);
   }
 
@@ -164,7 +164,7 @@ public final class SpinnerBuilder extends AbstractControlBuilder<Spinner<?>, Spi
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public Spinner<String> value(ChoiceModel<String> model) {
+  public Spinner<String> model(ChoiceModel<String> model) {
     return create(model, Function.identity());
   }
 
@@ -177,7 +177,7 @@ public final class SpinnerBuilder extends AbstractControlBuilder<Spinner<?>, Spi
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} or {@code converter} is {@code null}
    */
-  public <T> Spinner<T> value(ChoiceModel<T> model, Function<String, T> converter) {
+  public <T> Spinner<T> model(ChoiceModel<T> model, Function<String, T> converter) {
     return create(model, converter);
   }
 

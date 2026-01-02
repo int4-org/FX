@@ -128,7 +128,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @see ContinuousView
    * @see IndexedView
    */
-  public Slider value(DoubleModel model) {
+  public Slider model(DoubleModel model) {
     Slider node = build();
 
     node.setMin(0);
@@ -185,7 +185,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
         default -> node.getValue();
       },
       v -> {
-        if(!node.isValueChanging()) {  // Only update from master when not being dragged
+        if(!node.isValueChanging()) {  // Only update from model when not being dragged
           node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
             case ContinuousView<Double> cv -> cv.fractionOf(model.get());
             case IndexedView<Double> iv -> (double)iv.indexOf(model.get()) / (iv.size() - 1);

@@ -113,29 +113,29 @@ public class ModelSampleApplication extends Application {
       Panes.grid("form")
         .row(
           "Trip Type",
-          FX.<String>comboBox().items(tripType)
+          FX.<String>comboBox().model(tripType)
         )
         .row(
           "Departure Date",
-          FX.datePicker().promptText("Departure Date").value(departureDate)
+          FX.datePicker().promptText("Departure Date").model(departureDate)
         )
         .row(
           FX.label().target("return-date").text("_Return Date").visible(returnDate.applicable()),
-          FX.datePicker().id("return-date").promptText("Return Date").value(returnDate)
+          FX.datePicker().id("return-date").promptText("Return Date").model(returnDate)
         )
         .row(
           "Name",
-          FX.textField().promptText("Name").value(name)
+          FX.textField().promptText("Name").model(name)
         )
         .row(
           "Luggage weight",
-          FX.textField().promptText("Weight (in kg)").value(luggageWeight)
+          FX.textField().promptText("Weight (in kg)").model(luggageWeight)
         )
         .row(
           "SMS alerts",
           Panes.hbox().nodes(
-            FX.checkBox().value(smsAlerts),
-            FX.textField().enable(smsAlerts).promptText("Phone number").value(phoneNumber)
+            FX.checkBox().model(smsAlerts),
+            FX.textField().enable(smsAlerts).promptText("Phone number").model(phoneNumber)
           )
         ),
 

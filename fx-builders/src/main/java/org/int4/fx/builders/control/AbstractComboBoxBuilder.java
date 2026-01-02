@@ -86,7 +86,7 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ChoiceModel
    */
-  public final C items(ChoiceModel<T> model) {
+  public final C model(ChoiceModel<T> model) {
     C node = build();
     ObservableList<T> items = node.getItems();
 

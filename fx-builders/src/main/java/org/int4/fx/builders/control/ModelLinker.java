@@ -21,27 +21,27 @@ final class ModelLinker<N extends Node, R, T> {
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
 
-  public static <N extends Node, T> ModelLinker<N, T, T> link(N node, ValueModel<T> master, Supplier<T> getter, Consumer<T> setter) {
-    return new ModelLinker<>(node, master, getter, setter, Function.identity(), r -> Subscription.EMPTY);
+  public static <N extends Node, T> ModelLinker<N, T, T> link(N node, ValueModel<T> model, Supplier<T> getter, Consumer<T> setter) {
+    return new ModelLinker<>(node, model, getter, setter, Function.identity(), r -> Subscription.EMPTY);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> master, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
-    return new ModelLinker<>(node, master, getter, setter, converter, r -> Subscription.EMPTY);
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
+    return new ModelLinker<>(node, model, getter, setter, converter, r -> Subscription.EMPTY);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> master, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
-    return new ModelLinker<>(node, master, getter, setter, converter, trigger);
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
+    return new ModelLinker<>(node, model, getter, setter, converter, trigger);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> master, Property<T> property) {
-    return new ModelLinker<>(node, master, property);
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Property<T> property) {
+    return new ModelLinker<>(node, model, property);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> master, Property<T> property, T nullAlternative) {
-    return new ModelLinker<>(node, master, property, nullAlternative);
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
+    return new ModelLinker<>(node, model, property, nullAlternative);
   }
 
-  private final ConstrainedModel<T, ?> master;
+  private final ConstrainedModel<T, ?> model;
   private final Supplier<R> getter;
   private final Function<R, T> converter;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
@@ -57,7 +57,7 @@ final class ModelLinker<N extends Node, R, T> {
     Function<R, T> converter,
     Function<Runnable, Subscription> trigger
   ) {
-    this.master = Objects.requireNonNull(model, "model");
+    this.model = Objects.requireNonNull(model, "model");
     this.getter = Objects.requireNonNull(getter, "getter");
     this.converter = Objects.requireNonNull(converter, "converter");
 
@@ -173,15 +173,15 @@ final class ModelLinker<N extends Node, R, T> {
     masterSubscription = Subscription.EMPTY;
   }
 
-  ModelLinker(N node, ValueModel<T> master, Property<T> property) {
-    this(node, master, property, null);
+  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
+    this(node, model, property, null);
   }
 
   @SuppressWarnings("unchecked")
-  ModelLinker(N node, ValueModel<T> master, Property<T> property, T nullAlternative) {
+  ModelLinker(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
     this(
       node,
-      master,
+      model,
       () -> (R)property.getValue(),
       v -> property.setValue(v == null ? nullAlternative : v),
       r -> (T)r,
@@ -190,8 +190,8 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   public boolean updateMaster() {
-    if(master.isApplicable()) {
-      return master.trySet(getter.get(), converter);
+    if(model.isApplicable()) {
+      return model.trySet(getter.get(), converter);
     }
 
     return false;
