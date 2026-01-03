@@ -22,7 +22,7 @@ import org.int4.fx.values.domain.Domain;
  *
  * @param <T> the type of values allowed by this model
  */
-public interface ChoiceModel<T> extends ValueModel<T> {
+public interface ChoiceModel<T> extends ObjectModel<T> {
 
   /**
    * Creates a choice model with the supplied values. The first value in the
@@ -74,24 +74,4 @@ public interface ChoiceModel<T> extends ValueModel<T> {
   static <T> ChoiceModel<T> of(T initialValue, Domain<T> domain) {
     return new SimpleChoiceModel<>(initialValue, domain);
   }
-
-  /**
-   * Returns the current value of this model, potentially throwing if invalid.
-   * <p>
-   * If the model is valid and applicable, the stored value is returned.
-   * If the model is valid but not applicable, {@code null} is returned.
-   * If the model is invalid, an {@link InvalidValueException} is thrown.
-   *
-   * @return the current value, may be {@code null} if not applicable
-   * @throws InvalidValueException if the model is invalid
-   */
-  T get();
-
-  /**
-   * Updates the value of this model. The new value must conform to the
-   * model's domain; otherwise, the model will be marked invalid.
-   *
-   * @param newValue the new value, may be {@code null} if allowed by the domain
-   */
-  void set(T newValue);
 }

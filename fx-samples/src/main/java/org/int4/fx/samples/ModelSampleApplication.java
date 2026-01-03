@@ -64,11 +64,11 @@ public class ModelSampleApplication extends Application {
 
     BooleanModel smsAlerts = BooleanModel.of();
     StringModel name = StringModel.regex(".{5,}");
-    StringModel phoneNumber = StringModel.of();
+    StringModel phoneNumber = StringModel.nullable();
     IntegerModel luggageWeight = IntegerModel.nullableRange(0, 100);
     ChoiceModel<String> tripType = ChoiceModel.of("Return", "One Way");
     ObjectModel<LocalDate> departureDate = ObjectModel.of(Domain.of(dd -> dd.getDayOfWeek().getValue() < 6));
-    ObjectModel<LocalDate> returnDate = ObjectModel.ofNullable();
+    ObjectModel<LocalDate> returnDate = ObjectModel.nullable();
 
     /*
      * Create a boolean which is true when it is a return trip that is being booked:

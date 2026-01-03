@@ -26,7 +26,7 @@ import org.int4.fx.values.domain.Domain;
  * name.set("Bob");        // throws InvalidValueException on get(), getValue() returns null
  * }</pre>
  */
-public interface StringModel extends ValueModel<String> {
+public interface StringModel extends ObjectModel<String> {
 
   /**
    * Creates a {@code StringModel} that only accepts strings matching
@@ -41,7 +41,7 @@ public interface StringModel extends ValueModel<String> {
   }
 
   /**
-   * Creates a new {@code StringModel} with no initial value and an unrestricted domain.
+   * Creates a new {@code StringModel} with no initial value and a non-null domain.
    *
    * @return a new string model, never {@code null}
    */
@@ -50,12 +50,31 @@ public interface StringModel extends ValueModel<String> {
   }
 
   /**
-   * Creates a new {@code StringModel} with the given initial value and an unrestricted domain.
+   * Creates a new {@code StringModel} with the given initial value and a non-null domain.
    *
    * @param initialValue the initial value, may be {@code null}
    * @return a new string model, never {@code null}
    */
   static StringModel of(String initialValue) {
+    return of(initialValue, Domain.nonNull());
+  }
+
+  /**
+   * Creates a new {@code StringModel} with no initial value and an unrestricted domain.
+   *
+   * @return a new string model, never {@code null}
+   */
+  static StringModel nullable() {
+    return nullable((String)null);
+  }
+
+  /**
+   * Creates a new {@code StringModel} with the given initial value and an unrestricted domain.
+   *
+   * @param initialValue the initial value, may be {@code null}
+   * @return a new string model, never {@code null}
+   */
+  static StringModel nullable(String initialValue) {
     return of(initialValue, Domain.any());
   }
 
@@ -81,24 +100,4 @@ public interface StringModel extends ValueModel<String> {
   static StringModel of(String initialValue, Domain<String> domain) {
     return new SimpleStringModel(initialValue, domain);
   }
-
-  /**
-   * Returns the current value of this model, potentially throwing if invalid.
-   * <p>
-   * If the model is valid and applicable, the stored value is returned.
-   * If the model is valid but not applicable, {@code null} is returned.
-   * If the model is invalid, an {@link InvalidValueException} is thrown.
-   *
-   * @return the current value, may be {@code null} if not applicable
-   * @throws InvalidValueException if the model is invalid
-   */
-  String get();
-
-  /**
-   * Updates the value of this model. The new value must conform to the
-   * model's domain; otherwise, the model will be marked invalid.
-   *
-   * @param newValue the new value, may be {@code null} if allowed by the domain
-   */
-  void set(String newValue);
 }

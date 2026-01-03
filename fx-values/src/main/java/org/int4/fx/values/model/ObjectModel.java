@@ -31,7 +31,18 @@ public interface ObjectModel<T> extends ValueModel<T> {
    * @return a new object model with a non-null domain, never {@code null}
    */
   static <T> ObjectModel<T> of() {
-    return of(Domain.nonNull());
+    return of(null);
+  }
+
+  /**
+   * Creates a non-null object model with {@code null} as the initial value.
+   *
+   * @param <T> the value type
+   * @param initialValue the initial value, may be {@code null}
+   * @return a new object model with a non-null domain, never {@code null}
+   */
+  static <T> ObjectModel<T> of(T initialValue) {
+    return of(initialValue, Domain.nonNull());
   }
 
   /**
@@ -40,8 +51,19 @@ public interface ObjectModel<T> extends ValueModel<T> {
    * @param <T> the value type
    * @return a new object model with a nullable domain, never {@code null}
    */
-  static <T> ObjectModel<T> ofNullable() {
-    return of(Domain.any());
+  static <T> ObjectModel<T> nullable() {
+    return nullable(null);
+  }
+
+  /**
+   * Creates a nullable object model with {@code null} as the initial value.
+   *
+   * @param <T> the value type
+   * @param initialValue the initial value, may be {@code null}
+   * @return a new object model with a nullable domain, never {@code null}
+   */
+  static <T> ObjectModel<T> nullable(T initialValue) {
+    return of(initialValue, Domain.any());
   }
 
   /**
@@ -53,7 +75,20 @@ public interface ObjectModel<T> extends ValueModel<T> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static <T> ObjectModel<T> of(Domain<T> domain) {
-    return new SimpleObjectModel<>(null, domain);
+    return of(null, domain);
+  }
+
+  /**
+   * Creates an object model with the given initial value and domain.
+   *
+   * @param <T> the value type
+   * @param initialValue the initial value, may be {@code null}
+   * @param domain the domain of allowed values, cannot be {@code null}
+   * @return a new object model with {@code null} as the initial value
+   * @throws NullPointerException if {@code domain} is {@code null}
+   */
+  static <T> ObjectModel<T> of(T initialValue, Domain<T> domain) {
+    return new SimpleObjectModel<>(initialValue, domain);
   }
 
   /**
