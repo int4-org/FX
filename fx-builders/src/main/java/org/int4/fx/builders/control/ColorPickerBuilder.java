@@ -3,7 +3,7 @@ package org.int4.fx.builders.control;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 
-import org.int4.fx.values.model.ObjectModel;
+import org.int4.fx.values.model.ValueModel;
 
 /**
  * Builder for {@link ColorPicker} instances.
@@ -27,7 +27,7 @@ public final class ColorPickerBuilder extends AbstractComboBoxBaseBuilder<Color,
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ColorPicker#valueProperty()
    */
-  public ColorPicker model(ObjectModel<Color> model) {
+  public ColorPicker model(ValueModel<Color> model) {
     ColorPicker node = build();
 
     ModelLinker.link(

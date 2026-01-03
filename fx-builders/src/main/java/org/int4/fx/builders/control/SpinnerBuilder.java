@@ -14,7 +14,6 @@ import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
-import org.int4.fx.values.model.ChoiceModel;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.ValueModel;
@@ -158,26 +157,47 @@ public final class SpinnerBuilder extends AbstractControlBuilder<Spinner<?>, Spi
   }
 
   /**
-   * Binds a spinner to a {@link ChoiceModel} of strings.
+   * Binds a spinner to a {@link ValueModel} and keeps the editor
+   * and spinner values synchronized with the model.
    *
-   * @param model the model to bind to, cannot be {@code null}
+   * <p>The spinner is automatically configured to reflect the model's domain:
+   * <ul>
+   *   <li>If the domain provides a {@link StepperView}, the spinner increments
+   *       using the step logic.</li>
+   *   <li>If the domain provides an {@link IndexedView}, the spinner increments
+   *       through the indexed values.</li>
+   *   <li>If the domain is empty or unsupported, the spinner has no value factory.</li>
+   * </ul>
+   *
+   * @param model the value model to bind to, cannot be {@code null}
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
+   * @see ValueModel
+   * @see IndexedView
+   * @see StepperView
    */
-  public Spinner<String> model(ChoiceModel<String> model) {
+  public Spinner<String> model(ValueModel<String> model) {
     return create(model, Function.identity());
   }
 
   /**
-   * Binds a spinner to a {@link ChoiceModel} using a custom string-to-value converter.
+   * Binds a spinner to a {@link ValueModel} using a custom converter to
+   * translate between editor text and model values.
    *
-   * @param model the model to bind to, cannot be {@code null}
-   * @param converter converts editor text to model values, cannot be {@code null}
+   * <p>The spinner is automatically configured to reflect the model's domain
+   * similarly to {@link #model(ValueModel)}, but uses the provided converter
+   * for value conversion.
+   *
    * @param <T> the value type
+   * @param model the value model to bind to, cannot be {@code null}
+   * @param converter converts editor text to model values, cannot be {@code null}
    * @return the created spinner, never {@code null}
    * @throws NullPointerException if {@code model} or {@code converter} is {@code null}
+   * @see ValueModel
+   * @see IndexedView
+   * @see StepperView
    */
-  public <T> Spinner<T> model(ChoiceModel<T> model, Function<String, T> converter) {
+  public <T> Spinner<T> model(ValueModel<T> model, Function<String, T> converter) {
     return create(model, converter);
   }
 

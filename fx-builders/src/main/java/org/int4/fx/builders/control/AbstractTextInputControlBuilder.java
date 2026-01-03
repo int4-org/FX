@@ -11,7 +11,6 @@ import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
 import org.int4.fx.values.model.ValueModel;
-import org.int4.fx.values.model.StringModel;
 
 /**
  * Base builder for {@link TextInputControl} instances.
@@ -137,7 +136,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(StringModel model) {
+  public final C model(ValueModel<String> model) {
     C node = build();
 
     link(node, model, Function.identity(), Function.identity());

@@ -11,7 +11,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.scene.control.ComboBox;
 
 import org.int4.fx.values.domain.IndexedView;
-import org.int4.fx.values.model.ChoiceModel;
+import org.int4.fx.values.model.ValueModel;
 
 /**
  * Base builder for {@link ComboBox}-based controls.
@@ -79,14 +79,23 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
   }
 
   /**
-   * Populates the items from a {@link ChoiceModel} and keeps selection synchronized.
+   * Populates the items from the model's domain and keeps the control’s selection
+   * synchronized with the model value.
+   * <p>
+   * The model is expected to expose an {@link IndexedView} via its domain; if no
+   * such view is present, the control's items list will be empty.
+   * <p>
+   * In most cases this method is used with a {@link org.int4.fx.values.model.ChoiceModel}, but any
+   * {@link ValueModel} providing an {@link IndexedView} is supported.
    *
-   * @param model the choice model, cannot be {@code null}
+   * @param model the value model backing this control; cannot be {@code null}
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
-   * @see ChoiceModel
+   * @see org.int4.fx.values.model.ChoiceModel
+   * @see ValueModel
+   * @see IndexedView
    */
-  public final C model(ChoiceModel<T> model) {
+  public final C model(ValueModel<T> model) {
     C node = build();
     ObservableList<T> items = node.getItems();
 
