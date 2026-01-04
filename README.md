@@ -166,6 +166,48 @@ Key characteristics:
 * `compute` is a `map` alternative that always invokes the lambda, even if some inputs are `null`.
 * Changes in any source observable automatically propagate.
 
+## The `Trigger` class
+
+`Trigger` is a lightweight utility for decoupling event sources from actions. You can fire a `Trigger` from one node and react to it from one or more others. This allows you to declaratively wire controls together without assigning them to local variables.
+
+Example:
+
+```java
+// Create a trigger accepting an ActionEvent:
+Trigger<ActionEvent> spinUpTrigger = Trigger.of();
+
+// Bind a Button to the trigger:
+FX.button().text("Spin Multiple!").onAction(spinUpTrigger::fire);
+
+// When the trigger fires, do something to a Spinner:
+FX.spinner().apply(sp -> spinUpTrigger.onFire(sp::increment));
+```
+
+Here:
+- Clicking the button fires the `Trigger`.
+- The spinner subscribes to the `Trigger` and increments when fired.
+- You could have multiple subscribers, all reacting to the same trigger.
+- The trigger payload can be anything, but can also be ignored if irrelevant.
+
+This is especially useful for declarative UIs where multiple nodes share a common action, or when you want to avoid creating temporary variables just to wire events.
+
+## The `NodeEventHandler` interface
+
+`NodeEventHandler` is like a standard `EventHandler`, but it passes the control (`Node`) itself as a parameter. This is very handy in declarative UI construction, because you often don't have a variable for the node yet.
+
+Example:
+
+```java
+FX.button().text("Click me")
+    .onAction((btn, event) -> {
+        // btn is the Button itself
+        new Alert(AlertType.INFORMATION, "You clicked " + btn.getText()).showAndWait();
+        btn.setDisable(true); // directly manipulate the node
+    });
+```
+
+You can use it with any event type, just like a normal `EventHandler`, but the extra node reference allows fluent code without local variables.
+
 ## Inline Style Sheets
 
 The `StyleSheets` class provides a simple way to embed CSS directly in your application without using external files. The inline method converts a CSS string into a URL that JavaFX can consume.
