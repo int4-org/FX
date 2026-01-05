@@ -37,6 +37,28 @@ public abstract class AbstractRegionBuilder<T extends Region, B extends Abstract
   }
 
   /**
+   * Sets the minimum width of the resulting region.
+   *
+   * @param w the minimum width
+   * @return the fluent builder, never {@code null}
+   * @see Region#setMinWidth(double)
+   */
+  public final B minWidth(double w) {
+    return apply(c -> c.setMinWidth(w));
+  }
+
+  /**
+   * Sets the minimum height of the resulting region.
+   *
+   * @param h the minimum height
+   * @return the fluent builder, never {@code null}
+   * @see Region#setMinHeight(double)
+   */
+  public final B minHeight(double h) {
+    return apply(c -> c.setMinHeight(h));
+  }
+
+  /**
    * Sets the preferred width and height of the resulting region.
    *
    * @param w the preferred width
@@ -49,6 +71,28 @@ public abstract class AbstractRegionBuilder<T extends Region, B extends Abstract
   }
 
   /**
+   * Sets the preferred width of the resulting region.
+   *
+   * @param w the preferred width
+   * @return the fluent builder, never {@code null}
+   * @see Region#setPrefWidth(double)
+   */
+  public final B prefWidth(double w) {
+    return apply(c -> c.setPrefWidth(w));
+  }
+
+  /**
+   * Sets the preferred height of the resulting region.
+   *
+   * @param h the preferred height
+   * @return the fluent builder, never {@code null}
+   * @see Region#setPrefHeight(double)
+   */
+  public final B prefHeight(double h) {
+    return apply(c -> c.setPrefHeight(h));
+  }
+
+  /**
    * Sets the maximum width and height of the resulting region.
    *
    * @param w the maximum width
@@ -58,5 +102,27 @@ public abstract class AbstractRegionBuilder<T extends Region, B extends Abstract
    */
   public final B maxSize(double w, double h) {
     return apply(c -> c.setMaxSize(w, h));
+  }
+
+  /**
+   * Sets the maximum width of the resulting region.
+   *
+   * @param w the maximum width
+   * @return the fluent builder, never {@code null}
+   * @see Region#setMaxWidth(double)
+   */
+  public final B maxWidth(double w) {
+    return apply(c -> c.setMaxWidth(w));
+  }
+
+  /**
+   * Sets the maximum height of the resulting region.
+   *
+   * @param h the maximum height
+   * @return the fluent builder, never {@code null}
+   * @see Region#setMaxHeight(double)
+   */
+  public final B maxHeight(double h) {
+    return apply(c -> c.setMaxHeight(h));
   }
 }
