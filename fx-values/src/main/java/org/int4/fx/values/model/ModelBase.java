@@ -19,7 +19,7 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   private boolean unconvertable;
 
   ModelBase(Domain<T> domain) {
-    this.domain.set(domain);
+    this.domain.set(Objects.requireNonNull(domain, "domain"));
   }
 
   void init() {

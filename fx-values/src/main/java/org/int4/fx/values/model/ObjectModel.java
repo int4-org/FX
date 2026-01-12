@@ -31,7 +31,7 @@ public interface ObjectModel<T> extends ValueModel<T> {
    * @return a new object model with a non-null domain, never {@code null}
    */
   static <T> ObjectModel<T> of() {
-    return of(null);
+    return of((T)null);
   }
 
   /**
