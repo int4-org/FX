@@ -139,7 +139,7 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
    * @param converter a conversion function producing a model value, cannot be
    *   {@code null}; may throw an exception
    * @return {@code true} if the conversion succeeded and the value was updated,
-   *   otherwise {@code false} if conversion failed
+   *   otherwise {@code false} if conversion failed or value was unchanged
    * @throws NullPointerException if {@code converter} is {@code null}
    */
   <T> boolean trySet(T value, Function<T, M> converter);
