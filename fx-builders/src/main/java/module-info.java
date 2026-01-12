@@ -7,5 +7,6 @@ module org.int4.fx.builders {
   exports org.int4.fx.builders.common;
   exports org.int4.fx.builders.control;
   exports org.int4.fx.builders.pane;
+  exports org.int4.fx.builders.shape;
 }
 
