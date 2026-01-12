@@ -387,6 +387,27 @@ public class AllModelsTest {
     assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
   }
 
+  @ParameterizedTest
+  @ArgumentsSource(Models.class)
+  <M extends ValueModel<T>, T, D extends Domain<T>> void trySetTest(Case<M, T, D> c) {
+    M m = c.creator.apply(c.validInDomain1, c.domain1);
+
+    assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
+    assertThat(m.isValid()).isTrue();
+
+    assertThat(m.trySet(c.validInBoth, v -> { throw new NumberFormatException(); })).isFalse();
+    assertThat(m.isValid()).isFalse();
+
+    assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
+    assertThat(m.isValid()).isTrue();
+
+    assertThat(m.trySet(c.validInDomain1, v -> v)).isTrue();
+    assertThat(m.isValid()).isTrue();
+
+    assertThat(m.trySet(c.validInDomain1, v -> v)).isFalse();
+    assertThat(m.isValid()).isTrue();
+  }
+
   private static <M extends ValueModel<T>, T, D extends Domain<T>> void assertGet(Case<M, T, D> c, M m, T expected) {
     if(c.primitive && expected == null) {
       assertThat(c.isNull(m)).isTrue();

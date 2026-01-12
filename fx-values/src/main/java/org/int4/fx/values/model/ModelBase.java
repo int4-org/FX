@@ -16,6 +16,11 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
   private final ObjectProperty<Domain<T>> domain = new SimpleObjectProperty<>();
 
+  /**
+   * Indicates that the current raw value isn't correct, as it was unconvertable
+   * to a domain value. Comparisons with the raw value should therefore always
+   * be considered false if this flag is true.
+   */
   private boolean unconvertable;
 
   ModelBase(Domain<T> domain) {
@@ -62,10 +67,16 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   @Override
   public <U> boolean trySet(U value, Function<U, T> converter) {
     try {
-      T raw = getRawValue();
       T convertedValue = converter.apply(value);
+      T raw = getRawValue();
 
-      if(!Objects.equals(raw, convertedValue)) {
+      /*
+       * If previously unconvertable, it means the raw value is actually not
+       * correctly representing the previous state, and therefore it should
+       * be considered always different from the new converted value:
+       */
+
+      if(unconvertable || !Objects.equals(raw, convertedValue)) {
         setValue(convertedValue);
 
         return true;
