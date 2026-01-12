@@ -275,6 +275,17 @@ public class DomainTest {
   }
 
   @Test
+  void validateDoubleBoundedDomainAccuracy() {
+    Domain<Double> domain = Domain.bounded(0, 100, 0.1);
+
+    IndexedView<Double> view = domain.requireView(IndexedView.class);
+
+    for(int i = 0; i < 1000; i++) {
+      assertThat(view.get(i).toString()).isEqualTo(i / 10 + "." + i % 10);
+    }
+  }
+
+  @Test
   void validateContinuousDomain() {
     assertThatThrownBy(() -> Domain.continuous(0.0, -1.0))
       .isInstanceOf(IllegalArgumentException.class)

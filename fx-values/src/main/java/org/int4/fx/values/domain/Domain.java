@@ -345,7 +345,7 @@ public sealed interface Domain<T> permits DomainImpl {
         public Double get(long index) {
           Objects.checkIndex(index, size());
 
-          return min + index * step;
+          return normalizer.apply(min + index * step);
         }
 
         @Override
