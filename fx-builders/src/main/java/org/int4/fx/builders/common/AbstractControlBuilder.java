@@ -15,7 +15,7 @@ public abstract class AbstractControlBuilder<T extends Control, B extends Abstra
   private final Supplier<T> instantiator;
 
   /**
-   * Creates a new region builder, initializing the resulting region with
+   * Creates a new control builder, initializing the resulting control with
    * the given style classes.
    *
    * @param instantiator the control instantiator, cannot be {@code null}
