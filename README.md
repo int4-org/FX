@@ -283,9 +283,9 @@ smsAlerts.map(v -> v ? Domain.regex("[0-9]{5,}") : Domain.<String>any())
     .subscribe(phoneNumber.domainProperty()::setValue);
 
 /*
-  * The phone number must be provided and valid only when SMS alerts are requested.
-  * Let's set up a conditional for this here:
-  */
+ * The phone number must be provided and valid only when SMS alerts are requested.
+ * Let's set up a conditional for this here:
+ */
 
 ObservableValue<Boolean> phoneNumberValid = Observe.booleans(
     smsAlerts,
