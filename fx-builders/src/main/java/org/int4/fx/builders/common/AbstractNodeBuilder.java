@@ -10,10 +10,6 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 
-// General guidelines for the builders:
-// - noun methods result in a builder, possibly a nested one
-// - verb methods result in a parent builder or the final product
-
 /**
  * Base class for fluent builders that configure JavaFX {@link Node} instances.
  * <p>
