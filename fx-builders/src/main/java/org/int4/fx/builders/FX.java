@@ -97,6 +97,7 @@ public class FX {
    * Creates a builder for a {@link javafx.scene.control.ComboBox}, initialising
    * it with the given style classes.
    *
+   * @param <T> the type of values in the combo box
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
    */
