@@ -5,13 +5,12 @@ import java.util.Objects;
 import javafx.scene.layout.BorderPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 import org.int4.fx.builders.internal.Builders;
 
 /**
  * Builder for {@link BorderPane} instances.
  */
-public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, BorderPaneBuilder> implements NodeBuilder {
+public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, BorderPaneBuilder> {
 
   /**
    * Creates a new builder with optional style classes.

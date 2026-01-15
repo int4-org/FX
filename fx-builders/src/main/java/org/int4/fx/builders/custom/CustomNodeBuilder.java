@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 import javafx.scene.Node;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for custom {@link Node} instances created via a supplied factory.
@@ -16,7 +15,7 @@ import org.int4.fx.builders.common.NodeBuilder;
  *
  * @param <N> the concrete {@link Node} type
  */
-public class CustomNodeBuilder<N extends Node> extends AbstractNodeBuilder<N, CustomNodeBuilder<N>> implements NodeBuilder {
+public class CustomNodeBuilder<N extends Node> extends AbstractNodeBuilder<N, CustomNodeBuilder<N>> {
   private final Supplier<N> nodeSupplier;
 
   /**

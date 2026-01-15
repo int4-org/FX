@@ -32,4 +32,9 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
   public StackPane nodes(Object... nodes) {
     return initialize(new StackPane(Builders.toNodes(nodes)));
   }
+
+  @Override
+  public StackPane build() {
+    return initialize(new StackPane());
+  }
 }

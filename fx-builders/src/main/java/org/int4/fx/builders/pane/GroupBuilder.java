@@ -32,4 +32,9 @@ public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder>
   public Group nodes(Object... nodes) {
     return initialize(new Group(Builders.toNodes(nodes)));
   }
+
+  @Override
+  public Group build() {
+    return initialize(new Group());
+  }
 }

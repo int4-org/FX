@@ -32,4 +32,9 @@ public final class VBoxBuilder extends AbstractRegionBuilder<VBox, VBoxBuilder> 
   public VBox nodes(Object... nodes) {
     return initialize(new VBox(Builders.toNodes(nodes)));
   }
+
+  @Override
+  public VBox build() {
+    return initialize(new VBox());
+  }
 }

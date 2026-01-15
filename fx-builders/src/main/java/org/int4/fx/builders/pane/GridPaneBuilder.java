@@ -7,14 +7,13 @@ import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 import org.int4.fx.builders.internal.Builders;
 import org.int4.fx.builders.internal.VisibilityProxy;
 
 /**
  * Builder for {@link GridPane} instances.
  */
-public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridPaneBuilder> implements NodeBuilder {
+public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridPaneBuilder> {
   private int rowIndex;
 
   /**

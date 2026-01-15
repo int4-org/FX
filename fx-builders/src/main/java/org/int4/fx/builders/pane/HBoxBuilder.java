@@ -32,4 +32,9 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
   public HBox nodes(Object... nodes) {
     return initialize(new HBox(Builders.toNodes(nodes)));
   }
+
+  @Override
+  public HBox build() {
+    return initialize(new HBox());
+  }
 }

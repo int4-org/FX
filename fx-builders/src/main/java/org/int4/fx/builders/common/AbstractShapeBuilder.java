@@ -15,7 +15,7 @@ import javafx.scene.shape.StrokeType;
  * @param <T> the concrete {@link Shape} type being built
  * @param <B> the concrete builder type (self type)
  */
-public abstract class AbstractShapeBuilder<T extends Shape, B extends AbstractShapeBuilder<T, B>> extends AbstractNodeBuilder<T, B> implements NodeBuilder {
+public abstract class AbstractShapeBuilder<T extends Shape, B extends AbstractShapeBuilder<T, B>> extends AbstractNodeBuilder<T, B> {
   private final Supplier<T> instantiator;
 
   /**

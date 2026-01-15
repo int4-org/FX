@@ -11,7 +11,7 @@ import javafx.scene.control.Control;
  * @param <T> the concrete {@link Control} type being built
  * @param <B> the concrete builder type (self type)
  */
-public abstract class AbstractControlBuilder<T extends Control, B extends AbstractControlBuilder<T, B>> extends AbstractRegionBuilder<T, B> implements NodeBuilder {
+public abstract class AbstractControlBuilder<T extends Control, B extends AbstractControlBuilder<T, B>> extends AbstractRegionBuilder<T, B> {
   private final Supplier<T> instantiator;
 
   /**

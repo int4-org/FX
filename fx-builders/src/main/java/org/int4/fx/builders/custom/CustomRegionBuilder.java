@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 import javafx.scene.layout.Region;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for custom {@link Region} instances created via a supplied factory.
@@ -16,7 +15,7 @@ import org.int4.fx.builders.common.NodeBuilder;
  *
  * @param <C> the concrete {@link Region} type
  */
-public class CustomRegionBuilder<C extends Region> extends AbstractRegionBuilder<C, CustomRegionBuilder<C>> implements NodeBuilder {
+public class CustomRegionBuilder<C extends Region> extends AbstractRegionBuilder<C, CustomRegionBuilder<C>> {
   private final Supplier<C> regionSupplier;
 
   /**
