@@ -548,4 +548,6 @@ public class Observe {
       }
     };
   }
+
+  private Observe() {}
 }

@@ -83,4 +83,6 @@ public class Panes {
   public static GroupBuilder group(String... styleClasses) {
     return new GroupBuilder(styleClasses);
   }
+
+  private Panes() {}
 }

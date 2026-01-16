@@ -169,4 +169,6 @@ public class Shapes {
   public static TextBuilder text(String... styleClasses) {
     return new TextBuilder(styleClasses);
   }
+
+  private Shapes() {}
 }

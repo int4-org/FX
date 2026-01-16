@@ -93,4 +93,6 @@ public class Scenes {
       listener.showStatusChanged(showing);
     }
   }
+
+  private Scenes() {}
 }

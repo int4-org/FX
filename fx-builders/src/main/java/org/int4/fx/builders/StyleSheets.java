@@ -26,4 +26,6 @@ public class StyleSheets {
 
     return builder.toString();
   }
+
+  private StyleSheets() {}
 }

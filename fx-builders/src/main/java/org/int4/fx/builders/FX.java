@@ -257,4 +257,6 @@ public class FX {
   public static <N extends Node> CustomNodeBuilder<N> customNode(Supplier<N> nodeSupplier, String... styleClasses) {
     return new CustomNodeBuilder<>(nodeSupplier, styleClasses);
   }
+
+  private FX() {}
 }

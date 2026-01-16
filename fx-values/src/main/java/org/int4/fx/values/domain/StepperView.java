@@ -6,7 +6,7 @@ package org.int4.fx.values.domain;
  * The {@link #step(Object, int)} method produces a value that is valid in
  * the domain, moving forward or backward by a specified number of steps.
  *
- * <h3>Stepping behavior:</h3>
+ * <h2>Stepping behavior:</h2>
  * <ul>
  *   <li>If {@code steps == 0}, the input value is returned unaltered, even if invalid.</li>
  *   <li>If {@code steps != 0} and the input value is invalid, it is first

@@ -23,6 +23,12 @@ public abstract class AbstractOptionBuilder<T, B extends AbstractOptionBuilder<T
   private final List<Consumer<? super T>> options = new ArrayList<>();
 
   /**
+   * Constructs a new instance.
+   */
+  protected AbstractOptionBuilder() {
+  }
+
+  /**
    * Returns this builder cast to its concrete self type.
    * <p>
    * This method supports fluent APIs without requiring casts in subclasses.
