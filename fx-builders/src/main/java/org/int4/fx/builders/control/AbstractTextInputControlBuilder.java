@@ -12,6 +12,7 @@ import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
+import org.int4.fx.values.model.StringModel;
 import org.int4.fx.values.model.ValueModel;
 
 /**
@@ -139,7 +140,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * @return the created control, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(ValueModel<String> model) {
+  public final C model(StringModel model) {
     C node = build();
 
     link(node, model, Function.identity(), Function.identity());
@@ -148,18 +149,38 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   private <T> void link(C node, ValueModel<T> model, Function<T, String> printer, Function<String, T> parser) {
-
-    /*
-     * As null is not representable in a text control, all nulls are translated to empty strings when displaying
-     * and blank strings are translated to null when updating the model.
-     */
-
     ModelLinker.link(
       node,
       model,
       () -> node.getText(),
       v -> node.setText(v == null ? "" : printer.apply(v)),
-      r -> r == null || r.isBlank() ? null : parser.apply(r),
+      r -> {
+
+        /*
+         * The suppplied parser will:
+         * - Return a parsed value if it was parseable
+         * - Return null if it was unparseable but input was blank
+         * - Throw an exception if it was unparseable and input was not blank
+         */
+
+        T modelValue = parser.apply(r);  // if parsing throws exception, model is marked invalid via trySet
+
+        /*
+         * Special exception for blank strings. If the domain does NOT accept the current blank string,
+         * but it does accept null, then it is coerced to null:
+         */
+
+        if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
+          @SuppressWarnings("unchecked")
+          T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
+
+          if(!model.getDomain().contains(cast)) {
+            return null;
+          }
+        }
+
+        return modelValue;
+      },
       r -> node.textProperty().subscribe((ov, nv) -> r.run())
     );
   }

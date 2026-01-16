@@ -9,6 +9,8 @@ import java.util.function.Supplier;
 
 import javafx.beans.property.Property;
 import javafx.css.PseudoClass;
+import javafx.event.Event;
+import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.util.Subscription;
 
@@ -18,8 +20,11 @@ import org.int4.fx.values.model.ConstrainedModel;
 import org.int4.fx.values.model.ValueModel;
 
 final class ModelLinker<N extends Node, R, T> {
+  public static boolean RESPOND_TO_TEST_FOCUS_EVENT;
+
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
+  private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
   public static <N extends Node, T> ModelLinker<N, T, T> link(N node, ValueModel<T> model, Supplier<T> getter, Consumer<T> setter) {
     return new ModelLinker<>(node, model, getter, setter, Function.identity(), r -> Subscription.EMPTY);
@@ -41,13 +46,47 @@ final class ModelLinker<N extends Node, R, T> {
     return new ModelLinker<>(node, model, property, nullAlternative);
   }
 
+  static class TestFocusEvent extends Event {
+    public static final EventType<TestFocusEvent> MODIFY = new EventType<>(EventType.ROOT, "modify");
+
+    final boolean focused;
+
+    public TestFocusEvent(boolean focused) {
+      super(MODIFY);
+
+      this.focused = focused;
+    }
+  }
+
+  private final N node;
   private final ConstrainedModel<T, ?> model;
   private final Supplier<R> getter;
+  private final Consumer<T> setter;
   private final Function<R, T> converter;
+  private final Function<Runnable, Subscription> trigger;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
 
   private Subscription subscription = Subscription.EMPTY;
   private Subscription masterSubscription = Subscription.EMPTY;
+
+  private boolean modelInitiatedChange;
+  private boolean controlInitiatedChange;
+
+  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
+    this(node, model, property, null);
+  }
+
+  @SuppressWarnings("unchecked")
+  ModelLinker(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
+    this(
+      node,
+      model,
+      () -> (R)property.getValue(),
+      v -> property.setValue(v == null ? nullAlternative : v),
+      r -> (T)r,
+      r -> property.subscribe((ov, nv) -> r.run())
+    );
+  }
 
   ModelLinker(
     N node,
@@ -57,13 +96,12 @@ final class ModelLinker<N extends Node, R, T> {
     Function<R, T> converter,
     Function<Runnable, Subscription> trigger
   ) {
+    this.node = Objects.requireNonNull(node, "node");
     this.model = Objects.requireNonNull(model, "model");
     this.getter = Objects.requireNonNull(getter, "getter");
+    this.setter = Objects.requireNonNull(setter, "setter");
     this.converter = Objects.requireNonNull(converter, "converter");
-
-    Objects.requireNonNull(node, "node");
-    Objects.requireNonNull(setter, "setter");
-    Objects.requireNonNull(trigger, "trigger");
+    this.trigger = Objects.requireNonNull(trigger, "trigger");
 
     addSubscriber(() -> {
       node.visibleProperty().bind(model.applicable());
@@ -75,30 +113,7 @@ final class ModelLinker<N extends Node, R, T> {
       };
     });
 
-    addSubscriber(() -> model.applicable()
-      .subscribe(applicable -> {
-        if(applicable) {
-          masterSubscription = Subscription.combine(
-            model.subscribe(v -> setter.accept(model.getRawValue())),
-            model.valid().subscribe(v -> node.pseudoClassStateChanged(INVALID, !v)),
-            trigger.apply(() -> {
-              if(updateMaster()) {
-                node.pseudoClassStateChanged(TOUCHED, true);
-              }
-            }),
-            node.focusedProperty().subscribe((ov, focused) -> {
-              if(!focused && updateMaster()) {
-                node.pseudoClassStateChanged(TOUCHED, true);
-              }
-            })
-          );
-        }
-        else {
-          masterSubscription.unsubscribe();
-          masterSubscription = Subscription.EMPTY;
-        }
-      })
-    );
+    addSubscriber(() -> model.applicable().subscribe(this::monitorModelWhenApplicable));
 
     /*
      * The scene property which is local to the Node is bound to determine when
@@ -113,7 +128,7 @@ final class ModelLinker<N extends Node, R, T> {
 
     node.sceneProperty().subscribe(v -> {
       if(v == null) {
-        unbind();
+        terminateAllSubscriptions();
       }
       else {
         if(v.hasProperties() && v.getProperties().containsKey(ShowingStateListener.SHOW_STATE_MANAGING_SCENE)) {
@@ -132,12 +147,16 @@ final class ModelLinker<N extends Node, R, T> {
            * the node is assigned a scene:
            */
 
-          bind();
+          activateAllSubscriptions();
         }
       }
     });
 
-    node.addEventHandler(CommitEvent.COMMIT, e -> updateMaster());
+    node.addEventHandler(CommitEvent.COMMIT, e -> updateModel());
+
+    if(RESPOND_TO_TEST_FOCUS_EVENT) {
+      node.addEventHandler(TestFocusEvent.MODIFY, e -> focusChanged(e.focused));
+    }
   }
 
   public Subscription addSubscriber(Supplier<Subscription> subscriber) {
@@ -146,16 +165,68 @@ final class ModelLinker<N extends Node, R, T> {
     return () -> subscribers.remove(subscriber);
   }
 
-  private void bind(boolean showing) {
-    if(showing) {
-      bind();
+  private void monitorModelWhenApplicable(boolean applicable) {
+    if(applicable) {
+      masterSubscription = Subscription.combine(
+        model.subscribe(v -> {
+          if(!controlInitiatedChange) {
+            doModelInitiatedChange(() -> setter.accept(model.getRawValue()));
+          }
+        }),
+        model.valid().subscribe(v -> {
+          node.pseudoClassStateChanged(INVALID, !v);
+
+          // It is possible model became valid due to an external action, update field:
+          if(model.isValid()) {
+            doModelInitiatedChange(() -> setter.accept(model.getValue()));
+          }
+        }),
+        trigger.apply(() -> {
+          if(!modelInitiatedChange) {
+            doControlInitiatedChange(this::updateModel);
+
+            node.pseudoClassStateChanged(TOUCHED, true);
+            node.pseudoClassStateChanged(DIRTY, true);
+          }
+        }),
+        node.focusedProperty().subscribe((ov, focused) -> focusChanged(focused))
+      );
     }
     else {
-      unbind();
+      masterSubscription.unsubscribe();
+      masterSubscription = Subscription.EMPTY;
     }
   }
 
-  private void bind() {
+  private void focusChanged(boolean focused) {
+    if(!focused) {
+      if(node.getPseudoClassStates().contains(DIRTY)) {
+        updateModel();
+
+        /*
+         * On focus loss, also correct the value to be in the standard format
+         * for controls that use converters, if the model is valid:
+         */
+
+        if(model.isValid()) {
+          setter.accept(model.getValue());
+        }
+
+        node.pseudoClassStateChanged(DIRTY, false);
+      }
+    }
+  }
+
+  private void bind(boolean showing) {
+    if(showing) {
+      activateAllSubscriptions();
+    }
+    else {
+      terminateAllSubscriptions();
+    }
+  }
+
+  private void activateAllSubscriptions() {
     List<Subscription> subscriptions = new ArrayList<>();
 
     for(Supplier<Subscription> supplier : subscribers) {
@@ -165,7 +236,7 @@ final class ModelLinker<N extends Node, R, T> {
     subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
   }
 
-  private void unbind() {
+  private void terminateAllSubscriptions() {
     subscription.unsubscribe();
     subscription = Subscription.EMPTY;
 
@@ -173,27 +244,31 @@ final class ModelLinker<N extends Node, R, T> {
     masterSubscription = Subscription.EMPTY;
   }
 
-  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
-    this(node, model, property, null);
+  public boolean updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
+    return model.trySet(getter.get(), converter);
   }
 
-  @SuppressWarnings("unchecked")
-  ModelLinker(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
-    this(
-      node,
-      model,
-      () -> (R)property.getValue(),
-      v -> property.setValue(v == null ? nullAlternative : v),
-      r -> (T)r,
-      r -> property.subscribe((ov, nv) -> r.run())
-    );
-  }
+  private void doModelInitiatedChange(Runnable r) {
+    if(!node.getPseudoClassStates().contains(DIRTY)) {
+      modelInitiatedChange = true;
 
-  public boolean updateMaster() {
-    if(model.isApplicable()) {
-      return model.trySet(getter.get(), converter);
+      try {
+        r.run();
+      }
+      finally {
+        modelInitiatedChange = false;
+      }
     }
+  }
 
-    return false;
+  private void doControlInitiatedChange(Runnable r) {
+    controlInitiatedChange = true;
+
+    try {
+      r.run();
+    }
+    finally {
+      controlInitiatedChange = false;
+    }
   }
 }

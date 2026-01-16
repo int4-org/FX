@@ -6,9 +6,10 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -17,6 +18,7 @@ jobs:
           server-id: sonatype-nexus-staging
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
+
       - name: Add mirror
         run: |
           sed -i 's|</settings>|  <mirrors>\
@@ -26,14 +28,22 @@ jobs:
               <url>https://repo1.maven.org/maven2/</url>\
             </mirror>\
           </mirrors></settings>|' ~/.m2/settings.xml
+
       - name: Install GPG secret key
         run: |
           cat <(echo -e "${{ secrets.OSSRH_GPG_SECRET_KEY }}") | gpg --batch --import
           gpg --list-secret-keys --keyid-format LONG
+
+      # Install Xvfb and necessary Gtk/X11 dependencies for xvfb
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0t64 libgbm-dev libasound2t64
+
       - name: Publish package
         run: |
           mvn -B versions:set -DnewVersion=${GITHUB_REF##*/}
-          mvn -B -Prelease-sign-artifacts -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} package javadoc:aggregate-jar deploy
+          xvfb-run --auto-servernum mvn -B -Prelease-sign-artifacts -Dgpg.passphrase=${{ secrets.OSSRH_GPG_SECRET_KEY_PASSWORD }} package javadoc:aggregate-jar deploy
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USER }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_PASS }}

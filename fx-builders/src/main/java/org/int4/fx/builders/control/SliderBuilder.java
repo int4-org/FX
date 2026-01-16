@@ -1,15 +1,18 @@
 package org.int4.fx.builders.control;
 
-import java.text.DecimalFormat;
+import java.util.function.Function;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.control.Slider;
-import javafx.util.StringConverter;
+import javafx.util.Subscription;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.domain.ContinuousView;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.DoubleModel;
+import org.int4.fx.values.model.IntegerModel;
+import org.int4.fx.values.model.LongModel;
+import org.int4.fx.values.model.ValueModel;
 
 /**
  * Builder for {@link Slider} instances.
@@ -129,44 +132,56 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @see IndexedView
    */
   public Slider model(DoubleModel model) {
+    return model(model, Function.identity());
+  }
+
+  /**
+   * Binds the slider to a {@link IntegerModel}, interpreting the model domain
+   * through supported {@link ContinuousView} or {@link IndexedView} instances.
+   * <p>
+   * The slider itself operates on a normalized {@code [0,1]} range, while
+   * tick marks, labels, and value conversions are derived from the domain views.
+   *
+   * @param model the model to bind to, cannot be {@code null}
+   * @return the created slider, never {@code null}
+   * @throws NullPointerException if {@code model} is {@code null}
+   * @see ContinuousView
+   * @see IndexedView
+   */
+  public Slider model(IntegerModel model) {
+    return model(model, Double::intValue);
+  }
+
+  /**
+   * Binds the slider to a {@link LongModel}, interpreting the model domain
+   * through supported {@link ContinuousView} or {@link IndexedView} instances.
+   * <p>
+   * The slider itself operates on a normalized {@code [0,1]} range, while
+   * tick marks, labels, and value conversions are derived from the domain views.
+   *
+   * @param model the model to bind to, cannot be {@code null}
+   * @return the created slider, never {@code null}
+   * @throws NullPointerException if {@code model} is {@code null}
+   * @see ContinuousView
+   * @see IndexedView
+   */
+  public Slider model(LongModel model) {
+    return model(model, Double::longValue);
+  }
+
+  private <T extends Number> Slider model(ValueModel<T> model, Function<Double, T> toModel) {
     Slider node = build();
-
-    node.setMin(0);
-    node.setMax(1);
-
-    double majorTickUnit = node.getMajorTickUnit();
-
-    ModelLinker<Slider, Double, Double> link = link(model, node);
+    ModelLinker<Slider, T, T> link = link(model, node, toModel);
 
     link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
       switch(d.view(ContinuousView.class, IndexedView.class)) {
-        case ContinuousView<Double> cv -> {
-          node.setMajorTickUnit(cv.fractionOf(majorTickUnit));
-          node.setLabelFormatter(new StringConverter<>() {
-            @Override
-            public String toString(Double v) {
-              return new DecimalFormat().format(cv.get(v));
-            }
-
-            @Override
-            public Double fromString(String s) {
-              return null;
-            }
-          });
+        case ContinuousView<T> cv -> {
+          node.setMin(cv.get(0).doubleValue());
+          node.setMax(cv.get(1).doubleValue());
         }
-        case IndexedView<Double> iv -> {
-          node.setMajorTickUnit(majorTickUnit / (iv.get(iv.size() - 1) - iv.get(0)));
-          node.setLabelFormatter(new StringConverter<>() {
-            @Override
-            public String toString(Double v) {
-              return new DecimalFormat().format(iv.get((int)(v * (iv.size() - 1))));
-            }
-
-            @Override
-            public Double fromString(String s) {
-              return null;
-            }
-          });
+        case IndexedView<T> iv -> {
+          node.setMin(0);
+          node.setMax(iv.size() - 1);
         }
         default -> {}
       }
@@ -175,26 +190,33 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     return node;
   }
 
-  private static ModelLinker<Slider, Double, Double> link(DoubleModel model, Slider node) {
+  private static <T extends Number> ModelLinker<Slider, T, T> link(ValueModel<T> model, Slider node, Function<Double, T> toModel) {
     return ModelLinker.link(
       node,
       model,
       () -> switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-        case ContinuousView<Double> cv -> cv.get(node.getValue());
-        case IndexedView<Double> iv -> iv.get((int)(Math.round((iv.size() - 1) * node.getValue())));
-        default -> node.getValue();
+        case ContinuousView<T> cv -> toModel.apply(node.getValue());
+        case IndexedView<T> iv -> iv.get(Math.round(node.getValue()));
+        default -> null;
       },
-      v -> {
-        if(!node.isValueChanging()) {  // Only update from model when not being dragged
-          node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-            case ContinuousView<Double> cv -> cv.fractionOf(model.get());
-            case IndexedView<Double> iv -> (double)iv.indexOf(model.get()) / (iv.size() - 1);
-            default -> model.get();
-          });
-        }
-      },
+      v -> updateSlider(model, node),
       v -> v,
-      r -> node.valueProperty().subscribe((ov, nv) -> r.run())
+      r -> Subscription.combine(
+        node.valueProperty().subscribe((ov, nv) -> r.run()),
+        node.valueChangingProperty().subscribe((ov, nv) -> {
+          if(!nv) {  // when dragging stops, normalize value via model
+            updateSlider(model, node);
+          }
+        })
+      )
     );
+  }
+
+  private static <T extends Number> void updateSlider(ValueModel<T> model, Slider node) {
+    node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+      case ContinuousView<T> cv -> model.getValue().doubleValue();
+      case IndexedView<T> iv -> iv.indexOf(model.getValue());
+      default -> model.getValue().doubleValue();
+    });
   }
 }
