@@ -7,7 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Labeled;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Base builder for {@link Labeled} controls.
@@ -71,6 +71,6 @@ public abstract class AbstractLabeledBuilder<C extends Labeled, B extends Abstra
   public final B graphic(Object graphic) {
     Objects.requireNonNull(graphic, "graphic");
 
-    return apply(c -> c.setGraphic(Builders.toNode(graphic)));
+    return apply(c -> c.setGraphic(NodeBuilder.toNode(graphic)));
   }
 }

@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.control.TitledPane;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link TitledPane} instances.
@@ -44,7 +44,7 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
   public TitledPaneBuilder graphic(Object graphic) {
     Objects.requireNonNull(graphic, "graphic");
 
-    return apply(c -> c.setGraphic(Builders.toNode(graphic)));
+    return apply(c -> c.setGraphic(NodeBuilder.toNode(graphic)));
   }
 
   /**
@@ -68,7 +68,7 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
   public TitledPane content(Object content) {
     TitledPane node = build();
 
-    node.setContent(Builders.toNode(content));
+    node.setContent(NodeBuilder.toNode(content));
 
     return node;
   }

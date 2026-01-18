@@ -8,7 +8,6 @@ import javafx.scene.Scene;
 import javafx.stage.Window;
 
 import org.int4.fx.builders.common.NodeBuilder;
-import org.int4.fx.builders.internal.Builders;
 import org.int4.fx.builders.internal.ShowingStateListener;
 
 /**
@@ -35,7 +34,7 @@ public class Scenes {
    * @throws NullPointerException when any argument is {@code null}
    */
   public static Scene create(Object root) {
-    if(Builders.toNode(Objects.requireNonNull(root, "root")) instanceof Parent p) {
+    if(NodeBuilder.toNode(Objects.requireNonNull(root, "root")) instanceof Parent p) {
       Scene scene = new Scene(p);
 
       /*

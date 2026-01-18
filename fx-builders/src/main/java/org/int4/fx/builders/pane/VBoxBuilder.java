@@ -3,7 +3,7 @@ package org.int4.fx.builders.pane;
 import javafx.scene.layout.VBox;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link VBox} instances.
@@ -30,7 +30,7 @@ public final class VBoxBuilder extends AbstractRegionBuilder<VBox, VBoxBuilder> 
    * @see VBox#getChildren()
    */
   public VBox nodes(Object... nodes) {
-    return initialize(new VBox(Builders.toNodes(nodes)));
+    return initialize(new VBox(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

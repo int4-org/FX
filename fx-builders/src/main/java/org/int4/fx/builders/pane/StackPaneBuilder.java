@@ -3,7 +3,7 @@ package org.int4.fx.builders.pane;
 import javafx.scene.layout.StackPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link StackPane} instances.
@@ -30,7 +30,7 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
    * @see StackPane#getChildren()
    */
   public StackPane nodes(Object... nodes) {
-    return initialize(new StackPane(Builders.toNodes(nodes)));
+    return initialize(new StackPane(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

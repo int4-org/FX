@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.layout.BorderPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link BorderPane} instances.
@@ -33,7 +33,7 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   public BorderPaneBuilder left(Object node) {
     Objects.requireNonNull(node, "node");
 
-    return apply(c -> c.setLeft(Builders.toNode(node)));
+    return apply(c -> c.setLeft(NodeBuilder.toNode(node)));
   }
 
   /**
@@ -47,7 +47,7 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   public BorderPaneBuilder right(Object node) {
     Objects.requireNonNull(node, "node");
 
-    return apply(c -> c.setRight(Builders.toNode(node)));
+    return apply(c -> c.setRight(NodeBuilder.toNode(node)));
   }
 
   /**
@@ -61,7 +61,7 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   public BorderPaneBuilder top(Object node) {
     Objects.requireNonNull(node, "node");
 
-    return apply(c -> c.setTop(Builders.toNode(node)));
+    return apply(c -> c.setTop(NodeBuilder.toNode(node)));
   }
 
   /**
@@ -75,7 +75,7 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   public BorderPaneBuilder bottom(Object node) {
     Objects.requireNonNull(node, "node");
 
-    return apply(c -> c.setBottom(Builders.toNode(node)));
+    return apply(c -> c.setBottom(NodeBuilder.toNode(node)));
   }
 
   /**
@@ -89,7 +89,7 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   public BorderPaneBuilder center(Object node) {
     Objects.requireNonNull(node, "node");
 
-    return apply(c -> c.setCenter(Builders.toNode(node)));
+    return apply(c -> c.setCenter(NodeBuilder.toNode(node)));
   }
 
   @Override

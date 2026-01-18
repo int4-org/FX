@@ -7,7 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 import org.int4.fx.builders.internal.VisibilityProxy;
 
 /**
@@ -48,7 +48,7 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
   public GridPaneBuilder row(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(gp -> gp.addRow(rowIndex++, Builders.toNodes(nodes)));
+    return apply(gp -> gp.addRow(rowIndex++, NodeBuilder.toNodes(nodes)));
   }
 
   /**
@@ -64,7 +64,7 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
     Objects.requireNonNull(nodes, "nodes");
 
     return apply(gp -> {
-      Node[] finalNodes = Builders.toNodes(nodes);
+      Node[] finalNodes = NodeBuilder.toNodes(nodes);
 
       for(int i = 0; i < finalNodes.length; i++) {
         // TODO a Group wrapper is not fully transparent to say CSS descendant selector, and perhaps min/max sizes

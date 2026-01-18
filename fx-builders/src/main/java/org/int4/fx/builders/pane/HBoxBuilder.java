@@ -3,7 +3,7 @@ package org.int4.fx.builders.pane;
 import javafx.scene.layout.HBox;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link HBox} instances.
@@ -30,7 +30,7 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
    * @see HBox#getChildren()
    */
   public HBox nodes(Object... nodes) {
-    return initialize(new HBox(Builders.toNodes(nodes)));
+    return initialize(new HBox(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

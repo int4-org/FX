@@ -3,7 +3,7 @@ package org.int4.fx.builders.pane;
 import javafx.scene.Group;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link Group} instances.
@@ -30,7 +30,7 @@ public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder>
    * @see Group#getChildren()
    */
   public Group nodes(Object... nodes) {
-    return initialize(new Group(Builders.toNodes(nodes)));
+    return initialize(new Group(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

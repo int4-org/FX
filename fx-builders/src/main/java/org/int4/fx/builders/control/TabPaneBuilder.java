@@ -7,7 +7,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.internal.Builders;
+import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link TabPane} instances.
@@ -51,7 +51,7 @@ public final class TabPaneBuilder extends AbstractControlBuilder<TabPane, TabPan
   public TabPaneBuilder add(String title, Object content) {
     Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.getTabs().add(new Tab(title, Builders.toNode(content))));
+    return apply(c -> c.getTabs().add(new Tab(title, NodeBuilder.toNode(content))));
   }
 
   /**
