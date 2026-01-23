@@ -17,11 +17,11 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   private final ObjectProperty<Domain<T>> domain = new SimpleObjectProperty<>();
 
   /**
-   * Indicates that the current raw value isn't correct, as it was unconvertable
+   * Indicates that the current raw value isn't correct, as it was unconvertible
    * to a domain value. Comparisons with the raw value should therefore always
    * be considered false if this flag is true.
    */
-  private boolean unconvertable;
+  private boolean unconvertible;
 
   ModelBase(Domain<T> domain) {
     this.domain.set(Objects.requireNonNull(domain, "domain"));
@@ -39,7 +39,7 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
       applicable.set(v.isNotEmpty());
 
       if(applicable.get()) {
-        if(!unconvertable) {
+        if(!unconvertible) {
           setValue(getRawValue());
         }
       }
@@ -47,6 +47,11 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
         valid.set(true);
       }
     });
+  }
+
+  @Override
+  public boolean conversionFailed() {
+    return unconvertible;
   }
 
   @Override
@@ -71,12 +76,12 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
       T raw = getRawValue();
 
       /*
-       * If previously unconvertable, it means the raw value is actually not
+       * If previously unconvertible, it means the raw value is actually not
        * correctly representing the previous state, and therefore it should
        * be considered always different from the new converted value:
        */
 
-      if(unconvertable || !Objects.equals(raw, convertedValue)) {
+      if(unconvertible || !Objects.equals(raw, convertedValue)) {
         setValue(convertedValue);
 
         return true;
@@ -90,13 +95,13 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   }
 
   private void markInvalid() {
-    valid.set(false);
+    this.unconvertible = true;  // must be before changing validity as listeners may query conversionFailed
 
-    this.unconvertable = true;
+    valid.set(false);
   }
 
   protected final void updateValidity(T newValue) {
-    unconvertable = false;
+    unconvertible = false;
     valid.set(getDomain().isEmpty() || getDomain().contains(newValue));
   }
 

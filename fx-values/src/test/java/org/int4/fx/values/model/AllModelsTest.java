@@ -208,6 +208,7 @@ public class AllModelsTest {
     assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
     assertThat(m.getDomain()).isEqualTo(c.domain1);
     assertThat(m.isApplicable()).isEqualTo(true);
+    assertThat(m.conversionFailed()).isEqualTo(false);
   }
 
   @ParameterizedTest
@@ -394,18 +395,23 @@ public class AllModelsTest {
 
     assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
+    assertThat(m.conversionFailed()).isEqualTo(false);
 
     assertThat(m.trySet(c.validInBoth, v -> { throw new NumberFormatException(); })).isFalse();
     assertThat(m.isValid()).isFalse();
+    assertThat(m.conversionFailed()).isEqualTo(true);
 
     assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
+    assertThat(m.conversionFailed()).isEqualTo(false);
 
     assertThat(m.trySet(c.validInDomain1, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
+    assertThat(m.conversionFailed()).isEqualTo(false);
 
     assertThat(m.trySet(c.validInDomain1, v -> v)).isFalse();
     assertThat(m.isValid()).isTrue();
+    assertThat(m.conversionFailed()).isEqualTo(false);
   }
 
   private static <M extends ValueModel<T>, T, D extends Domain<T>> void assertGet(Case<M, T, D> c, M m, T expected) {

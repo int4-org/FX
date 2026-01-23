@@ -148,11 +148,25 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
    * Returns the raw value currently stored by this model.
    * <p>
    * This method unconditionally accesses the stored value, regardless of
-   * applicability or validity.
+   * applicability or validity. Note that this returns {@code null} for
+   * not representable values (could not be converted). To distinguish
+   * these from an actual {@code null} call {@link #conversionFailed}.
    *
    * @return the stored value, may be {@code null}
    */
   M getRawValue();
+
+  /**
+   * Returns {@code true} if the last value assignment could not be converted
+   * to the model type {@code M}, causing the model to become invalid.
+   * <p>
+   * An unconvertible value is always invalid, but not all invalid values
+   * are unconvertible. Use this flag to distinguish conversion failures
+   * from domain violations or other constraints.
+   *
+   * @return {@code true} if the last conversion attempt failed, {@code false} otherwise
+   */
+  boolean conversionFailed();
 
   /**
    * Returns the current value of the model, or {@code null} if the model
