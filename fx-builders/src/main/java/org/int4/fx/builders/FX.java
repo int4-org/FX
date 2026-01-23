@@ -96,6 +96,15 @@ public class FX {
   /**
    * Creates a builder for a {@link javafx.scene.control.ComboBox}, initialising
    * it with the given style classes.
+   * <p>
+   * In some situations, Java's type inference may not be able to determine
+   * the desired value type for the combo box. In such cases, a type witness
+   * can be used to guide inference:
+   * <pre>{@code
+   * FX.<String>comboBox()
+   *   .items("A", "B", "C")
+   *   .build();
+   * }</pre>
    *
    * @param <T> the type of values in the combo box
    * @param styleClasses the style classes, cannot be {@code null} but can be empty

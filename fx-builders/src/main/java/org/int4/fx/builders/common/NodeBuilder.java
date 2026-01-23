@@ -66,7 +66,7 @@ public interface NodeBuilder<N extends Node> {
    *
    * @param nodes objects to convert with {@code null} elements skipped; the array cannot be {@code null}
    * @return an array of converted nodes, never {@code null}
-   * @throws NullPointerException if the nodes array is {@code null}
+   * @throws NullPointerException if the nodes array itself is {@code null}
    */
   static Node[] toNodes(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
