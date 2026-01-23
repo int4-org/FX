@@ -8,6 +8,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 
+import org.int4.fx.builders.FX;
+
 /**
  * Builder capable of creating a {@link Node}.
  * <p>
@@ -18,8 +20,10 @@ import javafx.scene.control.Tooltip;
  * In such contexts, callers do not need to invoke {@link #build()} explicitly;
  * the builder will be completed automatically when a {@link Node} is required.
  * This enables fluent composition of builders without manual materialization.
+ *
+ * @param <N> the type of node being build
  */
-public interface NodeBuilder {
+public interface NodeBuilder<N extends Node> {
 
   /**
    * Converts the given object into a {@link Node}.
@@ -41,7 +45,7 @@ public interface NodeBuilder {
   static Node toNode(Object node) {
     return switch(node) {
       case Node n -> n;
-      case NodeBuilder b -> b.build();
+      case NodeBuilder<?> b -> b.build();
       case String s -> new Label(s);
       case null -> throw new IllegalArgumentException("node cannot be null");
       // TODO could also allow Observables to be translated to bound labels :)
@@ -75,5 +79,5 @@ public interface NodeBuilder {
    *
    * @return a new {@link Node}, never {@code null}
    */
-  Node build();
+  N build();
 }

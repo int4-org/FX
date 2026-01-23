@@ -20,7 +20,7 @@ import javafx.scene.input.ScrollEvent;
  * @param <N> the type of {@link Node} being built
  * @param <B> the concrete builder type
  */
-public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNodeBuilder<N, B>> extends AbstractOptionBuilder<N, B> implements NodeBuilder {
+public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNodeBuilder<N, B>> extends AbstractOptionBuilder<N, B> implements NodeBuilder<N> {
 
   /**
    * Constructs a new instance with the given style classes.
