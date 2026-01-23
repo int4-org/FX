@@ -98,6 +98,40 @@ public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNode
   }
 
   /**
+   * Sets {@link Node#pickOnBoundsProperty()} to {@code true}
+   * on the resulting node.
+   *
+   * @return the fluent builder, never {@code null}
+   * @see Node#pickOnBoundsProperty()
+   */
+  public final B pickOnBounds() {
+    return pickOnBounds(true);
+  }
+
+  /**
+   * Sets {@link Node#pickOnBoundsProperty()} to {@code false}
+   * on the resulting node.
+   *
+   * @return the fluent builder, never {@code null}
+   * @see Node#pickOnBoundsProperty()
+   */
+  public final B ignoreBounds() {
+    return pickOnBounds(false);
+  }
+
+  /**
+   * Sets {@link Node#pickOnBoundsProperty()} on the resulting node.
+   *
+   * @param pickOnBounds whether the node should receive mouse events
+   *   based on its bounds rather than its visible pixels
+   * @return the fluent builder, never {@code null}
+   * @see Node#pickOnBoundsProperty()
+   */
+  public final B pickOnBounds(boolean pickOnBounds) {
+    return apply(n -> n.setPickOnBounds(pickOnBounds));
+  }
+
+  /**
    * Binds the visibility and managed state of the node to the negation of the given condition.
    * <p>
    * This is a convenience method equivalent to
