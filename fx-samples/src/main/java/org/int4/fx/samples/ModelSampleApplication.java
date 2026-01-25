@@ -113,7 +113,7 @@ public class ModelSampleApplication extends Application {
       Panes.grid("form")
         .row(
           "Trip Type",
-          FX.<String>comboBox().model(tripType)
+          FX.comboBox().model(tripType)
         )
         .row(
           "Departure Date",
