@@ -210,7 +210,8 @@ You can use it with any event type, just like a normal `EventHandler`, but the e
 
 ## Inline Style Sheets
 
-The `StyleSheets` class provides a simple way to embed CSS directly in your application without using external files. The inline method converts a CSS string into a URL that JavaFX can consume.
+The `StyleSheets` class provides a simple way to embed CSS directly in your application
+without using external files. The `inline` method converts a CSS string into a data URL that JavaFX can consume.
 
 Example:
 
@@ -232,13 +233,19 @@ scene.getStylesheets().add(StyleSheets.inline(
 
 Key characteristics:
 
-* Supports embedding CSS directly in code for self-contained examples or small apps.
-* Uses UTF-8 base64 encoding so JavaFX can load the style as a URL.
-* Works with any JavaFX node hierarchy, just like a standard external stylesheet.
+* Supports embedding CSS directly in code for self-contained custom controls, examples or small apps.
+* Uses UTF-8 base64 encoding so JavaFX can load the stylesheet as a URL.
+* Can be added anywhere a standard stylesheet URL is accepted (e.g. `Scene#getStylesheets()`).
+
+This is particularly useful for small, control-specific stylesheets provided via 
+`getUserAgentStylesheet()`, where shipping a separate resource file would be cumbersome.
 
 ## Combined Example: Models, Domains, and Fluent UI
 
-The following example demonstrates how to combine value models with builders and observable utilities to construct a fully reactive JavaFX UI. It uses the FXFlow builders for fluent layout and control creation, Observe for combining observable values, and Models to enforce domains and validation.
+The following example demonstrates how to combine value models with builders and 
+observable utilities to construct a fully reactive JavaFX UI. It uses the FXFlow 
+builders for fluent layout and control creation, `Observe` for combining observable 
+values, and Models to enforce domains and validation.
 
 > This example can be found in the fx-samples module as ModelSampleApplication.java.
 
