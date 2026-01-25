@@ -2,6 +2,7 @@ package org.int4.fx.builders.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -48,9 +49,10 @@ public abstract class AbstractOptionBuilder<T, B extends AbstractOptionBuilder<T
    *
    * @param option a configuration action to apply, cannot be {@code null}
    * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if the option is {@code null}
    */
   public final B apply(Consumer<? super T> option) {
-    options.add(option);
+    options.add(Objects.requireNonNull(option, "option"));
 
     return self();
   }
@@ -61,14 +63,17 @@ public abstract class AbstractOptionBuilder<T, B extends AbstractOptionBuilder<T
    * Subclasses typically call this method immediately after creating the
    * target instance.
    *
-   * @param obj the object to initialize
-   * @return the initialized object
+   * @param instance the object to initialize, cannot be {@code null}
+   * @return the now initialized input object for fluent chaining, never {@code null}
+   * @throws NullPointerException if the given object is {@code null}
    */
-  protected final T initialize(T obj) {
+  protected final T initialize(T instance) {
+    Objects.requireNonNull(instance, "instance");
+
     for(Consumer<? super T> option : options) {
-      option.accept(obj);
+      option.accept(instance);
     }
 
-    return obj;
+    return instance;
   }
 }

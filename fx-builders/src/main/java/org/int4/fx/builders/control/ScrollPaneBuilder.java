@@ -1,5 +1,7 @@
 package org.int4.fx.builders.control;
 
+import java.util.Objects;
+
 import javafx.scene.control.ScrollPane;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
@@ -41,18 +43,16 @@ public final class ScrollPaneBuilder extends AbstractControlBuilder<ScrollPane, 
   }
 
   /**
-   * Creates the scroll pane with the given content.
+   * Configures the scroll pane with the given content.
    *
    * @param content a content node or other supported object, cannot be {@code null}
    * @return the created {@link ScrollPane}, never {@code null}
-   * @throws IllegalArgumentException if {@code content} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see ScrollPane#setContent(javafx.scene.Node)
    */
-  public ScrollPane content(Object content) {
-    ScrollPane node = build();
+  public ScrollPaneBuilder content(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    node.setContent(NodeBuilder.toNode(content));
-
-    return node;
+    return apply(node -> node.setContent(NodeBuilder.toNode(content)));
   }
 }

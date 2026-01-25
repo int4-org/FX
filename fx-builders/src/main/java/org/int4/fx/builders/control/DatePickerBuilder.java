@@ -1,6 +1,7 @@
 package org.int4.fx.builders.control;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 import javafx.scene.control.DatePicker;
 
@@ -24,19 +25,17 @@ public final class DatePickerBuilder extends AbstractComboBoxBaseBuilder<LocalDa
    * Links the selected value to the given model and completes the builder.
    *
    * @param model the model to link to, cannot be {@code null}
-   * @return the created {@link DatePicker}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    * @see DatePicker#valueProperty()
    */
-  public DatePicker model(ValueModel<LocalDate> model) {
-    DatePicker node = build();
+  public DatePickerBuilder model(ValueModel<LocalDate> model) {
+    Objects.requireNonNull(model, "model");
 
-    ModelLinker.link(
+    return apply(node -> ModelLinker.link(
       node,
       model,
       node.valueProperty()
-    );
-
-    return node;
+    ));
   }
 }

@@ -1,5 +1,7 @@
 package org.int4.fx.builders.control;
 
+import java.util.Objects;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
 
@@ -23,33 +25,31 @@ public final class CheckBoxBuilder extends AbstractButtonBaseBuilder<CheckBox, C
    * Builds the CheckBox and binds its selected property to a {@link BooleanProperty}.
    *
    * @param property the boolean property to bind, cannot be {@code null}
-   * @return the built CheckBox, never {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if {@code property} is {@code null}
    * @see CheckBox#selectedProperty()
    */
-  public CheckBox value(BooleanProperty property) {
-    CheckBox node = build();
+  public CheckBoxBuilder value(BooleanProperty property) {
+    Objects.requireNonNull(property, "property");
 
-    node.selectedProperty().bindBidirectional(property);
-
-    return node;
+    return apply(node -> node.selectedProperty().bindBidirectional(property));
   }
 
   /**
    * Builds the CheckBox and links its selected property to a {@link BooleanModel}.
    *
    * @param model the boolean model to link, cannot be {@code null}
-   * @return the built CheckBox, never {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if {@code model} is {@code null}
    * @see CheckBox#selectedProperty()
    */
-  public CheckBox model(BooleanModel model) {
-    CheckBox node = build();
+  public CheckBoxBuilder model(BooleanModel model) {
+    Objects.requireNonNull(model, "model");
 
-    ModelLinker.link(
+    return apply(node -> ModelLinker.link(
       node,
       model,
       node.selectedProperty()
-    );
-
-    return node;
+    ));
   }
 }

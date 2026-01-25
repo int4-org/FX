@@ -21,16 +21,16 @@ public final class VBoxBuilder extends AbstractRegionBuilder<VBox, VBoxBuilder> 
   }
 
   /**
-   * Creates the vbox with the given items.
+   * Configures the vbox with the given nodes.
    *
    * @param nodes the nodes or other supported objects to add, with {@code null} elements
    *   skipped; the array cannot be {@code null}
-   * @return the created {@link VBox}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if the nodes array is {@code null}
    * @see VBox#getChildren()
    */
-  public VBox nodes(Object... nodes) {
-    return initialize(new VBox(NodeBuilder.toNodes(nodes)));
+  public VBoxBuilder nodes(Object... nodes) {
+    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

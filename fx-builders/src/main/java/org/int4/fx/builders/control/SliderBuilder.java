@@ -1,5 +1,6 @@
 package org.int4.fx.builders.control;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 import javafx.beans.property.DoubleProperty;
@@ -102,20 +103,20 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @param property the property to bind to, cannot be {@code null}
    * @param min the minimum slider value
    * @param max the maximum slider value
-   * @return the created slider, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code property} is {@code null}
    * @see Slider#valueProperty()
    * @see Slider#setMin(double)
    * @see Slider#setMax(double)
    */
-  public Slider value(DoubleProperty property, double min, double max) {
-    Slider node = build();
+  public SliderBuilder value(DoubleProperty property, double min, double max) {
+    Objects.requireNonNull(property, "property");
 
-    node.setMin(min);
-    node.setMax(max);
-    node.valueProperty().bindBidirectional(property);
-
-    return node;
+    return apply(node -> {
+      node.setMin(min);
+      node.setMax(max);
+      node.valueProperty().bindBidirectional(property);
+    });
   }
 
   /**
@@ -126,12 +127,12 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
-   * @return the created slider, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ContinuousView
    * @see IndexedView
    */
-  public Slider model(DoubleModel model) {
+  public SliderBuilder model(DoubleModel model) {
     return model(model, Function.identity());
   }
 
@@ -143,12 +144,12 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
-   * @return the created slider, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ContinuousView
    * @see IndexedView
    */
-  public Slider model(IntegerModel model) {
+  public SliderBuilder model(IntegerModel model) {
     return model(model, Double::intValue);
   }
 
@@ -160,34 +161,35 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
-   * @return the created slider, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    * @see ContinuousView
    * @see IndexedView
    */
-  public Slider model(LongModel model) {
+  public SliderBuilder model(LongModel model) {
     return model(model, Double::longValue);
   }
 
-  private <T extends Number> Slider model(ValueModel<T> model, Function<Double, T> toModel) {
-    Slider node = build();
-    ModelLinker<Slider, T, T> link = link(model, node, toModel);
+  private <T extends Number> SliderBuilder model(ValueModel<T> model, Function<Double, T> toModel) {
+    Objects.requireNonNull(model, "model");
 
-    link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
-      switch(d.view(ContinuousView.class, IndexedView.class)) {
-        case ContinuousView<T> cv -> {
-          node.setMin(cv.get(0).doubleValue());
-          node.setMax(cv.get(1).doubleValue());
-        }
-        case IndexedView<T> iv -> {
-          node.setMin(0);
-          node.setMax(iv.size() - 1);
-        }
-        default -> {}
-      }
-    }));
+    return apply(node -> {
+      ModelLinker<Slider, T, T> link = link(model, node, toModel);
 
-    return node;
+      link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
+        switch(d.view(ContinuousView.class, IndexedView.class)) {
+          case ContinuousView<T> cv -> {
+            node.setMin(cv.get(0).doubleValue());
+            node.setMax(cv.get(1).doubleValue());
+          }
+          case IndexedView<T> iv -> {
+            node.setMin(0);
+            node.setMax(iv.size() - 1);
+          }
+          default -> {}
+        }
+      }));
+    });
   }
 
   private static <T extends Number> ModelLinker<Slider, T, T> link(ValueModel<T> model, Slider node, Function<Double, T> toModel) {

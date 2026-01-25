@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SliderControlTest extends ControlBuilderTest {
   private IntegerModel model = IntegerModel.of(50, Domain.bounded(0, 100));
-  private Slider control = new SliderBuilder().model(model);
+  private Slider control = new SliderBuilder().model(model).build();
 
   @Nested
   class WhenConnectedToScene {

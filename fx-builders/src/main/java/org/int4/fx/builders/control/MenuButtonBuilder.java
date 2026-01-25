@@ -1,5 +1,7 @@
 package org.int4.fx.builders.control;
 
+import java.util.Objects;
+
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.control.MenuButton;
@@ -29,6 +31,8 @@ public final class MenuButtonBuilder extends AbstractButtonBaseBuilder<MenuButto
    * @see MenuButton#setOnShowing(EventHandler)
    */
   public MenuButtonBuilder onShowing(EventHandler<Event> eventHandler) {
+    Objects.requireNonNull(eventHandler, "eventHandler");
+
     return apply(c -> c.setOnShowing(eventHandler));
   }
 
@@ -42,6 +46,8 @@ public final class MenuButtonBuilder extends AbstractButtonBaseBuilder<MenuButto
    * @see MenuButton#setOnShowing(EventHandler)
    */
   public MenuButtonBuilder onShowing(NodeEventHandler<MenuButton, Event> eventHandler) {
+    Objects.requireNonNull(eventHandler, "eventHandler");
+
     return apply(c -> c.setOnShowing(e -> eventHandler.handle(c, e)));
   }
 }

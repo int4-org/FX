@@ -54,10 +54,12 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
    * Sets the items from a fixed list.
    *
    * @param items the items to set, cannot be {@code null} but can be empty
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
   public final B items(List<T> items) {
+    Objects.requireNonNull(items, "items");
+
     return apply(c -> {
       if(comparator != null) {
         c.setItems(new SortedList<>(c.getItems(), comparator));
@@ -71,10 +73,12 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
    * Sets the items from an observable list.
    *
    * @param items the observable items list, cannot be {@code null} but can be empty
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
   public final B items(ObservableList<T> items) {
+    Objects.requireNonNull(items, "items");
+
     return apply(c -> c.setItems(comparator == null ? items : new SortedList<>(items, comparator)));
   }
 
@@ -89,37 +93,38 @@ public abstract class AbstractComboBoxBuilder<T, C extends ComboBox<T>, B extend
    * {@link ValueModel} providing an {@link IndexedView} is supported.
    *
    * @param model the value model backing this control; cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    * @see org.int4.fx.values.model.ChoiceModel
    * @see ValueModel
    * @see IndexedView
    */
-  public final C model(ValueModel<T> model) {
-    C node = build();
-    ObservableList<T> items = node.getItems();
+  public final B model(ValueModel<T> model) {
+    Objects.requireNonNull(model, "model");
 
-    if(comparator != null) {
-      // hard replace the list with our own sorted list:
-      node.setItems(new SortedList<>(items, comparator));
-    }
+    return apply(node -> {
+      ObservableList<T> items = node.getItems();
 
-    ModelLinker<C, T, T> linker = ModelLinker.link(
-      node,
-      model,
-      () -> node.getSelectionModel().getSelectedItem(),
-      v -> node.getSelectionModel().select(v),
-      Function.identity(),
-      r -> node.getSelectionModel().selectedItemProperty().subscribe(r::run)
-    );
+      if(comparator != null) {
+        // hard replace the list with our own sorted list:
+        node.setItems(new SortedList<>(items, comparator));
+      }
 
-    linker.addSubscriber(() -> model.domainProperty().subscribe(
-      d -> items.setAll(switch(d.view(IndexedView.class)) {
-        case IndexedView<T> iv -> iv.asList();
-        default -> List.of();
-      })
-    ));
+      ModelLinker<C, T, T> linker = ModelLinker.link(
+        node,
+        model,
+        () -> node.getSelectionModel().getSelectedItem(),
+        v -> node.getSelectionModel().select(v),
+        Function.identity(),
+        r -> node.getSelectionModel().selectedItemProperty().subscribe(r::run)
+      );
 
-    return node;
+      linker.addSubscriber(() -> model.domainProperty().subscribe(
+        d -> items.setAll(switch(d.view(IndexedView.class)) {
+          case IndexedView<T> iv -> iv.asList();
+          default -> List.of();
+        })
+      ));
+    });
   }
 }

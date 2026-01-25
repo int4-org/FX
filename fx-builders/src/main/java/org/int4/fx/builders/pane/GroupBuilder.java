@@ -1,5 +1,7 @@
 package org.int4.fx.builders.pane;
 
+import java.util.Objects;
+
 import javafx.scene.Group;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
@@ -21,16 +23,18 @@ public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder>
   }
 
   /**
-   * Creates the group with the given items.
+   * Configures the group with the given nodes.
    *
    * @param nodes the nodes or other supported objects to add, with {@code null} elements
    *   skipped; the array cannot be {@code null}
-   * @return the created {@link Group}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if the nodes array is {@code null}
    * @see Group#getChildren()
    */
-  public Group nodes(Object... nodes) {
-    return initialize(new Group(NodeBuilder.toNodes(nodes)));
+  public GroupBuilder nodes(Object... nodes) {
+    Objects.requireNonNull(nodes, "nodes");
+
+    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

@@ -58,18 +58,16 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
   }
 
   /**
-   * Creates the titled pane with the given content.
+   * Configures the titled pane with the given content.
    *
    * @param content a content node or other supported object, cannot be {@code null}
-   * @return the created {@link TitledPane}, never {@code null}
-   * @throws IllegalArgumentException if {@code content} is {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see TitledPane#setContent(javafx.scene.Node)
    */
-  public TitledPane content(Object content) {
-    TitledPane node = build();
+  public TitledPaneBuilder content(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    node.setContent(NodeBuilder.toNode(content));
-
-    return node;
+    return apply(node -> node.setContent(NodeBuilder.toNode(content)));
   }
 }

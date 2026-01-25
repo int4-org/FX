@@ -2,6 +2,7 @@ package org.int4.fx.builders.control;
 
 import java.text.DecimalFormat;
 import java.text.ParsePosition;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -59,15 +60,11 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * Creates the text input control with the given initial value.
    *
    * @param initialValue the initial text value
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @see TextInputControl#textProperty()
    */
-  public final C value(String initialValue) {
-    C node = build();
-
-    node.setText(initialValue);
-
-    return node;
+  public final B value(String initialValue) {
+    return apply(node -> node.setText(initialValue));
   }
 
   /**
@@ -75,77 +72,70 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
    * to the given string property.
    *
    * @param property the property to bind to, cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code property} is {@code null}
    * @see TextInputControl#textProperty()
    */
-  public final C value(StringProperty property) {
-    C node = build();
+  public final B value(StringProperty property) {
+    Objects.requireNonNull(property, "property");
 
-    node.textProperty().bindBidirectional(property);
-
-    return node;
+    return apply(node -> node.textProperty().bindBidirectional(property));
   }
 
   /**
    * Creates the text input control and links it to the given integer model.
    *
    * @param model the integer model, cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(IntegerModel model) {
-    C node = build();
+  public final B model(IntegerModel model) {
+    Objects.requireNonNull(model, "model");
 
-    link(node, model, v -> Integer.toString(v), AbstractTextInputControlBuilder::parseInt);
-
-    return node;
+    return apply(node -> link(node, model, v -> Integer.toString(v), AbstractTextInputControlBuilder::parseInt));
   }
 
   /**
    * Creates the text input control and links it to the given long model.
    *
    * @param model the long model, cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(LongModel model) {
-    C node = build();
+  public final B model(LongModel model) {
+    Objects.requireNonNull(model, "model");
 
-    link(node, model, v -> Long.toString(v), AbstractTextInputControlBuilder::parseLong);
-
-    return node;
+    return apply(node -> link(node, model, v -> Long.toString(v), AbstractTextInputControlBuilder::parseLong));
   }
 
   /**
    * Creates the text input control and links it to the given double model.
    *
    * @param model the double model, cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(DoubleModel model) {
-    C node = build();
-    DecimalFormat formatter = new DecimalFormat();  // TODO should support locales
+  public final B model(DoubleModel model) {
+    Objects.requireNonNull(model, "model");
 
-    link(node, model, formatter::format, s -> parseDouble(formatter, s));
+    return apply(node -> {
+      DecimalFormat formatter = new DecimalFormat();  // TODO should support locales
 
-    return node;
+      link(node, model, formatter::format, s -> parseDouble(formatter, s));
+    });
   }
 
   /**
    * Creates the text input control and links it to the given string model.
    *
    * @param model the string model, cannot be {@code null}
-   * @return the created control, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code model} is {@code null}
    */
-  public final C model(StringModel model) {
-    C node = build();
+  public final B model(StringModel model) {
+    Objects.requireNonNull(model, "model");
 
-    link(node, model, Function.identity(), Function.identity());
-
-    return node;
+    return apply(node -> link(node, model, Function.identity(), Function.identity()));
   }
 
   private <T> void link(C node, ValueModel<T> model, Function<T, String> printer, Function<String, T> parser) {

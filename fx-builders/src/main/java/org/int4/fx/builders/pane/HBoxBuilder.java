@@ -1,5 +1,7 @@
 package org.int4.fx.builders.pane;
 
+import java.util.Objects;
+
 import javafx.scene.layout.HBox;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
@@ -21,16 +23,18 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
   }
 
   /**
-   * Creates the hbox with the given items.
+   * Configures the hbox with the given nodes.
    *
    * @param nodes the nodes or other supported objects to add, with {@code null} elements
    *   skipped; the array cannot be {@code null}
-   * @return the created {@link HBox}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if the nodes array is {@code null}
    * @see HBox#getChildren()
    */
-  public HBox nodes(Object... nodes) {
-    return initialize(new HBox(NodeBuilder.toNodes(nodes)));
+  public HBoxBuilder nodes(Object... nodes) {
+    Objects.requireNonNull(nodes, "nodes");
+
+    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
   }
 
   @Override

@@ -64,13 +64,9 @@ public abstract class AbstractComboBoxBaseBuilder<T, C extends ComboBoxBase<T>, 
    * @throws NullPointerException if {@code property} is {@code null}
    * @see ComboBoxBase#valueProperty()
    */
-  public final C value(Property<T> property) {
+  public final B value(Property<T> property) {
     Objects.requireNonNull(property, "property");
 
-    C node = build();
-
-    node.valueProperty().bindBidirectional(property);
-
-    return node;
+    return apply(c -> c.valueProperty().bindBidirectional(property));
   }
 }

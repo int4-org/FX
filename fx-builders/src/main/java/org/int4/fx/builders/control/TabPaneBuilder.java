@@ -36,13 +36,9 @@ public final class TabPaneBuilder extends AbstractControlBuilder<TabPane, TabPan
 
   /**
    * Adds a new tab with the given title and content.
-   * <p>
-   * The {@code content} is converted to a {@link javafx.scene.Node} using
-   * {@link Builders#toNode(Object)}, allowing builders, nodes, strings, and
-   * other supported objects.
    *
    * @param title the tab title
-   * @param content the tab content, cannot be {@code null}
+   * @param content the tab content or other supported object, cannot be {@code null}
    * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code content} is {@code null}
    * @see TabPane#getTabs()
@@ -55,18 +51,16 @@ public final class TabPaneBuilder extends AbstractControlBuilder<TabPane, TabPan
   }
 
   /**
-   * Completes the builder and adds the given tabs to the created {@link TabPane}.
+   * Configures the builder with the given tabs.
    *
    * @param tabs the tabs to add, cannot be {@code null} but may be empty
-   * @return the created {@link TabPane}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code tabs} is {@code null}
    * @see TabPane#getTabs()
    */
-  public TabPane tabs(Tab... tabs) {
-    TabPane tabPane = build();
+  public TabPaneBuilder tabs(Tab... tabs) {
+    Objects.requireNonNull(tabs, "tabs");
 
-    tabPane.getTabs().addAll(Objects.requireNonNull(tabs, "tabs"));
-
-    return tabPane;
+    return apply(node -> node.getTabs().addAll(Objects.requireNonNull(tabs, "tabs")));
   }
 }

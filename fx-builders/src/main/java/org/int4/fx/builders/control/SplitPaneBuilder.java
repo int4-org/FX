@@ -1,5 +1,7 @@
 package org.int4.fx.builders.control;
 
+import java.util.Objects;
+
 import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 
@@ -66,19 +68,17 @@ public final class SplitPaneBuilder extends AbstractControlBuilder<SplitPane, Sp
   }
 
   /**
-   * Creates the split pane with the given items.
+   * Configures the split pane with the given nodes.
    *
    * @param nodes the nodes or other supported objects to add, with {@code null} elements
    *   skipped; the array cannot be {@code null}
-   * @return the created {@link SplitPane}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if the nodes array is {@code null}
    * @see SplitPane#getItems()
    */
-  public SplitPane nodes(Object... nodes) {
-    SplitPane node = build();
+  public SplitPaneBuilder nodes(Object... nodes) {
+    Objects.requireNonNull(nodes, "nodes");
 
-    node.getItems().addAll(NodeBuilder.toNodes(nodes));
-
-    return node;
+    return apply(node -> node.getItems().addAll(NodeBuilder.toNodes(nodes)));
   }
 }

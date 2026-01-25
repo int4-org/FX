@@ -24,7 +24,7 @@ public class TextFieldBuilderTest  {
 
     @Override
     protected TextField createControl(IntegerModel model) {
-      return new TextFieldBuilder().model(model);
+      return new TextFieldBuilder().model(model).build();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class TextFieldBuilderTest  {
 
     @Override
     protected TextField createControl(LongModel model) {
-      return new TextFieldBuilder().model(model);
+      return new TextFieldBuilder().model(model).build();
     }
 
     @Override
@@ -82,7 +82,7 @@ public class TextFieldBuilderTest  {
 
       @Override
       protected TextField createControl(DoubleModel model) {
-        return new TextFieldBuilder().model(model);
+        return new TextFieldBuilder().model(model).build();
       }
 
       @Override
@@ -122,7 +122,7 @@ public class TextFieldBuilderTest  {
 
     @Override
     protected TextField createControl(StringModel model) {
-      return new TextFieldBuilder().model(model);
+      return new TextFieldBuilder().model(model).build();
     }
 
     @Override
