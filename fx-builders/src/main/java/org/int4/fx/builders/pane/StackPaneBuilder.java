@@ -33,6 +33,21 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
     return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
   }
 
+  /**
+   * Creates the stack pane with the given nodes.
+   *
+   * @param nodes the nodes or other supported objects to add, with {@code null} elements
+   *   skipped; the array cannot be {@code null}
+   * @return the created node, never {@code null}
+   * @throws NullPointerException if the nodes array is {@code null}
+   * @see StackPane#getChildren()
+   */
+  public StackPane with(Object... nodes) {
+    nodes(nodes);
+
+    return build();
+  }
+
   @Override
   public StackPane build() {
     return initialize(new StackPane());

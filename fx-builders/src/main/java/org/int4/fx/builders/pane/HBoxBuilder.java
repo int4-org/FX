@@ -37,6 +37,21 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
     return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
   }
 
+  /**
+   * Creates the hbox with the given nodes.
+   *
+   * @param nodes the nodes or other supported objects to add, with {@code null} elements
+   *   skipped; the array cannot be {@code null}
+   * @return the created node, never {@code null}
+   * @throws NullPointerException if the nodes array is {@code null}
+   * @see HBox#getChildren()
+   */
+  public HBox with(Object... nodes) {
+    nodes(nodes);
+
+    return build();
+  }
+
   @Override
   public HBox build() {
     return initialize(new HBox());

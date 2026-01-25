@@ -23,6 +23,8 @@
  *   <li>Terminal methods finalize the builder and create the underlying JavaFX object:
  *     <ul>
  *       <li>{@code build()} creates the node directly.</li>
+ *       <li>{@code with(...)} is primarily used by pane builders to add child nodes and
+ *           finalize that branch of the scene graph.</li>
  *       <li>{@code of(...)} is a convenience for shape builders to supply mandatory
  *           construction parameters (for example {@code Shapes.circle().of(5.0, Color.WHITE)}),
  *           but the same shapes can also be configured using modifier methods followed

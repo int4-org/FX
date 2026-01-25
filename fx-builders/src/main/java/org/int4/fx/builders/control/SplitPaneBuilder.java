@@ -81,4 +81,19 @@ public final class SplitPaneBuilder extends AbstractControlBuilder<SplitPane, Sp
 
     return apply(node -> node.getItems().addAll(NodeBuilder.toNodes(nodes)));
   }
+
+  /**
+   * Creates the split pane with the given nodes.
+   *
+   * @param nodes the nodes or other supported objects to add, with {@code null} elements
+   *   skipped; the array cannot be {@code null}
+   * @return the created node, never {@code null}
+   * @throws NullPointerException if the nodes array is {@code null}
+   * @see SplitPane#getItems()
+   */
+  public SplitPane with(Object... nodes) {
+    nodes(nodes);
+
+    return build();
+  }
 }
