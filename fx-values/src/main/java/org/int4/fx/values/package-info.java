@@ -21,7 +21,7 @@
  *       {@link org.int4.fx.values.util.Trigger}.</li>
  * </ul>
  * <p>
- * These abstractions are designed to be compatible with JavaFX’s observable
+ * These abstractions are designed to be compatible with JavaFX's observable
  * APIs while remaining decoupled from specific controls, making it easy to
  * use models as sources of truth in both UI and business logic.
  * <p>

@@ -3,7 +3,7 @@
  * on top of JavaFX observables.
  * <p>
  * This package provides lightweight infrastructure classes that complement
- * JavaFX’s observable APIs without introducing additional framework concepts.
+ * JavaFX's observable APIs without introducing additional framework concepts.
  * It focuses on:
  * <ul>
  *   <li>Lazy composition of {@link javafx.beans.value.ObservableValue ObservableValue}

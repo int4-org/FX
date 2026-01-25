@@ -1,7 +1,7 @@
 /**
  * Domain-constrained, observable value models for JavaFX applications.
  * <p>
- * This package defines modifiable value models that extend JavaFX’s
+ * This package defines modifiable value models that extend JavaFX's
  * {@link javafx.beans.value.ObservableValue ObservableValue} abstraction
  * with explicit domain-based validation, applicability, and null-handling
  * semantics. Models act as stable value sources for UI controls and business

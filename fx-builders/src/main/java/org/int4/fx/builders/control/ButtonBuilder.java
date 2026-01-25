@@ -5,7 +5,7 @@ import javafx.scene.control.Button;
 /**
  * Builder for {@link Button} instances.
  * <p>
- * Provides a fluent API to configure the button’s text, graphic, style, and event handlers.
+ * Provides a fluent API to configure the button's text, graphic, style, and event handlers.
  * All methods return the builder itself for chaining.
  */
 public final class ButtonBuilder extends AbstractButtonBaseBuilder<Button, ButtonBuilder> {

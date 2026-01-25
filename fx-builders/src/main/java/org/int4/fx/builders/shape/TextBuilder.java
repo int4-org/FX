@@ -104,7 +104,7 @@ public final class TextBuilder extends AbstractShapeBuilder<Text, TextBuilder> {
   }
 
   /**
-   * Creates the {@link Text} with the given content, font, fill paint, and coordinates.
+   * Creates the {@link Text} with the given content.
    *
    * @param text the text content
    * @return the created {@link Text}, never {@code null}
