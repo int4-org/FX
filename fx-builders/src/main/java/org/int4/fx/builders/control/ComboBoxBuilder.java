@@ -31,6 +31,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
    *
    * @param instantiator the control instantiator, cannot be {@code null}
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public ComboBoxBuilder(Supplier<C> instantiator, String... styleClasses) {
     super(instantiator, styleClasses);
@@ -136,6 +137,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * Creates a new builder with optional style classes.
      *
      * @param styleClasses the style classes, cannot be {@code null} but can be empty
+     * @throws NullPointerException if any argument is {@code null}
      */
     public Raw(String... styleClasses) {
       super(ComboBox::new, styleClasses);

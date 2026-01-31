@@ -16,7 +16,7 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public HBoxBuilder(String... styleClasses) {
     super(styleClasses);

@@ -55,6 +55,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.Label
    */
   public static LabelBuilder label(String... styleClasses) {
     return new LabelBuilder(styleClasses);
@@ -66,6 +68,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.Button
    */
   public static ButtonBuilder button(String... styleClasses) {
     return new ButtonBuilder(styleClasses);
@@ -77,6 +81,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.TextField
    */
   public static TextFieldBuilder textField(String... styleClasses) {
     return new TextFieldBuilder(styleClasses);
@@ -88,6 +94,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.TextArea
    */
   public static TextAreaBuilder textArea(String... styleClasses) {
     return new TextAreaBuilder(styleClasses);
@@ -99,6 +107,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.ComboBox
    */
   public static ComboBoxBuilder.Raw comboBox(String... styleClasses) {
     return new ComboBoxBuilder.Raw(styleClasses);
@@ -110,6 +120,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.CheckBox
    */
   public static CheckBoxBuilder checkBox(String... styleClasses) {
     return new CheckBoxBuilder(styleClasses);
@@ -121,6 +133,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.Slider
    */
   public static SliderBuilder slider(String... styleClasses) {
     return new SliderBuilder(styleClasses);
@@ -132,6 +146,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.Spinner
    */
   public static SpinnerBuilder.Raw spinner(String... styleClasses) {
     return new SpinnerBuilder.Raw(styleClasses);
@@ -143,6 +159,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.ToggleButton
    */
   public static ToggleButtonBuilder toggleButton(String... styleClasses) {
     return new ToggleButtonBuilder(styleClasses);
@@ -154,6 +172,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.ColorPicker
    */
   public static ColorPickerBuilder colorPicker(String... styleClasses) {
     return new ColorPickerBuilder(styleClasses);
@@ -165,6 +185,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.DatePicker
    */
   public static DatePickerBuilder datePicker(String... styleClasses) {
     return new DatePickerBuilder(styleClasses);
@@ -176,6 +198,8 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.MenuButton
    */
   public static MenuButtonBuilder menuButton(String... styleClasses) {
     return new MenuButtonBuilder(styleClasses);
@@ -187,6 +211,7 @@ public class FX {
    *
    * @param styleClasses optional style classes, cannot be {@code null} but may be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.SplitPane
    */
   public static SplitPaneBuilder splitPane(String... styleClasses) {
@@ -199,6 +224,7 @@ public class FX {
    *
    * @param styleClasses optional style classes, cannot be {@code null} but may be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.ScrollPane
    */
   public static ScrollPaneBuilder scrollPane(String... styleClasses) {
@@ -211,6 +237,7 @@ public class FX {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TabPane
    */
   public static TabPaneBuilder tabPane(String... styleClasses) {
@@ -223,6 +250,7 @@ public class FX {
    *
    * @param styleClasses optional style classes, cannot be {@code null} but may be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TitledPane
    */
   public static TitledPaneBuilder titledPane(String... styleClasses) {
@@ -237,7 +265,7 @@ public class FX {
    * @param regionSupplier a supplier that creates the region, cannot be {@code null}
    * @param styleClasses optional style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
-   * @throws NullPointerException if {@code regionSupplier} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public static <R extends Region> CustomRegionBuilder<R> customRegion(Supplier<R> regionSupplier, String... styleClasses) {
     return new CustomRegionBuilder<>(regionSupplier, styleClasses);
@@ -251,7 +279,7 @@ public class FX {
    * @param nodeSupplier a supplier that creates the node, cannot be {@code null}
    * @param styleClasses optional style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
-   * @throws NullPointerException if {@code nodeSupplier} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public static <N extends Node> CustomNodeBuilder<N> customNode(Supplier<N> nodeSupplier, String... styleClasses) {
     return new CustomNodeBuilder<>(nodeSupplier, styleClasses);

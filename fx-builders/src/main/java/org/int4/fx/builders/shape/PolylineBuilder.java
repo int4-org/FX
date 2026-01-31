@@ -11,9 +11,10 @@ import org.int4.fx.builders.common.AbstractShapeBuilder;
 public final class PolylineBuilder extends AbstractShapeBuilder<Polyline, PolylineBuilder> {
 
   /**
-   * Constructs a new builder with optional style classes.
+   * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public PolylineBuilder(String... styleClasses) {
     super(Polyline::new, styleClasses);

@@ -16,7 +16,7 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public TitledPaneBuilder(String... styleClasses) {
     super(TitledPane::new, styleClasses);

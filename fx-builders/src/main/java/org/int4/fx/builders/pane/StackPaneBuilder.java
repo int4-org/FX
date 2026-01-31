@@ -14,7 +14,7 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public StackPaneBuilder(String... styleClasses) {
     super(styleClasses);

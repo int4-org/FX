@@ -20,7 +20,7 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public GridPaneBuilder(String... styleClasses) {
     super(styleClasses);

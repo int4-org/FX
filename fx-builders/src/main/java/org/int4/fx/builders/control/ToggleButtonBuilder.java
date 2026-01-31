@@ -12,6 +12,7 @@ public final class ToggleButtonBuilder extends AbstractButtonBaseBuilder<ToggleB
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public ToggleButtonBuilder(String... styleClasses) {
     super(ToggleButton::new, styleClasses);

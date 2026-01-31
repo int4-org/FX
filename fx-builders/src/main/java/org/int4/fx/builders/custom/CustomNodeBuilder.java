@@ -23,7 +23,7 @@ public class CustomNodeBuilder<N extends Node> extends AbstractNodeBuilder<N, Cu
    *
    * @param nodeSupplier the supplier used to create the node, cannot be {@code null}
    * @param styleClasses the style classes to apply to the node, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code nodeSupplier} or {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public CustomNodeBuilder(Supplier<N> nodeSupplier, String... styleClasses) {
     super(styleClasses);

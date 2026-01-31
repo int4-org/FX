@@ -11,6 +11,7 @@ public final class LabelBuilder extends AbstractLabeledBuilder<Label, LabelBuild
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public LabelBuilder(String... styleClasses) {
     super(Label::new, styleClasses);

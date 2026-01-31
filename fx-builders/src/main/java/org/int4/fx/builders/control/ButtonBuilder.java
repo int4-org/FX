@@ -14,6 +14,7 @@ public final class ButtonBuilder extends AbstractButtonBaseBuilder<Button, Butto
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public ButtonBuilder(String... styleClasses) {
     super(Button::new, styleClasses);

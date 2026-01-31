@@ -11,9 +11,10 @@ import org.int4.fx.builders.common.AbstractShapeBuilder;
 public final class QuadCurveBuilder extends AbstractShapeBuilder<QuadCurve, QuadCurveBuilder> {
 
   /**
-   * Constructs a new builder with optional style classes.
+   * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public QuadCurveBuilder(String... styleClasses) {
     super(QuadCurve::new, styleClasses);

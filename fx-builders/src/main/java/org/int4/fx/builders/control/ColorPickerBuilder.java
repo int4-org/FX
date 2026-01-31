@@ -17,6 +17,7 @@ public final class ColorPickerBuilder extends AbstractComboBoxBaseBuilder<ColorP
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public ColorPickerBuilder(String... styleClasses) {
     super(ColorPicker::new, styleClasses);

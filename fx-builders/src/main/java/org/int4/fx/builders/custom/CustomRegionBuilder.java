@@ -23,7 +23,7 @@ public class CustomRegionBuilder<C extends Region> extends AbstractRegionBuilder
    *
    * @param regionSupplier the supplier used to create the region, cannot be {@code null}
    * @param styleClasses the style classes to apply to the region, cannot be {@code null} but can be empty
-   * @throws NullPointerException if {@code regionSupplier} or {@code styleClasses} is {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public CustomRegionBuilder(Supplier<C> regionSupplier, String... styleClasses) {
     super(styleClasses);

@@ -44,6 +44,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Arc
    */
   public static ArcBuilder arc(String... styleClasses) {
     return new ArcBuilder(styleClasses);
@@ -55,6 +57,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Circle
    */
   public static CircleBuilder circle(String... styleClasses) {
     return new CircleBuilder(styleClasses);
@@ -66,6 +70,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.CubicCurve
    */
   public static CubicCurveBuilder cubicCurve(String... styleClasses) {
     return new CubicCurveBuilder(styleClasses);
@@ -77,6 +83,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Ellipse
    */
   public static EllipseBuilder ellipse(String... styleClasses) {
     return new EllipseBuilder(styleClasses);
@@ -88,6 +96,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Line
    */
   public static LineBuilder line(String... styleClasses) {
     return new LineBuilder(styleClasses);
@@ -99,6 +109,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Path
    */
   public static PathBuilder path(String... styleClasses) {
     return new PathBuilder(styleClasses);
@@ -110,6 +122,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Polygon
    */
   public static PolygonBuilder polygon(String... styleClasses) {
     return new PolygonBuilder(styleClasses);
@@ -121,6 +135,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Polyline
    */
   public static PolylineBuilder polyline(String... styleClasses) {
     return new PolylineBuilder(styleClasses);
@@ -132,6 +148,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.QuadCurve
    */
   public static QuadCurveBuilder quadCurve(String... styleClasses) {
     return new QuadCurveBuilder(styleClasses);
@@ -143,6 +161,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.Rectangle
    */
   public static RectangleBuilder rectangle(String... styleClasses) {
     return new RectangleBuilder(styleClasses);
@@ -154,6 +174,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.shape.SVGPath
    */
   public static SVGPathBuilder svgPath(String... styleClasses) {
     return new SVGPathBuilder(styleClasses);
@@ -165,6 +187,8 @@ public class Shapes {
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
    * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.text.Text
    */
   public static TextBuilder text(String... styleClasses) {
     return new TextBuilder(styleClasses);

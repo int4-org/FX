@@ -18,6 +18,7 @@ public final class TabPaneBuilder extends AbstractControlBuilder<TabPane, TabPan
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public TabPaneBuilder(String... styleClasses) {
     super(TabPane::new, styleClasses);

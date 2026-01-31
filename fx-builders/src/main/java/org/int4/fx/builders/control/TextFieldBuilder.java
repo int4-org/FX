@@ -11,6 +11,7 @@ public final class TextFieldBuilder extends AbstractTextInputControlBuilder<Text
    * Creates a new builder with optional style classes.
    *
    * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @throws NullPointerException if any argument is {@code null}
    */
   public TextFieldBuilder(String... styleClasses) {
     super(TextField::new, styleClasses);
