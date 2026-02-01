@@ -33,7 +33,37 @@
  *   </li>
  * </ul>
  * <p>
- * Typical usage:
+ * <b>Build contexts and strategies:</b>
+ * <p>
+ * Builders are extensible through the use of <em>build strategies</em>, which
+ * encapsulate specific aspects of how builder input is applied to JavaFX nodes.
+ * Examples include strategies for handling text, content nodes, child nodes,
+ * or other configurable concerns.
+ * <p>
+ * Strategies are resolved through a {@link org.int4.fx.builders.context.BuildContext},
+ * which acts as an immutable registry of strategy implementations. A build context
+ * may provide custom behavior by overriding one or more strategies while leaving
+ * others unchanged.
+ * <p>
+ * Contexts are composable and hierarchical:
+ * <ul>
+ *   <li>A root context can be defined to act as a global default.</li>
+ *   <li>Parent builders pass their context to child builders.</li>
+ *   <li>Individual builders may supply a local context that partially overrides
+ *       the inherited one.</li>
+ * </ul>
+ * <p>
+ * During node construction, builders resolve the active context and apply the
+ * relevant strategies. This allows application-wide customization of builder
+ * behavior (such as localization, node conversion, or styling policies) without
+ * modifying individual builders.
+ * <p>
+ * This mechanism is intentionally orthogonal to the fluent builder API: most users
+ * will never need to interact with contexts or strategies directly, while advanced
+ * users can leverage them to introduce cross-cutting behavior in a structured
+ * and reusable way.
+ * <p>
+ * <b>Typical usage:</b>
  * <pre>{@code
  * FX.textField("from-field")
  *   .promptText("Name")
@@ -50,7 +80,7 @@
  *   <li>{@link org.int4.fx.builders.FX} – factory methods for standard JavaFX controls.</li>
  *   <li>{@link org.int4.fx.builders.Panes} – factory methods for common layout panes.</li>
  *   <li>{@link org.int4.fx.builders.Shapes} – factory methods for JavaFX shapes.</li>
- *   <li>{@link org.int4.fx.builders.Scenes} – utilities for creating scenes with automatic show-state listener support.</li>
+ *   <li>{@link org.int4.fx.builders.Scenes} – utilities for creating scenes.</li>
  * </ul>
  */
 package org.int4.fx.builders;

@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
-import org.int4.fx.builders.common.NodeBuilder;
 import org.int4.fx.builders.control.ButtonBuilder;
 import org.int4.fx.builders.control.CheckBoxBuilder;
 import org.int4.fx.builders.control.ColorPickerBuilder;
@@ -30,7 +29,7 @@ import org.int4.fx.builders.custom.CustomRegionBuilder;
  * <p>
  * Builders produced by this class are typically used to declaratively construct
  * JavaFX scene graphs. When builders are passed as children to other builders,
- * there is no need to explicitly call {@link NodeBuilder#build()}:
+ * there is no need to explicitly call {@code build()}:
  * builders are finalized automatically where required.
  * <p>
  * Child values are interpreted as follows:

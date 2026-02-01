@@ -9,6 +9,8 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
+import org.int4.fx.builders.context.BuildContext;
+
 /**
  * Base class for builders that create JavaFX {@link Shape} instances.
  *
@@ -32,8 +34,8 @@ public abstract class AbstractShapeBuilder<T extends Shape, B extends AbstractSh
   }
 
   @Override
-  public final T build() {
-    return initialize(instantiator.get());
+  public final T build(BuildContext context) {
+    return initialize(context, instantiator.get());
   }
 
   /**

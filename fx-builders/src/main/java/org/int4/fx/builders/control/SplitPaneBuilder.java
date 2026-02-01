@@ -6,7 +6,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.SplitPane;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link SplitPane} instances.
@@ -79,7 +78,7 @@ public final class SplitPaneBuilder extends AbstractControlBuilder<SplitPane, Sp
   public SplitPaneBuilder nodes(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(node -> node.getItems().addAll(NodeBuilder.toNodes(nodes)));
+    return applyChildrenStrategy(nodes, (n, v) -> n.getItems().setAll(v));
   }
 
   /**

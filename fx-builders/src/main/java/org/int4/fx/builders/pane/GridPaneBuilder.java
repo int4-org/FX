@@ -7,7 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 import org.int4.fx.builders.internal.VisibilityProxy;
 
 /**
@@ -48,7 +48,7 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
   public GridPaneBuilder row(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(gp -> gp.addRow(rowIndex++, NodeBuilder.toNodes(nodes)));
+    return applyChildrenStrategy(nodes, (gp, v) -> gp.addRow(rowIndex++, v.toArray(Node[]::new)));
   }
 
   /**
@@ -63,8 +63,8 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
     Objects.requireNonNull(displayed, "displayed");
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(gp -> {
-      Node[] finalNodes = NodeBuilder.toNodes(nodes);
+    return applyChildrenStrategy(nodes, (gp, resolvedNodes) -> {
+      Node[] finalNodes = resolvedNodes.toArray(Node[]::new);
 
       for(int i = 0; i < finalNodes.length; i++) {
         // TODO a Group wrapper is not fully transparent to say CSS descendant selector, and perhaps min/max sizes
@@ -85,7 +85,7 @@ public final class GridPaneBuilder extends AbstractRegionBuilder<GridPane, GridP
   }
 
   @Override
-  public GridPane build() {
-    return initialize(new GridPane());
+  public GridPane build(BuildContext context) {
+    return initialize(context, new GridPane());
   }
 }

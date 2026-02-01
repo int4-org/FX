@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.layout.BorderPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link BorderPane} instances.
@@ -25,75 +25,75 @@ public final class BorderPaneBuilder extends AbstractRegionBuilder<BorderPane, B
   /**
    * Sets the node for the left region.
    *
-   * @param node the node or other supported object to place in the left region, cannot be {@code null}
+   * @param content the node or other supported object to place in the left region, cannot be {@code null}
    * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code node} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see BorderPane#setLeft(javafx.scene.Node)
    */
-  public BorderPaneBuilder left(Object node) {
-    Objects.requireNonNull(node, "node");
+  public BorderPaneBuilder left(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.setLeft(NodeBuilder.toNode(node)));
+    return applyContentStrategy(content, BorderPane::setLeft);
   }
 
   /**
    * Sets the node for the right region.
    *
-   * @param node the node or other supported object to place in the right region, cannot be {@code null}
+   * @param content the node or other supported object to place in the right region, cannot be {@code null}
    * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code node} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see BorderPane#setRight(javafx.scene.Node)
    */
-  public BorderPaneBuilder right(Object node) {
-    Objects.requireNonNull(node, "node");
+  public BorderPaneBuilder right(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.setRight(NodeBuilder.toNode(node)));
+    return applyContentStrategy(content, BorderPane::setRight);
   }
 
   /**
    * Sets the node for the top region.
    *
-   * @param node the node or other supported object to place in the top region, cannot be {@code null}
+   * @param content the node or other supported object to place in the top region, cannot be {@code null}
    * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code node} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see BorderPane#setTop(javafx.scene.Node)
    */
-  public BorderPaneBuilder top(Object node) {
-    Objects.requireNonNull(node, "node");
+  public BorderPaneBuilder top(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.setTop(NodeBuilder.toNode(node)));
+    return applyContentStrategy(content, BorderPane::setTop);
   }
 
   /**
    * Sets the node for the bottom region.
    *
-   * @param node the node or other supported object to place in the bottom region, cannot be {@code null}
+   * @param content the node or other supported object to place in the bottom region, cannot be {@code null}
    * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code node} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see BorderPane#setBottom(javafx.scene.Node)
    */
-  public BorderPaneBuilder bottom(Object node) {
-    Objects.requireNonNull(node, "node");
+  public BorderPaneBuilder bottom(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.setBottom(NodeBuilder.toNode(node)));
+    return applyContentStrategy(content, BorderPane::setBottom);
   }
 
   /**
    * Sets the node for the center region.
    *
-   * @param node the node or other supported object to place in the center region, cannot be {@code null}
+   * @param content the node or other supported object to place in the center region, cannot be {@code null}
    * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code node} is {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see BorderPane#setCenter(javafx.scene.Node)
    */
-  public BorderPaneBuilder center(Object node) {
-    Objects.requireNonNull(node, "node");
+  public BorderPaneBuilder center(Object content) {
+    Objects.requireNonNull(content, "content");
 
-    return apply(c -> c.setCenter(NodeBuilder.toNode(node)));
+    return applyContentStrategy(content, BorderPane::setCenter);
   }
 
   @Override
-  public BorderPane build() {
-    return initialize(new BorderPane());
+  public BorderPane build(BuildContext context) {
+    return initialize(context, new BorderPane());
   }
 }

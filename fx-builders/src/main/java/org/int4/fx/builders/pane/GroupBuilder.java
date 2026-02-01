@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.Group;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link Group} instances.
@@ -34,11 +34,11 @@ public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder>
   public GroupBuilder nodes(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
+    return applyChildrenStrategy(nodes, (n, v) -> n.getChildren().setAll(v));
   }
 
   @Override
-  public Group build() {
-    return initialize(new Group());
+  public Group build(BuildContext context) {
+    return initialize(context, new Group());
   }
 }

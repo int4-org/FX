@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.layout.HBox;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link HBox} instances.
@@ -34,7 +34,7 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
   public HBoxBuilder nodes(Object... nodes) {
     Objects.requireNonNull(nodes, "nodes");
 
-    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
+    return applyChildrenStrategy(nodes, (n, v) -> n.getChildren().setAll(v));
   }
 
   /**
@@ -53,7 +53,7 @@ public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> 
   }
 
   @Override
-  public HBox build() {
-    return initialize(new HBox());
+  public HBox build(BuildContext context) {
+    return initialize(context, new HBox());
   }
 }

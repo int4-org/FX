@@ -5,7 +5,6 @@ import java.util.Objects;
 import javafx.scene.control.ScrollPane;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
 
 /**
  * Builder for {@link ScrollPane} instances.
@@ -53,6 +52,6 @@ public final class ScrollPaneBuilder extends AbstractControlBuilder<ScrollPane, 
   public ScrollPaneBuilder content(Object content) {
     Objects.requireNonNull(content, "content");
 
-    return apply(node -> node.setContent(NodeBuilder.toNode(content)));
+    return applyContentStrategy(content, ScrollPane::setContent);
   }
 }

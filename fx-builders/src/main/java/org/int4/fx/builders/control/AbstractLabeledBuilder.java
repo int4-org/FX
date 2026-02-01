@@ -7,7 +7,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Labeled;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.strategy.TextStrategy;
 
 /**
  * Base builder for {@link Labeled} controls.
@@ -30,13 +30,15 @@ public abstract class AbstractLabeledBuilder<C extends Labeled, B extends Abstra
 
   /**
    * Sets the text of the label.
+   * <p>
+   * Any object is accepted, and provided to the active {@link TextStrategy}.
    *
    * @param text the label text
    * @return the fluent builder, never {@code null}
    * @see Labeled#setText(String)
    */
-  public final B text(String text) {
-    return apply(c -> c.setText(text));
+  public final B text(Object text) {
+    return applyStrategy(TextStrategy::base, (s, node) -> s.apply(node, text, node::setText));
   }
 
   /**
@@ -71,6 +73,6 @@ public abstract class AbstractLabeledBuilder<C extends Labeled, B extends Abstra
   public final B graphic(Object graphic) {
     Objects.requireNonNull(graphic, "graphic");
 
-    return apply(c -> c.setGraphic(NodeBuilder.toNode(graphic)));
+    return applyContentStrategy(graphic, Labeled::setGraphic);
   }
 }

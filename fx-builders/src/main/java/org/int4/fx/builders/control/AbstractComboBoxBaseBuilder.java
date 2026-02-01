@@ -5,10 +5,10 @@ import java.util.function.Supplier;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBoxBase;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
+import org.int4.fx.builders.strategy.TextStrategy;
 
 /**
  * Base builder for {@link ComboBoxBase} controls.
@@ -30,14 +30,16 @@ public abstract class AbstractComboBoxBaseBuilder<C extends ComboBoxBase<?>, B e
   }
 
   /**
-   * Sets the prompt text displayed when no color is selected.
+   * Sets the prompt text displayed when nothing is selected.
+   * <p>
+   * Any object is accepted, and provided to the active {@link TextStrategy}.
    *
    * @param text the prompt text
    * @return the fluent builder, never {@code null}
-   * @see ColorPicker#setPromptText(String)
+   * @see ComboBoxBase#promptTextProperty()
    */
-  public final B promptText(String text) {
-    return apply(c -> c.setPromptText(text));
+  public final B promptText(Object text) {
+    return applyStrategy(TextStrategy::base, (s, node) -> s.apply(node, text, node::setPromptText));
   }
 
   /**
@@ -46,7 +48,7 @@ public abstract class AbstractComboBoxBaseBuilder<C extends ComboBoxBase<?>, B e
    * @param eventHandler the event handler to set, cannot be {@code null}
    * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code eventHandler} is {@code null}
-   * @see ColorPicker#setOnAction(EventHandler)
+   * @see ComboBoxBase#setOnAction(EventHandler)
    */
   public final B onAction(EventHandler<ActionEvent> eventHandler) {
     Objects.requireNonNull(eventHandler, "eventHandler");

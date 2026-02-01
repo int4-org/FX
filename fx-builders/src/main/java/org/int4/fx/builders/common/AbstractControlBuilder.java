@@ -5,6 +5,8 @@ import java.util.function.Supplier;
 
 import javafx.scene.control.Control;
 
+import org.int4.fx.builders.context.BuildContext;
+
 /**
  * Base class for builders that create JavaFX {@link Control} instances.
  *
@@ -28,7 +30,7 @@ public abstract class AbstractControlBuilder<T extends Control, B extends Abstra
   }
 
   @Override
-  public final T build() {
-    return initialize(instantiator.get());
+  public final T build(BuildContext context) {
+    return initialize(context, instantiator.get());
   }
 }

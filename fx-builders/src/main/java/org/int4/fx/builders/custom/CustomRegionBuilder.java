@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import javafx.scene.layout.Region;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for custom {@link Region} instances created via a supplied factory.
@@ -32,7 +33,7 @@ public class CustomRegionBuilder<C extends Region> extends AbstractRegionBuilder
   }
 
   @Override
-  public C build() {
-    return initialize(regionSupplier.get());
+  public final C build(BuildContext context) {
+    return initialize(context, regionSupplier.get());
   }
 }

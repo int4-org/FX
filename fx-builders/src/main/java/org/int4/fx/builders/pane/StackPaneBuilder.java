@@ -1,9 +1,11 @@
 package org.int4.fx.builders.pane;
 
+import java.util.Objects;
+
 import javafx.scene.layout.StackPane;
 
 import org.int4.fx.builders.common.AbstractRegionBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link StackPane} instances.
@@ -30,7 +32,9 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
    * @see StackPane#getChildren()
    */
   public StackPaneBuilder nodes(Object... nodes) {
-    return apply(node -> node.getChildren().addAll(NodeBuilder.toNodes(nodes)));
+    Objects.requireNonNull(nodes, "nodes");
+
+    return applyChildrenStrategy(nodes, (n, v) -> n.getChildren().setAll(v));
   }
 
   /**
@@ -49,7 +53,7 @@ public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, Sta
   }
 
   @Override
-  public StackPane build() {
-    return initialize(new StackPane());
+  public StackPane build(BuildContext context) {
+    return initialize(context, new StackPane());
   }
 }

@@ -1,6 +1,5 @@
 package org.int4.fx.builders;
 
-import org.int4.fx.builders.common.NodeBuilder;
 import org.int4.fx.builders.shape.ArcBuilder;
 import org.int4.fx.builders.shape.CircleBuilder;
 import org.int4.fx.builders.shape.CubicCurveBuilder;
@@ -19,7 +18,7 @@ import org.int4.fx.builders.shape.TextBuilder;
  * <p>
  * Builders produced by this class are typically used to declaratively construct
  * JavaFX scene graphs. When builders are passed as children to other builders,
- * there is no need to explicitly call {@link NodeBuilder#build()}:
+ * there is no need to explicitly call {@code build()}:
  * builders are finalized automatically where required.
  * <p>
  * Child values are interpreted as follows:

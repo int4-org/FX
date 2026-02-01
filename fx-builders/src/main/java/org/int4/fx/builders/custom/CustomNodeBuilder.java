@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 import javafx.scene.Node;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
+import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for custom {@link Node} instances created via a supplied factory.
@@ -32,7 +33,7 @@ public class CustomNodeBuilder<N extends Node> extends AbstractNodeBuilder<N, Cu
   }
 
   @Override
-  public N build() {
-    return initialize(nodeSupplier.get());
+  public final N build(BuildContext context) {
+    return initialize(context, nodeSupplier.get());
   }
 }

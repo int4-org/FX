@@ -10,6 +10,7 @@ import javafx.beans.property.StringProperty;
 import javafx.scene.control.TextInputControl;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
+import org.int4.fx.builders.strategy.TextStrategy;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
@@ -37,13 +38,15 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
 
   /**
    * Sets the prompt text of the text input control.
+   * <p>
+   * Any object is accepted, and provided to the active {@link TextStrategy}.
    *
    * @param text the prompt text
    * @return the fluent builder, never {@code null}
    * @see TextInputControl#promptTextProperty()
    */
-  public final B promptText(String text) {
-    return apply(c -> c.setPromptText(text));
+  public final B promptText(Object text) {
+    return applyStrategy(TextStrategy::base, (s, node) -> s.apply(node, text, node::setPromptText));
   }
 
   /**

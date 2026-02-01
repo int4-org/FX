@@ -4,13 +4,10 @@ import java.util.Objects;
 
 import javafx.scene.control.TitledPane;
 
-import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.common.NodeBuilder;
-
 /**
  * Builder for {@link TitledPane} instances.
  */
-public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, TitledPaneBuilder> {
+public final class TitledPaneBuilder extends AbstractLabeledBuilder<TitledPane, TitledPaneBuilder> {
 
   /**
    * Creates a new builder with optional style classes.
@@ -34,20 +31,6 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
   }
 
   /**
-   * Sets the graphic of the titled pane.
-   *
-   * @param graphic a graphic node or other supported object, cannot be {@code null}
-   * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code graphic} is {@code null}
-   * @see TitledPane#setGraphic(javafx.scene.Node)
-   */
-  public TitledPaneBuilder graphic(Object graphic) {
-    Objects.requireNonNull(graphic, "graphic");
-
-    return apply(c -> c.setGraphic(NodeBuilder.toNode(graphic)));
-  }
-
-  /**
    * Disables collapsing of the titled pane.
    *
    * @return the fluent builder, never {@code null}
@@ -68,6 +51,6 @@ public final class TitledPaneBuilder extends AbstractControlBuilder<TitledPane, 
   public TitledPaneBuilder content(Object content) {
     Objects.requireNonNull(content, "content");
 
-    return apply(node -> node.setContent(NodeBuilder.toNode(content)));
+    return applyContentStrategy(content, TitledPane::setContent);
   }
 }
