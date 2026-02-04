@@ -13,13 +13,13 @@ import org.int4.fx.builders.FX;
 import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
 import org.int4.fx.builders.StyleSheets;
+import org.int4.fx.core.util.Observe;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.BooleanModel;
 import org.int4.fx.values.model.ChoiceModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.ObjectModel;
 import org.int4.fx.values.model.StringModel;
-import org.int4.fx.values.util.Observe;
 
 /**
  * Demonstration application showcasing the integration of the {@code fx-builders}

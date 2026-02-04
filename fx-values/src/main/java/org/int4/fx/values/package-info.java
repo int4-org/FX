@@ -15,10 +15,6 @@
  *       {@link org.int4.fx.values.model.IntegerModel},
  *       {@link org.int4.fx.values.model.StringModel} and
  *       {@link org.int4.fx.values.model.ChoiceModel}.</li>
- *   <li><strong>Utilities</strong> – helpers for composing observables,
- *       triggers, and derived values across models and domains.
- *       Notable classes are {@link org.int4.fx.values.util.Observe} and
- *       {@link org.int4.fx.values.util.Trigger}.</li>
  * </ul>
  * <p>
  * These abstractions are designed to be compatible with JavaFX's observable

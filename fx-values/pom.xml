@@ -16,10 +16,5 @@
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.int4.common</groupId>
-      <artifactId>common-function</artifactId>
-    </dependency>
   </dependencies>
 </project>
