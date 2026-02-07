@@ -14,8 +14,11 @@ import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.util.Subscription;
 
+import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
+import org.int4.fx.core.event.BroadcastHandler;
+import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.model.ConstrainedModel;
 import org.int4.fx.values.model.ValueModel;
 
@@ -65,6 +68,14 @@ final class ModelLinker<N extends Node, R, T> {
   private final Function<R, T> converter;
   private final Function<Runnable, Subscription> trigger;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
+  private final BroadcastHandler<WindowEvent> handler = e -> {
+    if(e.type() == WindowEvent.SHOWING) {
+      activateAllSubscriptions();
+    }
+    else if(e.type() == WindowEvent.HIDDEN) {
+      terminateAllSubscriptions();
+    }
+  };
 
   private Subscription subscription = Subscription.EMPTY;
   private Subscription masterSubscription = Subscription.EMPTY;
@@ -120,25 +131,26 @@ final class ModelLinker<N extends Node, R, T> {
      * to register and unregister listeners to attempt to remove references that
      * may cause object graphs to be retained.
      *
-     * When the Scene sends show state signals, this is further enhanced to only
+     * When the Scene broadcasts WindowEvents, this is further enhanced to only
      * have listeners registered when the scene determined it is showing and can be
      * interacted with. This means that the act of closing a window is sufficient
      * to trigger deregistration of all listeners registered in this way.
      */
 
-    node.sceneProperty().subscribe(v -> {
-      if(v == null) {
-        terminateAllSubscriptions();
-      }
-      else {
-        if(v.hasProperties() && v.getProperties().containsKey(ShowingStateListener.SHOW_STATE_MANAGING_SCENE)) {
+    node.sceneProperty().subscribe(scene -> {
+      terminateAllSubscriptions();
+
+      Broadcasts.removeHandler(node, WindowEvent.ANY, handler);
+
+      if(scene != null) {
+        if(scene.hasProperties() && scene.getProperties().containsKey(ShowingStateListener.SHOW_STATE_MANAGING_SCENE)) {
 
           /*
-           * This scene will automatically call a ShowingStateListener when show
-           * status changes so provide one here:
+           * This scene will automatically do a broadcast when show
+           * status changes so add a handler for these here:
            */
 
-          node.getProperties().put(ShowingStateListener.KEY, (ShowingStateListener)ModelLinker.this::bind);
+          Broadcasts.addHandler(node, WindowEvent.ANY, handler);
         }
         else {
 
@@ -217,23 +229,16 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  private void bind(boolean showing) {
-    if(showing) {
-      activateAllSubscriptions();
-    }
-    else {
-      terminateAllSubscriptions();
-    }
-  }
-
   private void activateAllSubscriptions() {
-    List<Subscription> subscriptions = new ArrayList<>();
+    if(!subscriptionsActive()) {
+      List<Subscription> subscriptions = new ArrayList<>();
 
-    for(Supplier<Subscription> supplier : subscribers) {
-      subscriptions.add(supplier.get());
+      for(Supplier<Subscription> supplier : subscribers) {
+        subscriptions.add(supplier.get());
+      }
+
+      subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
     }
-
-    subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
   }
 
   private void terminateAllSubscriptions() {
@@ -242,6 +247,10 @@ final class ModelLinker<N extends Node, R, T> {
 
     masterSubscription.unsubscribe();
     masterSubscription = Subscription.EMPTY;
+  }
+
+  private boolean subscriptionsActive() {
+    return subscription != Subscription.EMPTY;
   }
 
   public boolean updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise

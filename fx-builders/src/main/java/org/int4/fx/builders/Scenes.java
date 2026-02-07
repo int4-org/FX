@@ -5,16 +5,19 @@ import javafx.scene.Scene;
 
 import org.int4.fx.builders.common.SceneBuilder;
 import org.int4.fx.builders.context.BuildContext;
-import org.int4.fx.builders.internal.ShowingStateListener;
+import org.int4.fx.builders.event.WindowEvent;
 
 /**
- * Creates Scenes that will send signals to {@link ShowingStateListener}s when
- * the show state of the scene changes.
+ * Creates {@link Scene scenes} which support broadcasting of {@link WindowEvent}s
+ * to all nodes when the window is shown or hidden.
  * <p>
- * When a scene is showing, such listeners can set up essential bindings, while
- * when the scene is hidden (and perhaps will no longer be used) bindings can be
- * removed. This allows for deterministic management of listeners and bindings
+ * When a scene is showing, interested nodes can listen to these events to set
+ * up essential bindings when the window shows, and remove them when the window is
+ * hidden. This allows for deterministic management of listeners and bindings
  * adding and/or removing them just in time without the need for weak listeners.
+ *
+ * @see WindowEvent
+ * @see org.int4.fx.scene.event.Broadcasts
  */
 public class Scenes {
 
