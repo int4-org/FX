@@ -25,7 +25,7 @@
     <revision>1.0.0-SNAPSHOT</revision>
     <java.version>21</java.version>
     <fx.version>23.0.1</fx.version>
-    <common.version>0.0.3</common.version>
+    <common.version>0.0.4</common.version>
   </properties>
 
   <licenses>
@@ -83,6 +83,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.int4.common</groupId>
+        <artifactId>common-builder</artifactId>
+        <version>${common.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.int4.common</groupId>
         <artifactId>common-function</artifactId>

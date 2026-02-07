@@ -19,6 +19,7 @@
 module org.int4.fx.builders {
   requires transitive javafx.base;
   requires transitive javafx.controls;
+  requires transitive org.int4.common.builder;
   requires transitive org.int4.fx.core;
   requires transitive org.int4.fx.scene;
   requires transitive org.int4.fx.values;

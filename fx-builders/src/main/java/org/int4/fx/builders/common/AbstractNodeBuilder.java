@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 
+import org.int4.common.builder.AbstractOptionBuilder;
 import org.int4.fx.builders.context.BuildContext;
 import org.int4.fx.builders.context.BuildContexts;
 import org.int4.fx.builders.context.BuildStrategy;
