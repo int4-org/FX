@@ -4,6 +4,7 @@ import org.int4.fx.builders.pane.BorderPaneBuilder;
 import org.int4.fx.builders.pane.GridPaneBuilder;
 import org.int4.fx.builders.pane.GroupBuilder;
 import org.int4.fx.builders.pane.HBoxBuilder;
+import org.int4.fx.builders.pane.PaneBuilder;
 import org.int4.fx.builders.pane.StackPaneBuilder;
 import org.int4.fx.builders.pane.VBoxBuilder;
 
@@ -75,6 +76,19 @@ public class Panes {
    */
   public static BorderPaneBuilder border(String... styleClasses) {
     return new BorderPaneBuilder(styleClasses);
+  }
+
+  /**
+   * Creates a builder for a {@link javafx.scene.layout.Pane}, initialising
+   * it with the given style classes.
+   *
+   * @param styleClasses optional style classes, cannot be {@code null} but may be empty
+   * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.layout.Pane
+   */
+  public static PaneBuilder pane(String... styleClasses) {
+    return new PaneBuilder(styleClasses);
   }
 
   /**

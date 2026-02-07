@@ -4,13 +4,13 @@ import java.util.Objects;
 
 import javafx.scene.layout.HBox;
 
-import org.int4.fx.builders.common.AbstractRegionBuilder;
+import org.int4.fx.builders.common.AbstractPaneBuilder;
 import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link HBox} instances.
  */
-public final class HBoxBuilder extends AbstractRegionBuilder<HBox, HBoxBuilder> {
+public final class HBoxBuilder extends AbstractPaneBuilder<HBox, HBoxBuilder> {
 
   /**
    * Creates a new builder with optional style classes.

@@ -4,13 +4,13 @@ import java.util.Objects;
 
 import javafx.scene.layout.StackPane;
 
-import org.int4.fx.builders.common.AbstractRegionBuilder;
+import org.int4.fx.builders.common.AbstractPaneBuilder;
 import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link StackPane} instances.
  */
-public final class StackPaneBuilder extends AbstractRegionBuilder<StackPane, StackPaneBuilder> {
+public final class StackPaneBuilder extends AbstractPaneBuilder<StackPane, StackPaneBuilder> {
 
   /**
    * Creates a new builder with optional style classes.
