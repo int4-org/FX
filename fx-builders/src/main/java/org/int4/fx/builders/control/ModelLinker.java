@@ -14,8 +14,8 @@ import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.util.Subscription;
 
+import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
-import org.int4.fx.event.CommitEvent;
 import org.int4.fx.values.model.ConstrainedModel;
 import org.int4.fx.values.model.ValueModel;
 

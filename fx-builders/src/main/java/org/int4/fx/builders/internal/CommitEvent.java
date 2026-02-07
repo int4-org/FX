@@ -1,4 +1,4 @@
-package org.int4.fx.event;
+package org.int4.fx.builders.internal;
 
 import javafx.event.Event;
 import javafx.event.EventType;
