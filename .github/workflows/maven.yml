@@ -32,7 +32,7 @@ jobs:
       run: xvfb-run --auto-servernum mvn -B -ntp package jacoco:report --file pom.xml
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: int4-org/FX
