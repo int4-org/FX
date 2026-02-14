@@ -115,7 +115,7 @@ public final class TextBuilder extends AbstractShapeBuilder<Text, TextBuilder> {
 
     t.setText(text);
 
-    return build();
+    return t;
   }
 
   /**
