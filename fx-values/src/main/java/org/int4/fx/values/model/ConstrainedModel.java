@@ -126,13 +126,17 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
   /**
    * Attempts to set this model's value using the supplied converter.
    * <p>
-   * The provided conversion function may throw an exception. If the conversion
-   * succeeds, the model's value is updated and the method returns {@code true}.
-   * If the conversion fails by throwing an exception, the model remains unchanged,
-   * is marked as invalid due to unconvertible input, and the method returns {@code false}.
+   * The provided conversion function may throw an exception.
+   * <p>
+   * If conversion succeeds, and the model's value would change as a result, the
+   * method returns {@code true}. If the conversion fails by throwing an exception,
+   * the model remains unchanged, is marked as invalid due to unconvertible input,
+   * and the method returns {@code false}.
    * <p>
    * Conversion success does not imply validity; validity is determined independently
-   * by the model, based on the current domain and other constraints.
+   * by the model, based on the current domain and other constraints. Therefore, a
+   * {@code false} return value does not necessarily mean the model is invalid; it
+   * may also mean the value was unchanged.
    *
    * @param <T> the source value type
    * @param value the value to convert, may be {@code null}

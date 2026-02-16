@@ -231,13 +231,16 @@ final class ModelLinker<N extends Node, R, T> {
 
   private void activateAllSubscriptions() {
     if(!subscriptionsActive()) {
-      List<Subscription> subscriptions = new ArrayList<>();
+      // as subscribing may cause value changes, ensure they're not seen as user changes:
+      doModelInitiatedChange(() -> {
+        List<Subscription> subscriptions = new ArrayList<>();
 
-      for(Supplier<Subscription> supplier : subscribers) {
-        subscriptions.add(supplier.get());
-      }
+        for(Supplier<Subscription> supplier : subscribers) {
+          subscriptions.add(supplier.get());
+        }
 
-      subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
+        subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
+      });
     }
   }
 
@@ -259,25 +262,29 @@ final class ModelLinker<N extends Node, R, T> {
 
   private void doModelInitiatedChange(Runnable r) {
     if(!node.getPseudoClassStates().contains(DIRTY)) {
+      boolean previousState = modelInitiatedChange;
+
       modelInitiatedChange = true;
 
       try {
         r.run();
       }
       finally {
-        modelInitiatedChange = false;
+        modelInitiatedChange = previousState;
       }
     }
   }
 
   private void doControlInitiatedChange(Runnable r) {
+    boolean previousState = controlInitiatedChange;
+
     controlInitiatedChange = true;
 
     try {
       r.run();
     }
     finally {
-      controlInitiatedChange = false;
+      controlInitiatedChange = previousState;
     }
   }
 }

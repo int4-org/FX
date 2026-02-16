@@ -51,7 +51,7 @@ public class SliderControlTest extends ControlBuilderTest {
     }
 
     @Nested
-    class AndControlIsSetToValidValue {
+    class AndControlIsSetToAValidValue {
       {
         control.setValueChanging(true);
         control.setValue(65.3);  // "valid" but not normalized

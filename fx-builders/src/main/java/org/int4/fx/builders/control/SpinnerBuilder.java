@@ -11,6 +11,7 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
+import javafx.util.Subscription;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.domain.IndexedView;
@@ -77,47 +78,49 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
             factory.setValue(v);
           }
         },
-        converter
+        converter,
+        r -> Subscription.combine(
+          node.valueProperty().subscribe((ov, nv) -> r.run()),
+          node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
+        )
       );
 
       link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
-        switch(d.view(StepperView.class, IndexedView.class)) {
-          case StepperView<T> sv -> {
-            node.setValueFactory(new SimpleValueFactory<>() {
-              @Override
-              public void increment(int steps) {
-                setValue(sv.step(getValue(), steps));
+        SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
+          case StepperView<T> sv -> new SimpleValueFactory<>() {
+            @Override
+            public void increment(int steps) {
+              setValue(sv.step(getValue(), steps));
+            }
+          };
+          case IndexedView<T> iv -> new SimpleValueFactory<>() {
+            int index;
+            boolean indexValid;
+
+            {
+              valueProperty().subscribe(() -> indexValid = false);
+            }
+
+            @Override
+            public void increment(int steps) {
+              if(!indexValid) {
+                index = (int)iv.indexOf(getValue());
               }
-            });
-          }
-          case IndexedView<T> iv -> {
-            node.setValueFactory(new SimpleValueFactory<>() {
-              int index;
-              boolean indexValid;
 
-              {
-                valueProperty().subscribe(() -> indexValid = false);
-              }
+              index = Math.clamp(index + steps, 0, (int)iv.size() - 1);
 
-              @Override
-              public void increment(int steps) {
-                if(!indexValid) {
-                  index = (int)iv.indexOf(getValue());
-                }
+              setValue(iv.get(index));
 
-                index = Math.clamp(index + steps, 0, (int)iv.size() - 1);
+              indexValid = true;  // must be after setValue
+            }
+          };
+          default -> null;
+        };
 
-                setValue(iv.get(index));
+        node.setValueFactory(vf);
 
-                indexValid = true;  // must be after setValue
-              }
-            });
-          }
-          default -> node.setValueFactory(null);
-        }
-
-        if(node.getValueFactory() != null) {
-          node.getValueFactory().setValue(model.getValue());
+        if(vf != null) {
+          vf.setValue(model.getValue());
         }
       }));
     });
