@@ -67,7 +67,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     Objects.requireNonNull(converter, "converter");
 
     return builder.apply(node -> {
-      ModelLinker<Spinner<T>, String, T> link = ModelLinker.link(
+      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.link(
         node,
         model,
         () -> node.getEditor().getText(),
@@ -85,7 +85,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
         )
       );
 
-      link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
+      linker.addSubscriber(() -> model.domainProperty().subscribe(d -> linker.doModelInitiatedChange(() -> {
         SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
           case StepperView<T> sv -> new SimpleValueFactory<>() {
             @Override
@@ -122,7 +122,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
         if(vf != null) {
           vf.setValue(model.getValue());
         }
-      }));
+      })));
     });
   }
 

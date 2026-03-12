@@ -175,9 +175,9 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     Objects.requireNonNull(model, "model");
 
     return apply(node -> {
-      ModelLinker<Slider, T, T> link = link(model, node, toModel);
+      ModelLinker<Slider, T, T> linker = link(model, node, toModel);
 
-      link.addSubscriber(() -> model.domainProperty().subscribe(d -> {
+      linker.addSubscriber(() -> model.domainProperty().subscribe(d -> linker.doModelInitiatedChange(() -> {
         switch(d.view(ContinuousView.class, IndexedView.class)) {
           case ContinuousView<T> cv -> {
             node.setMin(cv.get(0).doubleValue());
@@ -189,7 +189,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
           }
           default -> {}
         }
-      }));
+      })));
     });
   }
 

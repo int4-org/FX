@@ -107,14 +107,21 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
         () -> node.getSelectionModel().getSelectedItem(),
         v -> node.getSelectionModel().select(v),
         Function.identity(),
-        r -> node.getSelectionModel().selectedItemProperty().subscribe(r::run)
+        r -> node.getSelectionModel().selectedItemProperty().subscribe((o, n) -> r.run())
       );
 
       linker.addSubscriber(() -> model.domainProperty().subscribe(
-        d -> items.setAll(switch(d.view(IndexedView.class)) {
+
+        /*
+         * Note: setAll may trigger a change in selected item and/or index, so this must be
+         * wrapped in a doModelInitiatedChange as otherwise these indirect changes would be
+         * interpreted as a user interaction (which would make the field dirty).
+         */
+
+        d -> linker.doModelInitiatedChange(() -> items.setAll(switch(d.view(IndexedView.class)) {
           case IndexedView<T> iv -> iv.asList();
           default -> List.of();
-        })
+        }))
       ));
     });
   }

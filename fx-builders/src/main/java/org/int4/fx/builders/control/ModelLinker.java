@@ -181,15 +181,15 @@ final class ModelLinker<N extends Node, R, T> {
     if(applicable) {
       masterSubscription = Subscription.combine(
         model.subscribe(v -> {
-          if(!controlInitiatedChange) {
+          if(!controlInitiatedChange && !isDirty()) {
             doModelInitiatedChange(() -> setter.accept(model.getRawValue()));
           }
         }),
-        model.valid().subscribe(v -> {
-          node.pseudoClassStateChanged(INVALID, !v);
+        model.valid().subscribe(valid -> {
+          node.pseudoClassStateChanged(INVALID, !valid);
 
           // It is possible model became valid due to an external action, update field:
-          if(model.isValid()) {
+          if(model.isValid() && !isDirty()) {
             doModelInitiatedChange(() -> setter.accept(model.getValue()));
           }
         }),
@@ -211,22 +211,24 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private void focusChanged(boolean focused) {
-    if(!focused) {
-      if(node.getPseudoClassStates().contains(DIRTY)) {
-        updateModel();
+    if(!focused && isDirty()) {
+      updateModel();
 
-        /*
-         * On focus loss, also correct the value to be in the standard format
-         * for controls that use converters, if the model is valid:
-         */
+      /*
+       * On focus loss, also correct the value to be in the standard format
+       * for controls that use converters, if the model is valid:
+       */
 
-        if(model.isValid()) {
-          setter.accept(model.getValue());
-        }
-
-        node.pseudoClassStateChanged(DIRTY, false);
+      if(model.isValid()) {
+        setter.accept(model.getValue());
       }
+
+      node.pseudoClassStateChanged(DIRTY, false);
     }
+  }
+
+  private boolean isDirty() {
+    return node.getPseudoClassStates().contains(DIRTY);
   }
 
   private void activateAllSubscriptions() {
@@ -260,18 +262,22 @@ final class ModelLinker<N extends Node, R, T> {
     return model.trySet(getter.get(), converter);
   }
 
-  private void doModelInitiatedChange(Runnable r) {
-    if(!node.getPseudoClassStates().contains(DIRTY)) {
-      boolean previousState = modelInitiatedChange;
+  /**
+   * Runs the given {@link Runnable} as a model initiated change. This means that any
+   * change made, and any changes that may trigger won't be interpreted as a user interaction.
+   *
+   * @param runnable a {@link Runnable} to run, cannot be {@code null}
+   */
+  protected void doModelInitiatedChange(Runnable runnable) {
+    boolean previousState = modelInitiatedChange;
 
-      modelInitiatedChange = true;
+    modelInitiatedChange = true;
 
-      try {
-        r.run();
-      }
-      finally {
-        modelInitiatedChange = previousState;
-      }
+    try {
+      runnable.run();
+    }
+    finally {
+      modelInitiatedChange = previousState;
     }
   }
 
