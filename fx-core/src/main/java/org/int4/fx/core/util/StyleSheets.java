@@ -1,4 +1,4 @@
-package org.int4.fx.builders;
+package org.int4.fx.core.util;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

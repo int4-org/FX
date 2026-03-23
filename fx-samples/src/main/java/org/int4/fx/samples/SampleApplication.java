@@ -19,8 +19,8 @@ import javafx.stage.Stage;
 import org.int4.fx.builders.FX;
 import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
-import org.int4.fx.builders.StyleSheets;
 import org.int4.fx.core.util.Observe;
+import org.int4.fx.core.util.StyleSheets;
 
 /**
  * Sample application demonstrating the use of the {@code org.int4.fx.builders}
