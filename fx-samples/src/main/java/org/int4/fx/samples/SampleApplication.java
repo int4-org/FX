@@ -51,6 +51,12 @@ public class SampleApplication extends Application {
     Application.launch(args);
   }
 
+  /**
+   * Constructs a new instance.
+   */
+  public SampleApplication() {
+  }
+
   @Override
   public void start(Stage primaryStage) {
 

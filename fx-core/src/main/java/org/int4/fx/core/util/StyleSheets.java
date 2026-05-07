@@ -11,7 +11,7 @@ public class StyleSheets {
 
   /**
    * Encodes a CSS stylesheet as a Base64 data URL, suitable for use with
-   * {@link javafx.scene.Scene#getStylesheets()}.
+   * {@code javafx.scene.Scene#getStylesheets()}.
    *
    * @param styleSheet the CSS stylesheet content, cannot be {@code null}
    * @return a Base64-encoded data URL representing the stylesheet, never {@code null}

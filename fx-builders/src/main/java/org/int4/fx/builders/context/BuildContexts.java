@@ -93,4 +93,6 @@ public class BuildContexts {
       ACTIVE_CONTEXT.set(previousContext);
     }
   }
+
+  private BuildContexts() {}
 }

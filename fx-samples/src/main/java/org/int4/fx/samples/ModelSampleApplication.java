@@ -53,6 +53,12 @@ public class ModelSampleApplication extends Application {
     Application.launch(args);
   }
 
+  /**
+   * Constructs a new instance.
+   */
+  public ModelSampleApplication() {
+  }
+
   @Override
   public void start(Stage primaryStage) {
 
@@ -85,7 +91,7 @@ public class ModelSampleApplication extends Application {
       !isReturnTrip ? Domain.<LocalDate>empty()  // Return Date is not applicable
         : dd == null ? Domain.<LocalDate>any()  // Return Date can be anything as no departure date was chosen
         : Domain.bounded(dd.plusDays(1), LocalDate.MAX)  // Return Date must be after departure date
-    ).subscribe(returnDate.domainProperty()::setValue);
+    ).subscribe(returnDate::setDomain);
 
     /*
      * When SMS alerts are wanted, set the phone number domain to require
@@ -93,7 +99,7 @@ public class ModelSampleApplication extends Application {
      */
 
     smsAlerts.map(v -> v ? Domain.regex("[0-9]{5,}") : Domain.<String>any())
-      .subscribe(phoneNumber.domainProperty()::setValue);
+      .subscribe(phoneNumber::setDomain);
 
     /*
      * The phone number must be provided and valid only when SMS alerts are requested.

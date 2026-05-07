@@ -171,4 +171,6 @@ public class Broadcasts {
       }
     }
   }
+
+  private Broadcasts() {}
 }
