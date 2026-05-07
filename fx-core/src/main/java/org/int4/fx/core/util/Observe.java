@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
@@ -11,8 +12,11 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.util.Subscription;
 
+import org.int4.common.function.QuadConsumer;
 import org.int4.common.function.QuadFunction;
+import org.int4.common.function.TriConsumer;
 import org.int4.common.function.TriFunction;
 
 /**
@@ -252,6 +256,61 @@ public class Observe {
 
       return combine(() -> mapper.apply(a.getValue(), b.getValue()), a, b);
     }
+
+    /**
+     * Subscribes to the values of the two dependencies.
+     * <p>
+     * The subscriber is invoked immediately with the current values of the
+     * dependencies, and subsequently whenever any dependency changes value.
+     *
+     * @param subscriber a consumer that receives the current values of the dependencies, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(BiConsumer<A, B> subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      SubscriptionInvalidationListener listener = new SubscriptionInvalidationListener(subscriber);
+
+      a.addListener(listener);
+      b.addListener(listener);
+
+      listener.callSubscriber(true);  // eager first callback
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+      };
+    }
+
+    class SubscriptionInvalidationListener implements InvalidationListener {
+      private final BiConsumer<A, B> subscriber;
+
+      private A p1;
+      private B p2;
+
+      SubscriptionInvalidationListener(BiConsumer<A, B> subscriber) {
+        this.subscriber = subscriber;
+      }
+
+      @Override
+      public void invalidated(Observable obs) {
+        callSubscriber(false);
+      }
+
+      void callSubscriber(boolean force) {
+        A v1 = a.getValue();
+        B v2 = b.getValue();
+        boolean changed = !Objects.equals(v1, p1) || !Objects.equals(v2, p2);
+
+        if(changed || force)  {
+          this.p1 = v1;
+          this.p2 = v2;
+
+          subscriber.accept(v1, v2);
+        }
+      }
+    }
   }
 
   /**
@@ -287,7 +346,7 @@ public class Observe {
      * value is {@code null}.
      * <p>
      * The derived observable recomputes its value lazily whenever it has
-     * active listeners and when either dependency changes.
+     * active listeners and when any dependency changes.
      *
      * @param <T> the type of the derived value
      * @param mapper a mapping function combining all dependency values, cannot be {@code null}
@@ -329,6 +388,66 @@ public class Observe {
       Objects.requireNonNull(mapper, "mapper");
 
       return combine(() -> mapper.apply(a.getValue(), b.getValue(), c.getValue()), a, b, c);
+    }
+
+    /**
+     * Subscribes to the values of the three dependencies.
+     * <p>
+     * The subscriber is invoked immediately with the current values of the
+     * dependencies, and subsequently whenever any dependency changes value.
+     *
+     * @param subscriber a consumer that receives the current values of the dependencies, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(TriConsumer<A, B, C> subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      SubscriptionInvalidationListener listener = new SubscriptionInvalidationListener(subscriber);
+
+      a.addListener(listener);
+      b.addListener(listener);
+      c.addListener(listener);
+
+      listener.callSubscriber(true);  // eager first callback
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+        c.removeListener(listener);
+      };
+    }
+
+    class SubscriptionInvalidationListener implements InvalidationListener {
+      private final TriConsumer<A, B, C> subscriber;
+
+      private A p1;
+      private B p2;
+      private C p3;
+
+      SubscriptionInvalidationListener(TriConsumer<A, B, C> subscriber) {
+        this.subscriber = subscriber;
+      }
+
+      @Override
+      public void invalidated(Observable obs) {
+        callSubscriber(false);
+      }
+
+      void callSubscriber(boolean force) {
+        A v1 = a.getValue();
+        B v2 = b.getValue();
+        C v3 = c.getValue();
+        boolean changed = !Objects.equals(v1, p1) || !Objects.equals(v2, p2) || !Objects.equals(v3, p3);
+
+        if(changed || force)  {
+          this.p1 = v1;
+          this.p2 = v2;
+          this.p3 = v3;
+
+          subscriber.accept(v1, v2, v3);
+        }
+      }
     }
   }
 
@@ -413,12 +532,77 @@ public class Observe {
 
       return combine(() -> mapper.apply(a.getValue(), b.getValue(), c.getValue(), d.getValue()), a, b, c, d);
     }
+
+    /**
+     * Subscribes to the values of the four dependencies.
+     * <p>
+     * The subscriber is invoked immediately with the current values of the
+     * dependencies, and subsequently whenever any dependency changes value.
+     *
+     * @param subscriber a consumer that receives the current values of the dependencies, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(QuadConsumer<A, B, C, D> subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      SubscriptionInvalidationListener listener = new SubscriptionInvalidationListener(subscriber);
+
+      a.addListener(listener);
+      b.addListener(listener);
+      c.addListener(listener);
+      d.addListener(listener);
+
+      listener.callSubscriber(true);  // eager first callback
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+        c.removeListener(listener);
+        d.removeListener(listener);
+      };
+    }
+
+    class SubscriptionInvalidationListener implements InvalidationListener {
+      private final QuadConsumer<A, B, C, D> subscriber;
+
+      private A p1;
+      private B p2;
+      private C p3;
+      private D p4;
+
+      SubscriptionInvalidationListener(QuadConsumer<A, B, C, D> subscriber) {
+        this.subscriber = subscriber;
+      }
+
+      @Override
+      public void invalidated(Observable obs) {
+        callSubscriber(false);
+      }
+
+      void callSubscriber(boolean force) {
+        A v1 = a.getValue();
+        B v2 = b.getValue();
+        C v3 = c.getValue();
+        D v4 = d.getValue();
+        boolean changed = !Objects.equals(v1, p1) || !Objects.equals(v2, p2) || !Objects.equals(v3, p3) || !Objects.equals(v4, p4);
+
+        if(changed || force)  {
+          this.p1 = v1;
+          this.p2 = v2;
+          this.p3 = v3;
+          this.p4 = v4;
+
+          subscriber.accept(v1, v2, v3, v4);
+        }
+      }
+    }
   }
 
   /**
    * Internal helper that constructs a lazily-evaluated {@link ObservableValue}
    * whose value is computed by the supplied {@link Supplier} and which
-   * attaches listeners to the given dependency {@link Observable}s only while
+   * attaches listeners to the given dependency {@link ObservableValue}s only while
    * the returned observable itself is observed.
    *
    * <p>Behavior summary:
@@ -443,18 +627,20 @@ public class Observe {
    *
    * @param <T> the computed value type
    * @param valueComputer supplier that computes the current value
-   * @param observables dependency observables that will be lazily listened to
+   * @param observableValues dependency observable values that will be lazily listened to
    * @return an {@link ObservableValue} which computes values via the supplier and lazily observes dependencies
    */
-  private static <T> ObservableValue<T> combine(Supplier<T> valueComputer, Observable... observables) {
+  private static <T> ObservableValue<T> combine(Supplier<T> valueComputer, ObservableValue<?>... observableValues) {
     return new ObservableValue<>() {
       private final List<InvalidationListener> invalidationListeners = new ArrayList<>();
       private final List<ChangeListener<? super T>> changeListeners = new ArrayList<>();
       private final InvalidationListener invalidationListener = obs -> invalidated();
+      private final Object[] lastValues = new Object[observableValues.length];
 
       private T value;
       private boolean valid;
       private boolean observed;
+      private boolean valueInitialized;
 
       @Override
       public void addListener(InvalidationListener listener) {
@@ -517,7 +703,7 @@ public class Observe {
       }
 
       private void startObserving() {
-        for(Observable obs : observables) {
+        for(Observable obs : observableValues) {
           obs.addListener(invalidationListener);
         }
 
@@ -525,7 +711,7 @@ public class Observe {
       }
 
       private void stopObserving() {
-        for(Observable obs : observables) {
+        for(Observable obs : observableValues) {
           obs.removeListener(invalidationListener);
         }
 
@@ -540,8 +726,23 @@ public class Observe {
       @Override
       public T getValue() {
         if(!valid) {
-          value = computeValue();
-          valid = observed;  // don't become valid if not observed, recompute each time
+          boolean changed = false;
+
+          for(int i = 0; i < observableValues.length; i++) {
+            Object v = observableValues[i].getValue();
+
+            if(!Objects.equals(v, lastValues[i])) {
+              lastValues[i] = v;
+              changed = true;
+            }
+          }
+
+          if(changed || !valueInitialized) {
+            value = computeValue();
+            valueInitialized = true;
+          }
+
+          valid = observed;  // don't become valid if not observed, recompute if source values changed
         }
 
         return value;

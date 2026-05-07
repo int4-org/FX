@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.util.Subscription;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -89,32 +90,42 @@ public class ObserveTest {
     VALUES_2(
       2,
       properties -> Observe.values(properties[0], properties[1]).map((a, b) -> a + ":" + b),
-      properties -> Observe.values(properties[0], properties[1]).compute((a, b) -> a + ":" + b)
+      properties -> Observe.values(properties[0], properties[1]).compute((a, b) -> a + ":" + b),
+      (properties, consumer) -> Observe.values(properties[0], properties[1]).subscribe((a, b) -> consumer.accept(a + ":" + b))
     ),
     VALUES_3(
       3,
       properties -> Observe.values(properties[0], properties[1], properties[2]).map((a, b, c) -> a + ":" + b + ":" + c),
-      properties -> Observe.values(properties[0], properties[1], properties[2]).compute((a, b, c) -> a + ":" + b + ":" + c)
+      properties -> Observe.values(properties[0], properties[1], properties[2]).compute((a, b, c) -> a + ":" + b + ":" + c),
+      (properties, consumer) -> Observe.values(properties[0], properties[1], properties[2]).subscribe((a, b, c) -> consumer.accept(a + ":" + b + ":" + c))
     ),
     VALUES_4(
       4,
       properties -> Observe.values(properties[0], properties[1], properties[2], properties[3]).map((a, b, c, d) -> a + ":" + b + ":" + c + ":" + d),
-      properties -> Observe.values(properties[0], properties[1], properties[2], properties[3]).compute((a, b, c, d) -> a + ":" + b + ":" + c + ":" + d)
+      properties -> Observe.values(properties[0], properties[1], properties[2], properties[3]).compute((a, b, c, d) -> a + ":" + b + ":" + c + ":" + d),
+      (properties, consumer) -> Observe.values(properties[0], properties[1], properties[2], properties[3]).subscribe((a, b, c, d) -> consumer.accept(a + ":" + b + ":" + c + ":" + d))
     );
 
     private final int count;
     private final Function<StringProperty[], ObservableValue<String>> mapFunction;
     private final Function<StringProperty[], ObservableValue<String>> computeFunction;
+    private final SubscribeFunction subscribeFunction;
 
     Case(
       int count,
       Function<StringProperty[], ObservableValue<String>> mapFunction,
-      Function<StringProperty[], ObservableValue<String>> computeFunction
+      Function<StringProperty[], ObservableValue<String>> computeFunction,
+      SubscribeFunction subscribeFunction
     ) {
       this.count = count;
       this.mapFunction = mapFunction;
       this.computeFunction = computeFunction;
+      this.subscribeFunction = subscribeFunction;
     }
+  }
+
+  interface SubscribeFunction {
+    Subscription apply(StringProperty[] properties, java.util.function.Consumer<String> results);
   }
 
   @ParameterizedTest
@@ -219,5 +230,116 @@ public class ObserveTest {
 
     assertThatThrownBy(() -> c.mapFunction.apply(properties).orElse("")).isInstanceOf(NullPointerException.class);
     assertThatThrownBy(() -> c.computeFunction.apply(properties).orElse("")).isInstanceOf(NullPointerException.class);
+  }
+
+  @ParameterizedTest
+  @EnumSource(Case.class)
+  void subscribeShouldBeEagerAndTransactional(Case c) {
+    StringProperty[] properties = new StringProperty[c.count];
+
+    for(int i = 0; i < c.count; i++) {
+      properties[i] = new SimpleStringProperty("V" + i);
+    }
+
+    List<String> results = new ArrayList<>();
+    Subscription sub = c.subscribeFunction.apply(properties, results::add);
+
+    String initialExpected = Arrays.stream(properties).map(StringProperty::get).collect(Collectors.joining(":"));
+
+    assertThat(results).containsExactly(initialExpected);
+
+    // Test when dependencies change:
+    for(int i = 0; i < c.count; i++) {
+      results.clear();
+      properties[i].set("New");
+
+      String updateExpected = Arrays.stream(properties).map(StringProperty::get).collect(Collectors.joining(":"));
+
+      assertThat(results).containsExactly(updateExpected);
+    }
+
+    results.clear();
+
+    // Test when dependencies don't change:
+    for(int i = 0; i < c.count; i++) {
+      properties[i].set(properties[i].get());
+
+      assertThat(results).isEmpty();
+    }
+
+    results.clear();
+
+    sub.unsubscribe();
+
+    for(int i = 0; i < c.count; i++) {
+      properties[i].set("Cancelled");
+
+      assertThat(results).isEmpty();
+    }
+  }
+
+  @Test
+  void shouldAvoidRedundantRecomputations() {
+    StringProperty s1 = new SimpleStringProperty("A");
+    StringProperty s2 = new SimpleStringProperty("B");
+    int[] counter = {0};
+
+    ObservableValue<String> combined = Observe.values(s1, s2).compute((v1, v2) -> {
+      counter[0]++;
+
+      return v1 + ":" + v2;
+    });
+
+    assertThat(combined.getValue()).isEqualTo("A:B");
+    assertThat(counter[0]).isEqualTo(1);
+
+    assertThat(combined.getValue()).isEqualTo("A:B");
+    assertThat(counter[0]).isEqualTo(1); // Doesn't recompute as dependencies didn't change
+
+    s1.set("D");
+
+    assertThat(combined.getValue()).isEqualTo("D:B");
+    assertThat(counter[0]).isEqualTo(2);
+
+    s2.set("B");
+
+    assertThat(combined.getValue()).isEqualTo("D:B");
+    assertThat(counter[0]).isEqualTo(2);
+
+    s1.set("A");
+
+    assertThat(combined.getValue()).isEqualTo("A:B");
+    assertThat(counter[0]).isEqualTo(3);
+
+    List<String> listenerOutputs = new ArrayList<>();
+
+    combined.addListener((obs, old, cur) -> listenerOutputs.add(old + " -> " + cur)); // Start observing
+
+    assertThat(counter[0]).isEqualTo(3);
+    assertThat(listenerOutputs).isEmpty();
+
+    listenerOutputs.clear();
+    s1.set("A"); // No real change
+
+    assertThat(counter[0]).isEqualTo(3);
+    assertThat(listenerOutputs).isEmpty();
+
+    listenerOutputs.clear();
+    s1.set("C");
+
+    assertThat(counter[0]).isEqualTo(4);
+    assertThat(listenerOutputs).containsExactly("A:B -> C:B");
+
+    listenerOutputs.clear();
+    s2.set("C");
+
+    assertThat(counter[0]).isEqualTo(5);
+    assertThat(listenerOutputs).containsExactly("C:B -> C:C");
+
+    listenerOutputs.clear();
+    s2.set("C"); // No change
+
+    assertThat(counter[0]).isEqualTo(5);
+    assertThat(listenerOutputs).isEmpty();
   }
 }
