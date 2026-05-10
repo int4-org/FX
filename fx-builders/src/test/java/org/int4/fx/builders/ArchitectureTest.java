@@ -32,16 +32,19 @@ public class ArchitectureTest {
   private final ArchRule noClassesShouldDependOnUpperPackages = DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES;
 
   static ArchCondition<JavaClass> publiclyImplementInterfacesInSamePackage() {
-    return new ArchCondition<>("publicly implement public interfaces that reside in same package") {
+    return new ArchCondition<>("publicly implement public non-sealed interfaces that reside in same package") {
       @Override
       public void check(JavaClass cls, ConditionEvents events) {
         for(JavaClass iface : cls.getAllRawInterfaces()) {
-          boolean isSamePackageAndPublic = iface.getPackage().equals(cls.getPackage())
+          boolean isViolation = iface.getPackage().equals(cls.getPackage())
             && Modifier.isPublic(iface.reflect().getModifiers())
             && Modifier.isPublic(cls.reflect().getModifiers())
-            && !Modifier.isAbstract(cls.reflect().getModifiers());
+            && !Modifier.isAbstract(cls.reflect().getModifiers())
+            && !iface.reflect().isSealed();
 
-          events.add(new SimpleConditionEvent(iface, isSamePackageAndPublic, cls.getDescription() + " is public and not abstract and implements public <" + iface.getFullName() + "> in same package"));
+          String message = cls.getDescription() + " is public and not abstract and implements public non-sealed <" + iface.getFullName() + "> in same package";
+
+          events.add(new SimpleConditionEvent(iface, isViolation, message));
         }
       }
     };
