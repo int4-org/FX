@@ -25,7 +25,7 @@ public class SliderControlTest extends ControlBuilderTest {
     }
 
     @Test
-    void shouldRespondToValidModelChanges() {
+    void shouldRespondToModelChanges() {
       model.set(75);
 
       assertThat(control.getValue()).isEqualTo(75);
@@ -36,7 +36,12 @@ public class SliderControlTest extends ControlBuilderTest {
       assertThat(control.getValue()).isEqualTo(100);
       assertThat(control.getPseudoClassStates()).doesNotContain(INVALID, TOUCHED, DIRTY);
 
-      model.set(-10);  // an invalid change, should not update control
+      model.set(-10);  // can't be represented by the slider, value gets clamped
+
+      assertThat(control.getValue()).isEqualTo(0);
+      assertThat(control.getPseudoClassStates()).contains(INVALID).doesNotContain(TOUCHED, DIRTY);
+
+      model.set(120);  // can't be represented by the slider, value gets clamped
 
       assertThat(control.getValue()).isEqualTo(100);
       assertThat(control.getPseudoClassStates()).contains(INVALID).doesNotContain(TOUCHED, DIRTY);

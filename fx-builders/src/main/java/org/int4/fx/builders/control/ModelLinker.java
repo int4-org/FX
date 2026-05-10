@@ -18,10 +18,20 @@ import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
 import org.int4.fx.core.event.BroadcastHandler;
+import org.int4.fx.core.util.Observe;
+import org.int4.fx.core.util.Value;
 import org.int4.fx.scene.event.Broadcasts;
-import org.int4.fx.values.model.ConstrainedModel;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.ValueModel;
 
+/**
+ * Orchestrates the bidirectional synchronization between a JavaFX {@link Node}
+ * and a {@link ValueModel}, managing dirty state, focus, and validation.
+ *
+ * @param <N> the node type
+ * @param <R> the raw value type from the control
+ * @param <T> the model's value type
+ */
 final class ModelLinker<N extends Node, R, T> {
   public static boolean RESPOND_TO_TEST_FOCUS_EVENT;
 
@@ -30,23 +40,33 @@ final class ModelLinker<N extends Node, R, T> {
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
   public static <N extends Node, T> ModelLinker<N, T, T> link(N node, ValueModel<T> model, Supplier<T> getter, Consumer<T> setter) {
-    return new ModelLinker<>(node, model, getter, setter, Function.identity(), r -> Subscription.EMPTY);
+    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), Function.identity(), r -> Subscription.EMPTY);
   }
 
   public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
-    return new ModelLinker<>(node, model, getter, setter, converter, r -> Subscription.EMPTY);
+    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, r -> Subscription.EMPTY);
   }
 
   public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
-    return new ModelLinker<>(node, model, getter, setter, converter, trigger);
+    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, trigger);
   }
 
   public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Property<T> property) {
     return new ModelLinker<>(node, model, property);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
-    return new ModelLinker<>(node, model, property, nullAlternative);
+  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, ValueModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
+    return new ModelLinker<>(node, model, getter, setter, converter, trigger);
+  }
+
+  private static <T> Consumer<ControlCommand<T>> toSynchronizer(Consumer<T> setter) {
+    return s -> {
+      switch(s) {
+        case ControlCommand.ModelValue(T value) -> setter.accept(value);
+        case ControlCommand.RawValue(Object value) -> setter.accept(null);
+        case ControlCommand.Inapplicable() -> setter.accept(null);
+      }
+    };
   }
 
   static class TestFocusEvent extends Event {
@@ -61,12 +81,18 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
+  @SuppressWarnings("unused")
+  sealed interface ControlCommand<T> {
+    record ModelValue<T>(T value) implements ControlCommand<T> {}
+    record RawValue<T>(Object rawValue) implements ControlCommand<T> {}
+    record Inapplicable<T>() implements ControlCommand<T> {}
+  }
+
   private final N node;
-  private final ConstrainedModel<T, ?> model;
+  private final ValueModel<T> model;
   private final Supplier<R> getter;
-  private final Consumer<T> setter;
+  private final Consumer<ControlCommand<T>> setter;
   private final Function<R, T> converter;
-  private final Function<Runnable, Subscription> trigger;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
   private final BroadcastHandler<WindowEvent> handler = e -> {
     if(e.type() == WindowEvent.SHOWING) {
@@ -78,22 +104,19 @@ final class ModelLinker<N extends Node, R, T> {
   };
 
   private Subscription subscription = Subscription.EMPTY;
-  private Subscription masterSubscription = Subscription.EMPTY;
 
+  private R controlRawValue;
+  private boolean conversionFailed;
   private boolean modelInitiatedChange;
   private boolean controlInitiatedChange;
 
-  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
-    this(node, model, property, null);
-  }
-
   @SuppressWarnings("unchecked")
-  ModelLinker(N node, ValueModel<T> model, Property<T> property, T nullAlternative) {
+  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
     this(
       node,
       model,
       () -> (R)property.getValue(),
-      v -> property.setValue(v == null ? nullAlternative : v),
+      s -> toSynchronizer(property::setValue),
       r -> (T)r,
       r -> property.subscribe((ov, nv) -> r.run())
     );
@@ -103,7 +126,7 @@ final class ModelLinker<N extends Node, R, T> {
     N node,
     ValueModel<T> model,
     Supplier<R> getter,
-    Consumer<T> setter,
+    Consumer<ControlCommand<T>> setter,
     Function<R, T> converter,
     Function<Runnable, Subscription> trigger
   ) {
@@ -112,7 +135,6 @@ final class ModelLinker<N extends Node, R, T> {
     this.getter = Objects.requireNonNull(getter, "getter");
     this.setter = Objects.requireNonNull(setter, "setter");
     this.converter = Objects.requireNonNull(converter, "converter");
-    this.trigger = Objects.requireNonNull(trigger, "trigger");
 
     addSubscriber(() -> {
       node.visibleProperty().bind(model.applicable());
@@ -124,7 +146,39 @@ final class ModelLinker<N extends Node, R, T> {
       };
     });
 
-    addSubscriber(() -> model.applicable().subscribe(this::monitorModelWhenApplicable));
+    addSubscriber(() -> Observe.values(model.domain(), model.rawValue(), model.valid())
+      .subscribe((d, rv, valid) -> {
+        if(!controlInitiatedChange) {
+          if(!isDirty()) {  // should not propagate any model changes when control is dirty
+            doModelInitiatedChange(() -> {
+              if(conversionFailed && rv.isAbsent()) {
+                setter.accept(model.isApplicable() ? new ControlCommand.RawValue<>(controlRawValue) : new ControlCommand.Inapplicable<>());
+              }
+              else {
+                conversionFailed = false;
+
+                setter.accept(model.isApplicable() ? new ControlCommand.ModelValue<>(rv.orElse(null)) : new ControlCommand.Inapplicable<>());
+              }
+            });
+          }
+
+          refreshValidationState(d, valid);
+        }
+      })
+    );
+
+    addSubscriber(() -> trigger.apply(() -> {
+      if(!modelInitiatedChange) {
+        node.pseudoClassStateChanged(TOUCHED, true);
+        node.pseudoClassStateChanged(DIRTY, true);
+
+        doControlInitiatedChange(this::updateModel);
+
+        refreshValidationState(model.getDomain(), model.isValid());
+      }
+    }));
+
+    addSubscriber(() -> node.focusedProperty().subscribe((ov, focused) -> focusChanged(focused)));
 
     /*
      * The scene property which is local to the Node is bound to determine when
@@ -167,7 +221,37 @@ final class ModelLinker<N extends Node, R, T> {
     node.addEventHandler(CommitEvent.COMMIT, e -> updateModel());
 
     if(RESPOND_TO_TEST_FOCUS_EVENT) {
-      node.addEventHandler(TestFocusEvent.MODIFY, e -> focusChanged(e.focused));
+      node.addEventHandler(TestFocusEvent.MODIFY, e -> {
+        if(subscriptionsActive()) {
+          focusChanged(e.focused);
+        }
+      });
+    }
+  }
+
+  private void refreshValidationState(Domain<T> domain, boolean valid) {
+    Value<T> modelValue = toModelValue();
+
+    boolean isValid = isDirty()
+      ? (domain.isEmpty() ? getter.get() == null : containedInDomain(domain, modelValue))
+      : valid;
+
+    applyValidationState(modelValue, isValid);
+  }
+
+  private static <T> boolean containedInDomain(Domain<T> domain, Value<T> modelValue) {
+    return switch(modelValue) {
+      case Value.Present<T>(T value) -> domain.contains(value);
+      case Value.Absent() -> false;
+    };
+  }
+
+  private Value<T> toModelValue() {
+    try {
+      return Value.present(isDirty() ? this.converter.apply(getter.get()) : model.getRawValue().orElse(null));
+    }
+    catch(Exception e) {
+      return Value.absent();
     }
   }
 
@@ -175,60 +259,6 @@ final class ModelLinker<N extends Node, R, T> {
     subscribers.add(subscriber);
 
     return () -> subscribers.remove(subscriber);
-  }
-
-  private void monitorModelWhenApplicable(boolean applicable) {
-    if(applicable) {
-      masterSubscription = Subscription.combine(
-        model.subscribe(v -> {
-          if(!controlInitiatedChange && !isDirty()) {
-            doModelInitiatedChange(() -> setter.accept(model.getRawValue()));
-          }
-        }),
-        model.valid().subscribe(valid -> {
-          node.pseudoClassStateChanged(INVALID, !valid);
-
-          // It is possible model became valid due to an external action, update field:
-          if(model.isValid() && !isDirty()) {
-            doModelInitiatedChange(() -> setter.accept(model.getValue()));
-          }
-        }),
-        trigger.apply(() -> {
-          if(!modelInitiatedChange) {
-            doControlInitiatedChange(this::updateModel);
-
-            node.pseudoClassStateChanged(TOUCHED, true);
-            node.pseudoClassStateChanged(DIRTY, true);
-          }
-        }),
-        node.focusedProperty().subscribe((ov, focused) -> focusChanged(focused))
-      );
-    }
-    else {
-      masterSubscription.unsubscribe();
-      masterSubscription = Subscription.EMPTY;
-    }
-  }
-
-  private void focusChanged(boolean focused) {
-    if(!focused && isDirty()) {
-      updateModel();
-
-      /*
-       * On focus loss, also correct the value to be in the standard format
-       * for controls that use converters, if the model is valid:
-       */
-
-      if(model.isValid()) {
-        setter.accept(model.getValue());
-      }
-
-      node.pseudoClassStateChanged(DIRTY, false);
-    }
-  }
-
-  private boolean isDirty() {
-    return node.getPseudoClassStates().contains(DIRTY);
   }
 
   private void activateAllSubscriptions() {
@@ -247,19 +277,88 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private void terminateAllSubscriptions() {
-    subscription.unsubscribe();
-    subscription = Subscription.EMPTY;
+    if(subscriptionsActive()) {
 
-    masterSubscription.unsubscribe();
-    masterSubscription = Subscription.EMPTY;
+      /*
+       * Handle DIRTY state first by flushing to model:
+       */
+
+      focusChanged(false);
+
+      /*
+       * Unsubscribe everything:
+       */
+
+      subscription.unsubscribe();
+      subscription = Subscription.EMPTY;
+
+      /*
+       * When previously connected, and now disconnected, reset value, touched
+       * and invalid states. New data may be present on next reconnect so none
+       * of these values are sensible to keep:
+       */
+
+      doModelInitiatedChange(() -> setter.accept(new ControlCommand.Inapplicable<>()));
+
+      controlRawValue = null;
+      conversionFailed = false;
+
+      node.pseudoClassStateChanged(TOUCHED, false);
+      node.pseudoClassStateChanged(INVALID, false);
+    }
+  }
+
+  private void focusChanged(boolean focused) {
+    if(!focused && isDirty()) {
+
+      /*
+       * When focus is lost, and the control is dirty, update the model with
+       * the control's value. The control is now no longer dirty.
+       *
+       * In the not dirty state, the control should always reflect the model.
+       * Afterwards, the control should be synced with the model still because:
+       *
+       * 1. A valid model may have slightly different formatting due to a conversion (eg. 1 -> 1.0)
+       * 2. An invalid model must be reflected as empty or null in the control
+       */
+
+      updateModel();
+
+      node.pseudoClassStateChanged(DIRTY, false);
+
+      if(model.isValid()) {
+        doModelInitiatedChange(() -> setter.accept(model.isApplicable() ? new ControlCommand.ModelValue<>(model.getRawValue().orElseThrow()) : new ControlCommand.Inapplicable<>()));
+      }
+
+      applyValidationState(
+        model.getRawValue(),
+        model.isValid()
+      );
+    }
+  }
+
+  private boolean isDirty() {
+    return node.getPseudoClassStates().contains(DIRTY);
+  }
+
+  private void applyValidationState(Value<T> value, boolean valid) {
+    if(node.getPseudoClassStates().contains(INVALID) == valid) {
+      node.pseudoClassStateChanged(INVALID, !valid);
+    }
   }
 
   private boolean subscriptionsActive() {
     return subscription != Subscription.EMPTY;
   }
 
-  public boolean updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
-    return model.trySet(getter.get(), converter);
+  public void updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
+    assert subscriptionsActive();
+
+    this.controlRawValue = getter.get();
+
+    model.trySet(controlRawValue, converter);
+
+    this.conversionFailed = model.getRawValue().isAbsent();
   }
 
   /**
@@ -281,13 +380,13 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  private void doControlInitiatedChange(Runnable r) {
+  private void doControlInitiatedChange(Runnable runnable) {
     boolean previousState = controlInitiatedChange;
 
     controlInitiatedChange = true;
 
     try {
-      r.run();
+      runnable.run();
     }
     finally {
       controlInitiatedChange = previousState;

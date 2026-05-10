@@ -2,9 +2,9 @@ package org.int4.fx.values.model;
 
 import java.util.function.Function;
 
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.value.ObservableValue;
 
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 
 /**
@@ -43,26 +43,26 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
    * @return the current domain, never {@code null}
    */
   default Domain<E> getDomain() {
-    return domainProperty().get();
+    return domain().getValue();
   }
 
   /**
    * Sets the domain that constrains values for this model.
+   * <p>
+   * Changing the domain may affect the validity of the current value.
    *
    * @param domain the new domain, cannot be {@code null}
    */
-  default void setDomain(Domain<E> domain) {
-    domainProperty().set(domain);
-  }
+  void setDomain(Domain<E> domain);
 
   /**
-   * The observable domain property of this model.
+   * The observable domain value of this model.
    * <p>
    * Changes to the domain may affect the validity of the current value.
    *
-   * @return the domain property, never {@code null}
+   * @return the domain {@link ObservableValue}, never {@code null}
    */
-  ObjectProperty<Domain<E>> domainProperty();
+  ObservableValue<Domain<E>> domain();
 
   /**
    * Returns {@code true} if this model is currently applicable.
@@ -106,6 +106,10 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
 
   /**
    * Returns {@code true} if this model is currently valid.
+   * <p>
+   * A model is typically considered valid if it is not applicable, or if
+   * its current value satisfies the associated domain and conversion
+   * constraints.
    *
    * @return {@code true} if the model is valid
    */
@@ -128,22 +132,25 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
    * <p>
    * The provided conversion function may throw an exception.
    * <p>
-   * If conversion succeeds, and the model's value would change as a result, the
-   * method returns {@code true}. If the conversion fails by throwing an exception,
-   * the model remains unchanged, is marked as invalid due to unconvertible input,
-   * and the method returns {@code false}.
+   * If conversion succeeds and the model's value changes as a result, the
+   * method returns {@code true}.
    * <p>
-   * Conversion success does not imply validity; validity is determined independently
-   * by the model, based on the current domain and other constraints. Therefore, a
-   * {@code false} return value does not necessarily mean the model is invalid; it
-   * may also mean the value was unchanged.
+   * If the conversion fails (by throwing an exception), the model is marked
+   * as invalid due to unconvertible input, its {@link #getRawValue()} becomes
+   * {@link org.int4.fx.core.util.Value.Absent}, and the method returns {@code false}.
+   * <p>
+   * Conversion success does not imply validity; validity is determined
+   * independently by the model, based on the current domain and other
+   * constraints. Therefore, a {@code false} return value does not
+   * necessarily mean the model is invalid; it may also mean the value
+   * was unchanged.
    *
    * @param <T> the source value type
    * @param value the value to convert, may be {@code null}
    * @param converter a conversion function producing a model value, cannot be
    *   {@code null}; may throw an exception
    * @return {@code true} if the conversion succeeded and the value was updated,
-   *   otherwise {@code false} if conversion failed or value was unchanged
+   *   otherwise {@code false} if conversion failed or the value was unchanged
    * @throws NullPointerException if {@code converter} is {@code null}
    */
   <T> boolean trySet(T value, Function<T, M> converter);
@@ -151,31 +158,41 @@ public interface ConstrainedModel<M, E> extends ObservableValue<M> {
   /**
    * Returns the raw value currently stored by this model.
    * <p>
-   * This method unconditionally accesses the stored value, regardless of
-   * applicability or validity. Note that this returns {@code null} for
-   * not representable values (could not be converted). To distinguish
-   * these from an actual {@code null} call {@link #conversionFailed}.
+   * The returned {@link Value} can be {@link org.int4.fx.core.util.Value.Present} or {@link org.int4.fx.core.util.Value.Absent}:
+   * <ul>
+   *   <li>When present, the value is the stored value, regardless of applicability or
+   *       validity, and may be {@code null}.</li>
+   *   <li>When absent, the model is in an error state representing a failure to
+   *       convert an input value to the required type (e.g., via {@link #trySet(Object, Function)}).</li>
+   * </ul>
    *
-   * @return the stored value, may be {@code null}
+   * @return the raw value, never {@code null}
    */
-  M getRawValue();
+  default Value<M> getRawValue() {
+    return rawValue().getValue();
+  }
 
   /**
-   * Returns {@code true} if the last value assignment could not be converted
-   * to the model type {@code M}, causing the model to become invalid.
+   * An observable representing the raw value currently stored by this model.
    * <p>
-   * An unconvertible value is always invalid, but not all invalid values
-   * are unconvertible. Use this flag to distinguish conversion failures
-   * from domain violations or other constraints.
+   * This observable provides access to the underlying value even when the model
+   * is invalid or not applicable.
    *
-   * @return {@code true} if the last conversion attempt failed, {@code false} otherwise
+   * @return an observable raw value, never {@code null}
    */
-  boolean conversionFailed();
+  ObservableValue<Value<M>> rawValue();
 
   /**
-   * Returns the current value of the model, or {@code null} if the model
-   * is not applicable or currently invalid. Use {@link #getRawValue()}
-   * to access the underlying stored value unconditionally.
+   * Returns the current value of the model if it is both applicable and valid.
+   * <p>
+   * This method returns {@code null} if:
+   * <ul>
+   *   <li>The model is not {@link #isApplicable()}</li>
+   *   <li>The model is {@link #isInvalid()}</li>
+   *   <li>The stored value is actually {@code null}</li>
+   * </ul>
+   * Use {@link #getRawValue()} to access the underlying stored value
+   * unconditionally.
    *
    * @return the current value of the model, or {@code null} if the model
    *   is not applicable or currently invalid

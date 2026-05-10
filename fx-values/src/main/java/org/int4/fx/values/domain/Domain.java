@@ -79,7 +79,7 @@ public sealed interface Domain<T> permits DomainImpl {
       readOnlyItems::contains,
       false,
       readOnlyItems.isEmpty(),
-      new IndexedView<T>() {
+      new AbstractIndexedView<T>() {
         @Override
         public T get(long index) {
           Objects.checkIndex(index, size());
@@ -192,7 +192,7 @@ public sealed interface Domain<T> permits DomainImpl {
       validator,
       false,
       false,
-      new IndexedView<Integer>() {
+      new AbstractIndexedView<Integer>() {
         @Override
         public Integer get(long index) {
           Objects.checkIndex(index, size());
@@ -287,7 +287,7 @@ public sealed interface Domain<T> permits DomainImpl {
       validator,
       false,
       false,
-      new IndexedView<Long>() {
+      new AbstractIndexedView<Long>() {
         @Override
         public Long get(long index) {
           Objects.checkIndex(index, size());
@@ -362,7 +362,7 @@ public sealed interface Domain<T> permits DomainImpl {
       validator,
       false,
       false,
-      new IndexedView<Double>() {
+      new AbstractIndexedView<Double>() {
         @Override
         public Double get(long index) {
           Objects.checkIndex(index, size());

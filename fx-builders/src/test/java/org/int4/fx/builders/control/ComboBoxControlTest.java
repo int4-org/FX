@@ -37,9 +37,9 @@ public class ComboBoxControlTest extends ControlBuilderTest {
       assertThat(control.getValue()).isEqualTo("E");
       assertThat(control.getPseudoClassStates()).doesNotContain(INVALID, TOUCHED, DIRTY);
 
-      model.set("Z");  // an invalid change, should not update control
+      model.set("Z");  // an invalid change, should update control as it is not dirty as so must reflect model
 
-      assertThat(control.getValue()).isEqualTo("E");
+      assertThat(control.getValue()).isEqualTo("Z");
       assertThat(control.getPseudoClassStates()).contains(INVALID).doesNotContain(TOUCHED, DIRTY);
     }
 
@@ -221,7 +221,7 @@ public class ComboBoxControlTest extends ControlBuilderTest {
 
       @Test
       void selectedIndexRemainsUnchanged() {
-        assertThat(control.getSelectionModel().getSelectedIndex()).isEqualTo(2);
+        assertThat(control.getSelectionModel().getSelectedIndex()).isEqualTo(-1);
         assertThat(control.getSelectionModel().getSelectedItem()).isEqualTo("C");
       }
 

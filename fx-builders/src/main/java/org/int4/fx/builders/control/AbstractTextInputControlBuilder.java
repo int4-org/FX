@@ -10,6 +10,7 @@ import javafx.beans.property.StringProperty;
 import javafx.scene.control.TextInputControl;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
+import org.int4.fx.builders.control.ModelLinker.ControlCommand;
 import org.int4.fx.builders.strategy.TextStrategy;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
@@ -142,11 +143,15 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   private <T> void link(C node, ValueModel<T> model, Function<T, String> printer, Function<String, T> parser) {
-    ModelLinker.link(
+    ModelLinker.sync(
       node,
       model,
       () -> node.getText(),
-      v -> node.setText(v == null ? "" : printer.apply(v)),
+      v -> node.setText(switch(v) {
+        case ControlCommand.ModelValue(T value) -> value == null ? "" : printer.apply(value);
+        case ControlCommand.RawValue(Object value) -> Objects.toString(value);
+        case ControlCommand.Inapplicable() -> null;
+      }),
       r -> {
 
         /*

@@ -3,106 +3,112 @@ package org.int4.fx.values.model;
 import java.util.Objects;
 import java.util.function.Function;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.ObservableValueBase;
 
+import org.int4.fx.core.util.UpdatableValue;
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 
 abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel<T> {
-  private final ReadOnlyBooleanWrapper applicable = new ReadOnlyBooleanWrapper();
-  private final ReadOnlyBooleanWrapper valid = new ReadOnlyBooleanWrapper();
-  private final ObjectProperty<Domain<T>> domain = new SimpleObjectProperty<>();
+  private final UpdatableValue<Domain<T>> domain = UpdatableValue.of();
+  private final UpdatableValue<Boolean> applicable = UpdatableValue.of();
+  private final UpdatableValue<Boolean> valid = UpdatableValue.of();
+  private final UpdatableValue<Value<T>> rawValue = UpdatableValue.of();
 
-  /**
-   * Indicates that the current raw value isn't correct, as it was unconvertible
-   * to a domain value. Comparisons with the raw value should therefore always
-   * be considered false if this flag is true.
-   */
-  private boolean unconvertible;
+  ModelBase(T initialValue, Domain<T> initialDomain) {
+    Value<T> rv = new Value.Present<>(initialValue);
 
-  ModelBase(Domain<T> domain) {
-    this.domain.set(Objects.requireNonNull(domain, "domain"));
-  }
-
-  void init() {
-
-    /*
-     * This can be done differently once there are flexible constructor bodies
-     * in Java 25. It must be done after the subtype has set its raw value, as
-     * it will be queried too early otherwise.
-     */
-
-    domain.subscribe(v -> {
-      applicable.set(v.isNotEmpty());
-
-      if(applicable.get()) {
-        if(!unconvertible) {
-          setValue(getRawValue());
-        }
-      }
-      else {
-        valid.set(true);
-      }
-    });
-  }
-
-  @Override
-  public boolean conversionFailed() {
-    return unconvertible;
+    UpdatableValue.set(
+      domain, initialDomain,
+      applicable, initialDomain.isNotEmpty(),
+      valid, determineValidity(initialDomain, rv),
+      rawValue, rv
+    );
   }
 
   @Override
   public final ObservableValue<Boolean> applicable() {
-    return applicable.getReadOnlyProperty();
+    return applicable.asObservableValue();
   }
 
   @Override
   public final ObservableValue<Boolean> valid() {
-    return valid.getReadOnlyProperty();
+    return valid.asObservableValue();
   }
 
   @Override
-  public final ObjectProperty<Domain<T>> domainProperty() {
-    return domain;
+  public final Value<T> getRawValue() {
+    return rawValue.getValue();
+  }
+
+  @Override
+  public final ObservableValue<Value<T>> rawValue() {
+    return rawValue.asObservableValue();
+  }
+
+  @Override
+  public final T getValue() {
+    return isValid() && isApplicable() ? getRawValue().orElse(null) : null;
+  }
+
+  @Override
+  public final void setValue(T newValue) {
+    update(getDomain(), new Value.Present<>(newValue));
+  }
+
+  @Override
+  public final ObservableValue<Domain<T>> domain() {
+    return domain.asObservableValue();
+  }
+
+  @Override
+  public final void setDomain(Domain<T> domain) {
+    Objects.requireNonNull(domain, "domain");
+
+    update(domain, getRawValue());
   }
 
   @Override
   public <U> boolean trySet(U value, Function<U, T> converter) {
-    try {
-      T convertedValue = converter.apply(value);
-      T raw = getRawValue();
+    Value<T> convertedValue = convert(value, converter);
+    Value<T> current = getRawValue();
 
-      /*
-       * If previously unconvertible, it means the raw value is actually not
-       * correctly representing the previous state, and therefore it should
-       * be considered always different from the new converted value:
-       */
+    if(!Objects.equals(current, convertedValue)) {
+      update(getDomain(), convertedValue);
 
-      if(unconvertible || !Objects.equals(raw, convertedValue)) {
-        setValue(convertedValue);
-
-        return true;
-      }
-    }
-    catch(Exception e) {
-      markInvalid();
+      return convertedValue.isPresent();
     }
 
     return false;
   }
 
-  private void markInvalid() {
-    this.unconvertible = true;  // must be before changing validity as listeners may query conversionFailed
-
-    valid.set(false);
+  private <U> Value<T> convert(U value, Function<U, T> converter) {
+    try {
+      return Value.present(converter.apply(value));
+    }
+    catch(Exception e) {
+      return Value.absent();
+    }
   }
 
-  protected final void updateValidity(T newValue) {
-    unconvertible = false;
-    valid.set(getDomain().isEmpty() || getDomain().contains(newValue));
+  private void update(Domain<T> newDomain, Value<T> newValue) {
+    T oldValue = getValue();
+
+    UpdatableValue.set(
+      domain, newDomain,
+      applicable, newDomain.isNotEmpty(),
+      valid, determineValidity(newDomain, newValue),
+      rawValue, newValue
+    );
+
+    if(!Objects.equals(getValue(), oldValue)) {
+      fireValueChangedEvent();
+    }
+  }
+
+  private boolean determineValidity(Domain<T> domain, Value<T> newValue) {
+    return domain.isEmpty() || (newValue instanceof Value.Present<T>(T value) && domain.contains(value));
   }
 
   @Override

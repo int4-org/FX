@@ -177,7 +177,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     return apply(node -> {
       ModelLinker<Slider, T, T> linker = link(model, node, toModel);
 
-      linker.addSubscriber(() -> model.domainProperty().subscribe(d -> linker.doModelInitiatedChange(() -> {
+      linker.addSubscriber(() -> model.domain().subscribe(d -> linker.doModelInitiatedChange(() -> {
         switch(d.view(ContinuousView.class, IndexedView.class)) {
           case ContinuousView<T> cv -> {
             node.setMin(cv.get(0).doubleValue());
@@ -202,7 +202,11 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
         case IndexedView<T> iv -> iv.get(Math.round(node.getValue()));
         default -> null;
       },
-      v -> updateSlider(model, node),
+      v -> node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+        case ContinuousView<T> cv -> cv.project(v).doubleValue();
+        case IndexedView<T> iv -> Math.max(0, iv.indexOf(v));
+        default -> v.doubleValue();
+      }),
       v -> v,
       r -> Subscription.combine(
         node.valueProperty().subscribe((ov, nv) -> r.run()),

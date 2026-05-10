@@ -3,46 +3,24 @@ package org.int4.fx.values.model;
 import org.int4.fx.values.domain.Domain;
 
 class SimpleBooleanModel extends ModelBase<Boolean> implements BooleanModel {
-  private boolean value;
-  private boolean isNull;
 
   SimpleBooleanModel(Boolean initialValue, Domain<Boolean> domain) {
-    super(domain);
-
-    this.value = initialValue == null ? false : initialValue;
-    this.isNull = initialValue == null;
-
-    init();
-  }
-
-  @Override
-  public Boolean getRawValue() {
-    return isNull ? null : value;
-  }
-
-  @Override
-  public Boolean getValue() {
-    return isValid() && isApplicable() && !isNull ? value : null;
-  }
-
-  @Override
-  public void setValue(Boolean newValue) {
-    set(newValue == null ? false : newValue, newValue == null);
+    super(initialValue, domain);
   }
 
   @Override
   public boolean isNull() {
-    return isNull;
+    return getRawValue() == null;
   }
 
   @Override
   public boolean get() {
     if(isValid()) {
-      if(isNull || !isApplicable()) {
+      if(isNull() || !isApplicable()) {
         throw new NullValueException(this);
       }
 
-      return value;
+      return getRawValue().orElseThrow();
     }
 
     throw new InvalidValueException(this);
@@ -50,20 +28,6 @@ class SimpleBooleanModel extends ModelBase<Boolean> implements BooleanModel {
 
   @Override
   public void set(boolean newValue) {
-    set(newValue, false);
-  }
-
-  private void set(boolean newValue, boolean newIsNull) {
-    boolean oldValue = value;
-    boolean wasNull = isNull;
-
-    this.value = newValue;
-    this.isNull = newIsNull;
-
-    updateValidity(getRawValue());
-
-    if((newValue != oldValue || wasNull != isNull) && isValid()) {
-      fireValueChangedEvent();
-    }
+    setValue(newValue);
   }
 }

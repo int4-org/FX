@@ -25,7 +25,13 @@ final class DomainImpl<T> implements Domain<T> {
     this.empty = empty;
 
     for(View<T> view : views) {
-      ArrayDeque<Class<?>> toScan = new ArrayDeque<>(Arrays.asList(view.getClass().getInterfaces()));
+      ArrayDeque<Class<?>> toScan = new ArrayDeque<>();
+      Class<?> cls = view.getClass();
+
+      while (cls != null) {
+        toScan.addAll(Arrays.asList(cls.getInterfaces()));
+        cls = cls.getSuperclass();
+      }
 
       while(!toScan.isEmpty()) {
         Class<?> iface = toScan.pop();

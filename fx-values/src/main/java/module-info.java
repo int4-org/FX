@@ -9,6 +9,7 @@
  */
 module org.int4.fx.values {
   requires transitive javafx.base;
+  requires transitive org.int4.fx.core;
 
   exports org.int4.fx.values.domain;
   exports org.int4.fx.values.model;

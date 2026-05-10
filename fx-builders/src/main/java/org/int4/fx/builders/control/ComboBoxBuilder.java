@@ -90,42 +90,6 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
     return builder.apply(c -> c.setItems(builder.comparator == null ? items : new SortedList<>(items, builder.comparator)));
   }
 
-  static <T> Typed<T> model(Typed<T> builder, ValueModel<T> model) {
-    Objects.requireNonNull(model, "model");
-
-    return builder.apply(node -> {
-      ObservableList<T> items = node.getItems();
-
-      if(builder.comparator != null) {
-        // hard replace the list with our own sorted list:
-        node.setItems(new SortedList<>(items, builder.comparator));
-      }
-
-      ModelLinker<ComboBox<T>, T, T> linker = ModelLinker.link(
-        node,
-        model,
-        () -> node.getSelectionModel().getSelectedItem(),
-        v -> node.getSelectionModel().select(v),
-        Function.identity(),
-        r -> node.getSelectionModel().selectedItemProperty().subscribe((o, n) -> r.run())
-      );
-
-      linker.addSubscriber(() -> model.domainProperty().subscribe(
-
-        /*
-         * Note: setAll may trigger a change in selected item and/or index, so this must be
-         * wrapped in a doModelInitiatedChange as otherwise these indirect changes would be
-         * interpreted as a user interaction (which would make the field dirty).
-         */
-
-        d -> linker.doModelInitiatedChange(() -> items.setAll(switch(d.view(IndexedView.class)) {
-          case IndexedView<T> iv -> iv.asList();
-          default -> List.of();
-        }))
-      ));
-    });
-  }
-
   @SuppressWarnings("unchecked")
   final <T> Typed<T> toTyped() {
     Typed<T> builder = new Typed<>();
@@ -323,5 +287,62 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
 
       return this;
     }
+  }
+
+  static <T> Typed<T> model(Typed<T> builder, ValueModel<T> model) {
+    Objects.requireNonNull(model, "model");
+
+    return builder.apply(node -> {
+      ObservableList<T> items = node.getItems();
+
+      if(builder.comparator != null) {
+        // hard replace the list with our own sorted list:
+        node.setItems(new SortedList<>(items, builder.comparator));
+      }
+
+      ModelLinker<ComboBox<T>, T, T> linker = ModelLinker.link(
+        node,
+        model,
+        node::getValue,
+        node::setValue,
+        Function.identity(),
+        r -> node.valueProperty().subscribe((o, n) -> r.run())
+      );
+
+      // Remove items when disconnecting from model:
+      linker.addSubscriber(() -> () -> node.getItems().clear());
+
+      // React to domain changes:
+      linker.addSubscriber(() -> model.domain().subscribe(
+
+        /*
+         * Note: setAll may trigger a change in selected item and/or index, so this must be
+         * wrapped in a doModelInitiatedChange as otherwise these indirect changes would be
+         * interpreted as a user interaction (which would make the field dirty).
+         */
+
+        d -> linker.doModelInitiatedChange(() -> {
+
+          /*
+           * ComboBox is somewhat unpredictable (it internally has some odd state tracking that
+           * looks like a bug as it only happens when the control is still fresh). Explicitely
+           * putting it in a known state before changing its items makes this a lot more predictable:
+           */
+
+          T value = node.getValue();
+
+          node.getSelectionModel().clearSelection();
+          node.setValue(null);
+
+          items.setAll(switch(d.view(IndexedView.class)) {
+            case IndexedView<T> iv -> iv.asList();
+            default -> List.of();
+          });
+
+          // Restore correct state:
+          node.setValue(value);
+        })
+      ));
+    });
   }
 }

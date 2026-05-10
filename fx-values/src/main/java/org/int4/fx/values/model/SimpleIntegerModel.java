@@ -1,48 +1,30 @@
 package org.int4.fx.values.model;
 
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 
 class SimpleIntegerModel extends ModelBase<Integer> implements IntegerModel {
-  private int value;
-  private boolean isNull;
 
   SimpleIntegerModel(Integer initialValue, Domain<Integer> domain) {
-    super(domain);
-
-    this.value = initialValue == null ? 0 : initialValue;
-    this.isNull = initialValue == null;
-
-    init();
-  }
-
-  @Override
-  public Integer getRawValue() {
-    return isNull ? null : value;
-  }
-
-  @Override
-  public Integer getValue() {
-    return isValid() && isApplicable() && !isNull ? value : null;
-  }
-
-  @Override
-  public void setValue(Integer newValue) {
-    set(newValue == null ? 0 : newValue, newValue == null);
+    super(initialValue, domain);
   }
 
   @Override
   public boolean isNull() {
-    return isNull;
+    return switch(getRawValue()) {
+      case Value.Present<Integer>(Integer value) -> value == null;
+      default -> false;
+    };
   }
 
   @Override
   public int get() {
     if(isValid()) {
-      if(isNull || !isApplicable()) {
+      if(isNull() || !isApplicable()) {
         throw new NullValueException(this);
       }
 
-      return value;
+      return getRawValue().orElseThrow();
     }
 
     throw new InvalidValueException(this);
@@ -50,20 +32,6 @@ class SimpleIntegerModel extends ModelBase<Integer> implements IntegerModel {
 
   @Override
   public void set(int newValue) {
-    set(newValue, false);
-  }
-
-  private void set(int newValue, boolean newIsNull) {
-    int oldValue = value;
-    boolean wasNull = isNull;
-
-    this.value = newValue;
-    this.isNull = newIsNull;
-
-    updateValidity(getRawValue());
-
-    if((value != oldValue || wasNull != isNull) && isValid()) {
-      fireValueChangedEvent();
-    }
+    setValue(newValue);
   }
 }

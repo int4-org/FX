@@ -13,6 +13,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.int4.fx</groupId>
+      <artifactId>fx-core</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.openjfx</groupId>
       <artifactId>javafx-base</artifactId>
     </dependency>

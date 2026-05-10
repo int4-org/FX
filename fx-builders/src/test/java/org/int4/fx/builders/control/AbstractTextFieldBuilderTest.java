@@ -64,8 +64,8 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends ValueModel<D>> e
       }
 
       @Test
-      void controlShouldRemainUnchanged() {
-        assertThat(control.getText()).isEqualTo(controlValues().initialValid);
+      void controlShouldReflectInvalidValue() {
+        assertThat(control.getText()).isEqualTo(controlValues().invalid);
       }
 
       @Test
@@ -265,12 +265,12 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends ValueModel<D>> e
       void controlShouldNotReactToModelChanges() {
         model.setValue(modelValues().valid);
 
-        assertThat(control.getText()).isEqualTo(controlValues().initialValid);
+        assertThat(control.getText()).isNull();
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
 
         model.setValue(modelValues().invalid);
 
-        assertThat(control.getText()).isEqualTo(controlValues().initialValid);
+        assertThat(control.getText()).isNull();
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
       }
 
@@ -300,12 +300,12 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends ValueModel<D>> e
       void controlShouldNotReactToModelChanges() {
         model.setValue(modelValues().valid);
 
-        assertThat(control.getText()).isEqualTo(controlValues().initialValid);
+        assertThat(control.getText()).isNull();
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
 
         model.setValue(modelValues().invalid);
 
-        assertThat(control.getText()).isEqualTo(controlValues().initialValid);
+        assertThat(control.getText()).isNull();
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
       }
 

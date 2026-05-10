@@ -2,12 +2,14 @@ package org.int4.fx.values.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -205,10 +207,9 @@ public class AllModelsTest {
 
     assertThat(c.get(m)).isEqualTo(c.validInDomain1);
     assertThat(m.getValue()).isEqualTo(c.validInDomain1);
-    assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
     assertThat(m.getDomain()).isEqualTo(c.domain1);
     assertThat(m.isApplicable()).isEqualTo(true);
-    assertThat(m.conversionFailed()).isEqualTo(false);
   }
 
   @ParameterizedTest
@@ -247,13 +248,27 @@ public class AllModelsTest {
 
     m.subscribe(v -> list.add(v));
 
-    assertThat(list).containsExactly((T)null);
+    assertThat(list).containsExactly((T)null);  // not valid, so null
 
     list.clear();
 
     m.setValue(c.validInBoth);
+
+    assertThat(list).containsExactly(c.validInBoth);
+
+    list.clear();
+
     m.setValue(c.validInBoth);
+
+    assertThat(list).isEmpty();
+
     m.setValue(c.validInDomain1);
+
+    assertThat(list).containsExactly((T)null);  // not valid, so null
+
+    list.clear();
+
+    m.setValue(c.validInBoth);
 
     assertThat(list).containsExactly(c.validInBoth);
 
@@ -267,12 +282,7 @@ public class AllModelsTest {
     m.setValue(c.validInDomain1);
     m.setValue(null);
 
-    if(c.domain1.allowsNull()) {
-      assertThat(list).containsExactly((T)null);
-    }
-    else {
-      assertThat(list).isEmpty();
-    }
+    assertThat(list).containsExactly((T)null);
   }
 
   @ParameterizedTest
@@ -284,7 +294,7 @@ public class AllModelsTest {
     assertThat(m.isApplicable()).isEqualTo(true);
     assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
 
     m.setDomain(c.domain1);
 
@@ -292,13 +302,13 @@ public class AllModelsTest {
     assertThat(m.isApplicable()).isEqualTo(true);
     assertGet(c, m, c.validInDomain1);
     assertThat(m.getValue()).isEqualTo(c.validInDomain1);
-    assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
 
     c.set(m, c.validInBoth);
 
     assertGet(c, m, c.validInBoth);
     assertThat(m.getValue()).isEqualTo(c.validInBoth);
-    assertThat(m.getRawValue()).isEqualTo(c.validInBoth);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
 
     m.setValue(null);
 
@@ -313,12 +323,12 @@ public class AllModelsTest {
       }
 
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isNull();
+      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
     }
     else {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isNull();
+      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
     }
 
     m.setDomain(c.domain1);
@@ -337,12 +347,12 @@ public class AllModelsTest {
       }
 
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isNull();
+      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
     }
     else {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isNull();
+      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
     }
 
     m.setValue(c.validInNone);
@@ -350,7 +360,7 @@ public class AllModelsTest {
     if(c.validInNone == null && !m.getDomain().allowsNull()) {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(c.validInNone);
+      assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
 
       m.setDomain(c.domain2);
 
@@ -358,7 +368,7 @@ public class AllModelsTest {
       assertThat(m.isApplicable()).isEqualTo(true);
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(c.validInNone);
+      assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
     }
 
     m.setDomain(Domain.empty());
@@ -372,7 +382,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(c.validInNone);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
 
     m.setValue(c.validInDomain1);
 
@@ -385,7 +395,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(c.validInDomain1);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
   }
 
   @ParameterizedTest
@@ -395,23 +405,54 @@ public class AllModelsTest {
 
     assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.conversionFailed()).isEqualTo(false);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
 
     assertThat(m.trySet(c.validInBoth, v -> { throw new NumberFormatException(); })).isFalse();
     assertThat(m.isValid()).isFalse();
-    assertThat(m.conversionFailed()).isEqualTo(true);
+    assertThat(m.getRawValue()).isEqualTo(Value.absent());
 
     assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.conversionFailed()).isEqualTo(false);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
 
     assertThat(m.trySet(c.validInDomain1, v -> v)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.conversionFailed()).isEqualTo(false);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
 
     assertThat(m.trySet(c.validInDomain1, v -> v)).isFalse();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.conversionFailed()).isEqualTo(false);
+    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+  }
+
+  @ParameterizedTest
+  @ArgumentsSource(Models.class)
+  <M extends ValueModel<T>, T, D extends Domain<T>> void listenerTest(Case<M, T, D> c) {
+    M m = c.creator.apply(c.validInDomain1, c.domain1);
+    AtomicReference<T> observed = new AtomicReference<>();
+
+    m.subscribe(observed::set);
+
+    assertThat(observed).hasValue(c.validInDomain1);
+
+    m.setValue(c.validInBoth);
+
+    assertThat(observed).hasValue(c.validInBoth);
+
+    m.setValue(c.validInNone);
+
+    assertThat(observed).hasNullValue();
+
+    m.setValue(c.validInDomain1);
+
+    assertThat(observed).hasValue(c.validInDomain1);
+
+    m.setDomain(c.domain2);
+
+    assertThat(observed).hasNullValue();
+
+    m.setValue(c.validInBoth);
+
+    assertThat(observed).hasValue(c.validInBoth);
   }
 
   private static <M extends ValueModel<T>, T, D extends Domain<T>> void assertGet(Case<M, T, D> c, M m, T expected) {

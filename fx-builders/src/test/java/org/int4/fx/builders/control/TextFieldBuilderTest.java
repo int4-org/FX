@@ -3,6 +3,7 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
@@ -34,7 +35,7 @@ public class TextFieldBuilderTest  {
 
     @Override
     protected Values<String> controlValues() {
-      return new Values<>("4", "6", "");
+      return new Values<>("4", "6", "-10");
     }
 
     @Override
@@ -62,7 +63,7 @@ public class TextFieldBuilderTest  {
 
     @Override
     protected Values<String> controlValues() {
-      return new Values<>("4", "6", "");
+      return new Values<>("4", "6", "-10");
     }
 
     @Override
@@ -92,7 +93,7 @@ public class TextFieldBuilderTest  {
 
       @Override
       protected Values<String> controlValues() {
-        return new Values<>("5", "6.5", "");
+        return new Values<>("5", "6.5", "-10");
       }
     }
 
@@ -150,7 +151,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(nullableModel.getRawValue()).isNull();
+      assertThat(nullableModel.getRawValue()).isEqualTo(Value.present(null));
       assertThat(nullableModel.getValue()).isNull();
       assertThat(nullableModel.isValid()).isTrue();
     }
@@ -165,7 +166,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(model.getRawValue()).isEqualTo(" ");
+      assertThat(model.getRawValue()).isEqualTo(Value.present(" "));
       assertThat(model.getValue()).isNull();
       assertThat(model.isValid()).isFalse();
     }
@@ -180,7 +181,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(nullableModel.getRawValue()).isEqualTo(" ");
+      assertThat(nullableModel.getRawValue()).isEqualTo(Value.present(" "));
       assertThat(nullableModel.getValue()).isEqualTo(" ");
       assertThat(nullableModel.isValid()).isTrue();
     }

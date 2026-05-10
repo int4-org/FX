@@ -3,6 +3,7 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.Spinner;
 
+import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.IntegerModel;
 import org.junit.jupiter.api.Nested;
@@ -36,9 +37,9 @@ public class SpinnerControlTest extends ControlBuilderTest {
       assertThat(control.getValue()).isEqualTo(100);
       assertThat(control.getPseudoClassStates()).doesNotContain(INVALID, TOUCHED, DIRTY);
 
-      model.set(-10);  // an invalid change, should not update control
+      model.set(-10);  // an invalid change, should update control as it is not dirty as so must reflect model
 
-      assertThat(control.getValue()).isEqualTo(100);
+      assertThat(control.getValue()).isEqualTo(-10);
       assertThat(control.getPseudoClassStates()).contains(INVALID).doesNotContain(TOUCHED, DIRTY);
     }
 
@@ -59,8 +60,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(50);  // last accepted value
-        assertThat(model.conversionFailed()).isTrue();  // but it should be ignored
+        assertThat(model.getRawValue()).isEqualTo(Value.absent());
         assertThat(model.getValue()).isNull();
       }
 
@@ -82,10 +82,9 @@ public class SpinnerControlTest extends ControlBuilderTest {
         }
 
         @Test
-        void modelShouldRemainUnchanged() {
+        void modelShouldReflectBadInput() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(50);  // last accepted value
-          assertThat(model.conversionFailed()).isTrue();  // but it should be ignored
+          assertThat(model.getRawValue()).isEqualTo(Value.absent());
           assertThat(model.getValue()).isNull();
         }
 
@@ -110,8 +109,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldBeUpdatedAndBecomeValid() {
           assertThat(model.isValid()).isTrue();
-          assertThat(model.getRawValue()).isEqualTo(99);
-          assertThat(model.conversionFailed()).isFalse();
+          assertThat(model.getRawValue()).isEqualTo(Value.present(99));
           assertThat(model.getValue()).isEqualTo(99);
         }
 
@@ -135,8 +133,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
           @Test
           void modelShouldRemainUnchanged() {
             assertThat(model.isValid()).isTrue();
-            assertThat(model.getRawValue()).isEqualTo(99);
-            assertThat(model.conversionFailed()).isFalse();
+            assertThat(model.getRawValue()).isEqualTo(Value.present(99));
             assertThat(model.getValue()).isEqualTo(99);
           }
 
@@ -163,8 +160,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(150);
-        assertThat(model.conversionFailed()).isFalse();
+        assertThat(model.getRawValue()).isEqualTo(Value.present(150));
         assertThat(model.getValue()).isNull();
       }
 
@@ -188,8 +184,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldRemainUnchanged() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(150);
-          assertThat(model.conversionFailed()).isFalse();
+          assertThat(model.getRawValue()).isEqualTo(Value.present(150));
           assertThat(model.getValue()).isNull();
         }
 

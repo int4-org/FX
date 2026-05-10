@@ -200,5 +200,10 @@ public final class UpdatableValue<T> {
     public T getValue() {
       return value;
     }
+
+    @Override
+    public String toString() {
+      return "ObservableValue(value=" + value + ")";
+    }
   }
 }

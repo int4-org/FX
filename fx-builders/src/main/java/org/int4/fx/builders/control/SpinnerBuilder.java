@@ -62,70 +62,6 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     });
   }
 
-  static <T> Typed<T> create(Typed<T> builder, ValueModel<T> model, Function<String, T> converter) {
-    Objects.requireNonNull(model, "model");
-    Objects.requireNonNull(converter, "converter");
-
-    return builder.apply(node -> {
-      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.link(
-        node,
-        model,
-        () -> node.getEditor().getText(),
-        v -> {
-          SpinnerValueFactory<T> factory = node.getValueFactory();
-
-          if(factory != null) {
-            factory.setValue(v);
-          }
-        },
-        converter,
-        r -> Subscription.combine(
-          node.valueProperty().subscribe((ov, nv) -> r.run()),
-          node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
-        )
-      );
-
-      linker.addSubscriber(() -> model.domainProperty().subscribe(d -> linker.doModelInitiatedChange(() -> {
-        SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
-          case StepperView<T> sv -> new SimpleValueFactory<>() {
-            @Override
-            public void increment(int steps) {
-              setValue(sv.step(getValue(), steps));
-            }
-          };
-          case IndexedView<T> iv -> new SimpleValueFactory<>() {
-            int index;
-            boolean indexValid;
-
-            {
-              valueProperty().subscribe(() -> indexValid = false);
-            }
-
-            @Override
-            public void increment(int steps) {
-              if(!indexValid) {
-                index = (int)iv.indexOf(getValue());
-              }
-
-              index = Math.clamp(index + steps, 0, (int)iv.size() - 1);
-
-              setValue(iv.get(index));
-
-              indexValid = true;  // must be after setValue
-            }
-          };
-          default -> null;
-        };
-
-        node.setValueFactory(vf);
-
-        if(vf != null) {
-          vf.setValue(model.getValue());
-        }
-      })));
-    });
-  }
-
   @SuppressWarnings("unchecked")
   final <T> Typed<T> toTyped() {
     Typed<T> builder = new Typed<>();
@@ -341,5 +277,69 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     public void decrement(int steps) {
       increment(-steps);
     }
+  }
+
+  static <T> Typed<T> create(Typed<T> builder, ValueModel<T> model, Function<String, T> converter) {
+    Objects.requireNonNull(model, "model");
+    Objects.requireNonNull(converter, "converter");
+
+    return builder.apply(node -> {
+      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.link(
+        node,
+        model,
+        () -> node.getEditor().getText(),
+        v -> {
+          SpinnerValueFactory<T> factory = node.getValueFactory();
+
+          if(factory != null) {
+            factory.setValue(v);
+          }
+        },
+        converter,
+        r -> Subscription.combine(
+          node.valueProperty().subscribe((ov, nv) -> r.run()),
+          node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
+        )
+      );
+
+      linker.addSubscriber(() -> model.domain().subscribe(d -> linker.doModelInitiatedChange(() -> {
+        SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
+          case StepperView<T> sv -> new SimpleValueFactory<>() {
+            @Override
+            public void increment(int steps) {
+              setValue(sv.step(getValue(), steps));
+            }
+          };
+          case IndexedView<T> iv -> new SimpleValueFactory<>() {
+            int index;
+            boolean indexValid;
+
+            {
+              valueProperty().subscribe(() -> indexValid = false);
+            }
+
+            @Override
+            public void increment(int steps) {
+              if(!indexValid) {
+                index = (int)iv.indexOf(getValue()) + steps;
+              }
+
+              index = Math.clamp(index, 0, (int)iv.size() - 1);
+
+              setValue(iv.get(index));
+
+              indexValid = true;  // must be after setValue
+            }
+          };
+          default -> null;
+        };
+
+        node.setValueFactory(vf);
+
+        if(vf != null) {
+          vf.setValue(model.getValue());
+        }
+      })));
+    });
   }
 }
