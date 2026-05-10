@@ -210,6 +210,17 @@ public sealed interface Domain<T> permits DomainImpl {
           return size;
         }
       },
+      new ContinuousView<Integer>() {
+        @Override
+        public Integer get(double fraction) {
+          return normalizer.apply(min + (int)Math.round(Math.clamp(fraction, 0, 1) * (max - min)));
+        }
+
+        @Override
+        public double fractionOf(Integer value) {
+          return value == null ? 0.0 : (double)(normalizer.apply(value) - min) / (max - min);
+        }
+      },
       new StepperView<Integer>() {
         @Override
         public Integer step(Integer value, int steps) {
@@ -294,6 +305,17 @@ public sealed interface Domain<T> permits DomainImpl {
           return size;
         }
       },
+      new ContinuousView<Long>() {
+        @Override
+        public Long get(double fraction) {
+          return normalizer.apply(min + Math.round(Math.clamp(fraction, 0, 1) * (max - min)));
+        }
+
+        @Override
+        public double fractionOf(Long value) {
+          return value == null ? 0.0 : (double)(normalizer.apply(value) - min) / (max - min);
+        }
+      },
       new StepperView<Long>() {
         @Override
         public Long step(Long value, int steps) {
@@ -356,6 +378,17 @@ public sealed interface Domain<T> permits DomainImpl {
         @Override
         public long size() {
           return size;
+        }
+      },
+      new ContinuousView<Double>() {
+        @Override
+        public Double get(double fraction) {
+          return normalizer.apply(min + Math.clamp(fraction, 0, 1) * (max - min));
+        }
+
+        @Override
+        public double fractionOf(Double value) {
+          return value == null ? 0.0 : (normalizer.apply(value) - min) / (max - min);
         }
       },
       new StepperView<Double>() {

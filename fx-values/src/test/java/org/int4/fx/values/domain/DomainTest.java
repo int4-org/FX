@@ -56,6 +56,20 @@ public class DomainTest {
     assertThat(sv.step(null, -2)).isNull();
     assertThat(sv.step(null, 0)).isNull();
     assertThat(sv.step(null, 2)).isNull();
+
+    ContinuousView<Integer> cv = domain.requireView(ContinuousView.class);
+
+    assertThat(cv.get(-0.1)).isEqualTo(0);
+    assertThat(cv.get(0.0)).isEqualTo(0);
+    assertThat(cv.get(0.5)).isEqualTo(3);
+    assertThat(cv.get(1.0)).isEqualTo(5);
+    assertThat(cv.get(1.1)).isEqualTo(5);
+    assertThat(cv.fractionOf(-1)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(2)).isEqualTo(0.4);
+    assertThat(cv.fractionOf(5)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(6)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(null)).isEqualTo(0.0);
   }
 
   @Test
@@ -113,6 +127,22 @@ public class DomainTest {
     assertThat(sv.step(null, -2)).isNull();
     assertThat(sv.step(null, 0)).isNull();
     assertThat(sv.step(null, 2)).isNull();
+
+    ContinuousView<Integer> cv = domain.requireView(ContinuousView.class);
+
+    assertThat(cv.get(-0.1)).isEqualTo(0);
+    assertThat(cv.get(0.0)).isEqualTo(0);
+    assertThat(cv.get(0.1)).isEqualTo(2);
+    assertThat(cv.get(0.5)).isEqualTo(6);
+    assertThat(cv.get(0.9)).isEqualTo(10);
+    assertThat(cv.get(1.0)).isEqualTo(10);
+    assertThat(cv.get(1.1)).isEqualTo(10);
+    assertThat(cv.fractionOf(-1)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(5)).isEqualTo(0.6);
+    assertThat(cv.fractionOf(10)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(11)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(null)).isEqualTo(0.0);
   }
 
   @Test
@@ -160,6 +190,20 @@ public class DomainTest {
     assertThat(sv.step(null, -2)).isNull();
     assertThat(sv.step(null, 0)).isNull();
     assertThat(sv.step(null, 2)).isNull();
+
+    ContinuousView<Long> cv = domain.requireView(ContinuousView.class);
+
+    assertThat(cv.get(-0.1)).isEqualTo(0L);
+    assertThat(cv.get(0.0)).isEqualTo(0L);
+    assertThat(cv.get(0.5)).isEqualTo(3L);
+    assertThat(cv.get(1.0)).isEqualTo(5L);
+    assertThat(cv.get(1.1)).isEqualTo(5L);
+    assertThat(cv.fractionOf(-1L)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0L)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(2L)).isEqualTo(0.4);
+    assertThat(cv.fractionOf(5L)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(6L)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(null)).isEqualTo(0.0);
   }
 
   @Test
@@ -217,6 +261,22 @@ public class DomainTest {
     assertThat(sv.step(null, -2)).isNull();
     assertThat(sv.step(null, 0)).isNull();
     assertThat(sv.step(null, 2)).isNull();
+
+    ContinuousView<Long> cv = domain.requireView(ContinuousView.class);
+
+    assertThat(cv.get(-0.1)).isEqualTo(0L);
+    assertThat(cv.get(0.0)).isEqualTo(0L);
+    assertThat(cv.get(0.1)).isEqualTo(2L);
+    assertThat(cv.get(0.5)).isEqualTo(6L);
+    assertThat(cv.get(0.9)).isEqualTo(10L);
+    assertThat(cv.get(1.0)).isEqualTo(10L);
+    assertThat(cv.get(1.1)).isEqualTo(10L);
+    assertThat(cv.fractionOf(-1L)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0L)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(5L)).isEqualTo(0.6);
+    assertThat(cv.fractionOf(10L)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(11L)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(null)).isEqualTo(0.0);
   }
 
   @Test
@@ -272,6 +332,22 @@ public class DomainTest {
     assertThat(sv.step(null, -2)).isNull();
     assertThat(sv.step(null, 0)).isNull();
     assertThat(sv.step(null, 2)).isNull();
+
+    ContinuousView<Double> cv = domain.requireView(ContinuousView.class);
+
+    assertThat(cv.get(-0.1)).isEqualTo(0.0);
+    assertThat(cv.get(0.0)).isEqualTo(0.0);
+    assertThat(cv.get(0.25)).isEqualTo(0.25);
+    assertThat(cv.get(0.5)).isEqualTo(0.5);
+    assertThat(cv.get(0.75)).isEqualTo(0.75);
+    assertThat(cv.get(1.0)).isEqualTo(1.0);
+    assertThat(cv.get(1.1)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(-1.0)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0.0)).isEqualTo(0.0);
+    assertThat(cv.fractionOf(0.5)).isEqualTo(0.5);
+    assertThat(cv.fractionOf(1.0)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(1.5)).isEqualTo(1.0);
+    assertThat(cv.fractionOf(null)).isEqualTo(0.0);
   }
 
   @Test
