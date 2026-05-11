@@ -68,7 +68,7 @@ public sealed interface Domain<T> permits DomainImpl {
    * @throws NullPointerException if the items array is {@code null}
    */
   static <T> Domain<T> of(@SuppressWarnings("unchecked") T... items) {
-    return of(Arrays.asList(items));
+    return from(Arrays.asList(items));
   }
 
   /**
@@ -80,7 +80,7 @@ public sealed interface Domain<T> permits DomainImpl {
    * @return a domain enumerating the supplied list, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
-  static <T> Domain<T> of(List<T> items) {
+  static <T> Domain<T> from(List<T> items) {
     List<T> readOnlyItems = Collections.unmodifiableList(Objects.requireNonNull(items, "items"));
 
     return new DomainImpl<>(

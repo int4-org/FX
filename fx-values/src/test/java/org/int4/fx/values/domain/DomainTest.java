@@ -1,7 +1,6 @@
 package org.int4.fx.values.domain;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -412,10 +411,10 @@ public class DomainTest {
   }
 
   @Test
-  void validateOfListDomain() {
-    assertThatThrownBy(() -> Domain.of((List<?>)null)).isInstanceOf(NullPointerException.class);
+  void validateFromListDomain() {
+    assertThatThrownBy(() -> Domain.from(null)).isInstanceOf(NullPointerException.class);
 
-    Domain<String> domain = Domain.of(Arrays.asList("a", "b", "c"));
+    Domain<String> domain = Domain.from(Arrays.asList("a", "b", "c"));
 
     assertThat(domain.allowsNull()).isFalse();
     assertThat(domain.contains(null)).isFalse();
