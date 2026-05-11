@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 final class DomainImpl<T> implements Domain<T> {
-  static final Domain<?> NON_NULL = Domain.of(v -> true);
+  static final Domain<?> NON_NULL = Domain.where(v -> true);
   static final Domain<?> ANY = NON_NULL.nullable();
   static final Domain<?> INAPPLICABLE = new DomainImpl<>(v -> false, false);
 

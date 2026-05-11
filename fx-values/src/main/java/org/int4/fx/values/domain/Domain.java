@@ -40,7 +40,7 @@ public sealed interface Domain<T> permits DomainImpl {
   static Domain<String> regex(String regex) {
     Pattern pattern = Pattern.compile(regex);
 
-    return of(v -> pattern.matcher(v).matches());
+    return where(v -> pattern.matcher(v).matches());
   }
 
   /**
@@ -53,7 +53,7 @@ public sealed interface Domain<T> permits DomainImpl {
    * @return a domain validated by {@code predicate}, never {@code null}
    * @throws NullPointerException if {@code predicate} is {@code null}
    */
-  static <T> Domain<T> of(Predicate<T> predicate) {
+  static <T> Domain<T> where(Predicate<T> predicate) {
     return new DomainImpl<>(predicate, false);
   }
 

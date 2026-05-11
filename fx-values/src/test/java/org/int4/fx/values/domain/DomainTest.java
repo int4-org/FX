@@ -456,7 +456,7 @@ public class DomainTest {
 
   @Test
   void validateOfPredicateDomain() {
-    Domain<String> domain = Domain.of(v -> v.startsWith("x"));
+    Domain<String> domain = Domain.where(v -> v.startsWith("x"));
 
     assertThat(domain.allowsNull()).isFalse();
     assertThat(domain.contains("x1")).isTrue();

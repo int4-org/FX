@@ -73,7 +73,7 @@ public class ModelSampleApplication extends Application {
     StringModel phoneNumber = StringModel.nullable();
     IntegerModel luggageWeight = IntegerModel.nullableRange(0, 100);
     ChoiceModel<String> tripType = ChoiceModel.of("Return", "One Way");
-    ObjectModel<LocalDate> departureDate = ObjectModel.of(Domain.of(dd -> dd.getDayOfWeek().getValue() < 6));
+    ObjectModel<LocalDate> departureDate = ObjectModel.of(Domain.where(dd -> dd.getDayOfWeek().getValue() < 6));
     ObjectModel<LocalDate> returnDate = ObjectModel.nullable();
 
     /*
