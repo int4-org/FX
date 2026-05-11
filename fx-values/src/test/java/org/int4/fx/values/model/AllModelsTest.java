@@ -231,7 +231,7 @@ public class AllModelsTest {
 
     assertThat(m.isValid()).isEqualTo(m.getDomain().allowsNull());
 
-    m.setDomain(Domain.empty());
+    m.setDomain(Domain.inapplicable());
 
     assertThat(m.isValid()).isTrue();
 
@@ -371,9 +371,9 @@ public class AllModelsTest {
       assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
     }
 
-    m.setDomain(Domain.empty());
+    m.setDomain(Domain.inapplicable());
 
-    assertThat(m.getDomain()).isEqualTo(Domain.empty());
+    assertThat(m.getDomain()).isEqualTo(Domain.inapplicable());
     assertThat(m.isApplicable()).isEqualTo(false);
     if(c.primitive) {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(NullValueException.class);
@@ -386,7 +386,7 @@ public class AllModelsTest {
 
     m.setValue(c.validInDomain1);
 
-    assertThat(m.getDomain()).isEqualTo(Domain.empty());
+    assertThat(m.getDomain()).isEqualTo(Domain.inapplicable());
     assertThat(m.isApplicable()).isEqualTo(false);
     if(c.primitive) {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(NullValueException.class);

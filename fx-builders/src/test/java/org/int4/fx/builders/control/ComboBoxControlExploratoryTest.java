@@ -66,12 +66,12 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     @Assertion
     public void assertState() {
       boolean domainContainsRawValue = expectedModelRawValue.isPresent() ? expectedDomain.contains(expectedModelRawValue.orElseThrow()) : false;
-      boolean modelValid = expectedDomain.isEmpty() || domainContainsRawValue;
+      boolean modelValid = expectedDomain.equals(Domain.inapplicable()) || domainContainsRawValue;
       String expectedModelValue = domainContainsRawValue ? expectedModelRawValue.orElseThrow() : null;
       Set<PseudoClass> expectedControlStates = new HashSet<>();
 
       boolean controlValid = dirty
-        ? (expectedDomain.isEmpty() ? expectedControlValue == null : expectedDomain.contains(expectedControlValue))
+        ? (expectedDomain.equals(Domain.inapplicable()) ? expectedControlValue == null : expectedDomain.contains(expectedControlValue))
         : modelValid;
 
       if(connectedToScene && !controlValid) {
@@ -110,7 +110,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
        * so make it reflect the model value:
        */
 
-      expectedControlValue = expectedDomain.isEmpty() ? null : expectedModelRawValue.orElseThrow();
+      expectedControlValue = expectedDomain.equals(Domain.inapplicable()) ? null : expectedModelRawValue.orElseThrow();
       connectedToScene = true;
 
       return () -> scene.setRoot(control);
@@ -203,7 +203,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
 
       // Control only follows model if it's connected and not being edited by the user
       if(connectedToScene && !dirty) {
-        expectedControlValue = expectedDomain.isEmpty() ? null : expectedModelRawValue.orElseThrow();
+        expectedControlValue = expectedDomain.equals(Domain.inapplicable()) ? null : expectedModelRawValue.orElseThrow();
       }
     }
 

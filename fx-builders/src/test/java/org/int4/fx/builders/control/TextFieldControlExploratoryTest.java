@@ -67,8 +67,9 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
 
     @Assertion
     public void assertState() {
-      boolean modelValid = expectedDomain.isEmpty() || (expectedModelRawValue.isPresent() && expectedDomain.contains(expectedModelRawValue.orElseThrow()));
-      Double expectedModelValue = (modelValid && expectedDomain.isNotEmpty()) ? expectedModelRawValue.orElseThrow() : null;
+      boolean inapplicable = expectedDomain.equals(Domain.inapplicable());
+      boolean modelValid = inapplicable || (expectedModelRawValue.isPresent() && expectedDomain.contains(expectedModelRawValue.orElseThrow()));
+      Double expectedModelValue = (modelValid && !inapplicable) ? expectedModelRawValue.orElseThrow() : null;
       Set<PseudoClass> expectedControlStates = new HashSet<>();
 
       if(connectedToScene) {
@@ -83,7 +84,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
         if(dirty) {
           Double parsedValue = parseDouble(expectedControlValue);
 
-          controlValid = expectedDomain.isEmpty()
+          controlValid = inapplicable
             ? expectedControlValue == null
             : expectedDomain.contains(parsedValue);
         }
@@ -237,7 +238,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
 
     private void syncControl() {
       if(connectedToScene && !dirty) {
-        expectedControlValue = expectedDomain.isEmpty()
+        expectedControlValue = expectedDomain.equals(Domain.inapplicable())
           ? null
           : expectedModelRawValue.map(v -> v == null ? "" : formatter.format(v))
               .orElse(lastControlValue);

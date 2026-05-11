@@ -10,10 +10,18 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 /**
- * A domain of values with optional helper views.
+ * A domain of values defining membership constraints for a value type.
  * <p>
- * The {@code Domain} interface exposes a set of static factory methods
- * for commonly used domain kinds.
+ * A domain determines which values are contained within it via
+ * {@link #contains(Object)}.
+ * <p>
+ * In addition to regular constraint domains, a distinguished sentinel
+ * domain exists that represents non-participation in evaluation
+ * (see {@link #inapplicable()}). This domain contains no values and
+ * always evaluates {@code contains(value)} as {@code false}.
+ * <p>
+ * The {@code Domain} interface exposes static factory methods for
+ * commonly used domain kinds.
  *
  * @param <T> the value type governed by this domain
  */
@@ -46,7 +54,7 @@ public sealed interface Domain<T> permits DomainImpl {
    * @throws NullPointerException if {@code predicate} is {@code null}
    */
   static <T> Domain<T> of(Predicate<T> predicate) {
-    return new DomainImpl<>(predicate, false, false);
+    return new DomainImpl<>(predicate, false);
   }
 
   /**
@@ -78,7 +86,6 @@ public sealed interface Domain<T> permits DomainImpl {
     return new DomainImpl<>(
       readOnlyItems::contains,
       false,
-      readOnlyItems.isEmpty(),
       new AbstractIndexedView<T>() {
         @Override
         public T get(long index) {
@@ -130,16 +137,26 @@ public sealed interface Domain<T> permits DomainImpl {
   }
 
   /**
-   * Returns an empty domain: no values (including {@code null}) are
-   * permitted. All invocations of {@link #contains(Object)} will return
-   * {@code false}.
+   * Returns a domain that is not applicable in the current context.
+   * <p>
+   * An inapplicable domain does not participate in validation or value
+   * constraints. All values are treated as outside the domain, and
+   * {@link #contains(Object)} will always return {@code false}.
+   * <p>
+   * This is primarily used to indicate that a model field is currently
+   * not relevant in the given context (for example, conditional UI or
+   * workflow-driven model activation).
+   * <p>
+   * This differs from a mathematically empty domain of constraints,
+   * as it represents a <em>non-participating state</em> rather than a
+   * constraint set with no valid values.
    *
    * @param <T> the type of values this domain governs
-   * @return an empty domain, never {@code null}
+   * @return a non-applicable domain instance, never {@code null}
    */
   @SuppressWarnings("unchecked")
-  public static <T> Domain<T> empty() {
-    return (Domain<T>)DomainImpl.EMPTY;
+  public static <T> Domain<T> inapplicable() {
+    return (Domain<T>)DomainImpl.INAPPLICABLE;
   }
 
   /**
@@ -190,7 +207,6 @@ public sealed interface Domain<T> permits DomainImpl {
 
     return new DomainImpl<>(
       validator,
-      false,
       false,
       new AbstractIndexedView<Integer>() {
         @Override
@@ -286,7 +302,6 @@ public sealed interface Domain<T> permits DomainImpl {
     return new DomainImpl<>(
       validator,
       false,
-      false,
       new AbstractIndexedView<Long>() {
         @Override
         public Long get(long index) {
@@ -360,7 +375,6 @@ public sealed interface Domain<T> permits DomainImpl {
 
     return new DomainImpl<>(
       validator,
-      false,
       false,
       new AbstractIndexedView<Double>() {
         @Override
@@ -449,7 +463,6 @@ public sealed interface Domain<T> permits DomainImpl {
     return new DomainImpl<>(
       validator,
       false,
-      false,
       (NormalizedView<T>)v -> v == null ? first : comparator.compare(v, first) < 0 ? first : comparator.compare(v, last) > 0 ? last : v
     );
   }
@@ -475,7 +488,6 @@ public sealed interface Domain<T> permits DomainImpl {
 
     return new DomainImpl<>(
       validator,
-      false,
       false,
       new ContinuousView<Double>() {
         @Override
@@ -507,22 +519,6 @@ public sealed interface Domain<T> permits DomainImpl {
    * @return {@code true} if the value is part of this domain, otherwise {@code false}
    */
   boolean contains(T value);
-
-  /**
-   * Returns {@code true} if this domain contains one or more values, otherwise {@code false}.
-   *
-   * @return {@code true} if this domain contains one or more values, otherwise {@code false}
-   */
-  default boolean isNotEmpty() {
-    return !isEmpty();
-  }
-
-  /**
-   * Returns {@code true} if this domain does not contain any values, otherwise {@code false}.
-   *
-   * @return {@code true} if this domain does not contain any values, otherwise {@code false}
-   */
-  boolean isEmpty();
 
   /**
    * Returns a new domain, that contains {@code null} as a value.

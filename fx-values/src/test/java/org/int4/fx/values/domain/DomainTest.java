@@ -20,8 +20,6 @@ public class DomainTest {
     Domain<Integer> domain = Domain.bounded(0, 5);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1)).isFalse();
     assertThat(domain.contains(0)).isTrue();
@@ -89,8 +87,6 @@ public class DomainTest {
     Domain<Integer> domain = Domain.bounded(0, 10, 2);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1)).isFalse();
     assertThat(domain.contains(0)).isTrue();
@@ -154,8 +150,6 @@ public class DomainTest {
     Domain<Long> domain = Domain.bounded(0L, 5L);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1L)).isFalse();
     assertThat(domain.contains(0L)).isTrue();
@@ -223,8 +217,6 @@ public class DomainTest {
     Domain<Long> domain = Domain.bounded(0L, 10L, 2L);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1L)).isFalse();
     assertThat(domain.contains(0L)).isTrue();
@@ -292,8 +284,6 @@ public class DomainTest {
     Domain<Double> domain = Domain.bounded(0.0, 1.0, 0.25);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1.0)).isFalse();
     assertThat(domain.contains(0.0)).isTrue();
@@ -370,8 +360,6 @@ public class DomainTest {
     Domain<Double> domain = Domain.continuous(0.0, 10.0);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(-1.0)).isFalse();
     assertThat(domain.contains(0.0)).isTrue();
@@ -401,8 +389,6 @@ public class DomainTest {
     Domain<String> domain = Domain.any();
 
     assertThat(domain.allowsNull()).isTrue();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isTrue();
     assertThat(domain.contains("anything")).isTrue();
   }
@@ -412,19 +398,15 @@ public class DomainTest {
     Domain<String> domain = Domain.nonNull();
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains("x")).isTrue();
   }
 
   @Test
   void validateEmptyDomain() {
-    Domain<String> domain = Domain.empty();
+    Domain<String> domain = Domain.inapplicable();
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isTrue();
-    assertThat(domain.isNotEmpty()).isFalse();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains("x")).isFalse();
   }
@@ -436,8 +418,6 @@ public class DomainTest {
     Domain<String> domain = Domain.of(Arrays.asList("a", "b", "c"));
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains("c")).isTrue();
     assertThat(domain.contains("d")).isFalse();
@@ -457,8 +437,6 @@ public class DomainTest {
     Domain<Integer> domain = Domain.of(1, 2, 3);
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains(2)).isTrue();
     assertThat(domain.contains(4)).isFalse();
@@ -481,8 +459,6 @@ public class DomainTest {
     Domain<String> domain = Domain.of(v -> v.startsWith("x"));
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains("x1")).isTrue();
     assertThat(domain.contains("y")).isFalse();
     assertThat(domain.contains(null)).isFalse();
@@ -495,8 +471,6 @@ public class DomainTest {
     Domain<String> domain = Domain.regex("\\d+");
 
     assertThat(domain.allowsNull()).isFalse();
-    assertThat(domain.isEmpty()).isFalse();
-    assertThat(domain.isNotEmpty()).isTrue();
     assertThat(domain.contains("123")).isTrue();
     assertThat(domain.contains("a12")).isFalse();
     assertThat(domain.contains(null)).isFalse();
@@ -515,8 +489,6 @@ public class DomainTest {
       Domain<String> domain = Domain.bounded("a", "d");
 
       assertThat(domain.allowsNull()).isFalse();
-      assertThat(domain.isEmpty()).isFalse();
-      assertThat(domain.isNotEmpty()).isTrue();
       assertThat(domain.contains("a")).isTrue();
       assertThat(domain.contains("e")).isFalse();
       assertThat(domain.contains(null)).isFalse();
@@ -533,8 +505,6 @@ public class DomainTest {
       Domain<String> domain = Domain.bounded("a", "d").nullable();
 
       assertThat(domain.allowsNull()).isTrue();
-      assertThat(domain.isEmpty()).isFalse();
-      assertThat(domain.isNotEmpty()).isTrue();
       assertThat(domain.contains("a")).isTrue();
       assertThat(domain.contains("e")).isFalse();
       assertThat(domain.contains(null)).isTrue();

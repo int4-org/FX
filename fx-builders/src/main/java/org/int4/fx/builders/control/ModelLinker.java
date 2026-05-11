@@ -233,7 +233,7 @@ final class ModelLinker<N extends Node, R, T> {
     Value<T> modelValue = toModelValue();
 
     boolean isValid = isDirty()
-      ? (domain.isEmpty() ? getter.get() == null : containedInDomain(domain, modelValue))
+      ? (domain.equals(Domain.inapplicable()) ? getter.get() == null : containedInDomain(domain, modelValue))
       : valid;
 
     applyValidationState(modelValue, isValid);

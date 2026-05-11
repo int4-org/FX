@@ -21,7 +21,7 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
 
     UpdatableValue.set(
       domain, initialDomain,
-      applicable, initialDomain.isNotEmpty(),
+      applicable, !initialDomain.equals(Domain.inapplicable()),
       valid, determineValidity(initialDomain, rv),
       rawValue, rv
     );
@@ -97,7 +97,7 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
 
     UpdatableValue.set(
       domain, newDomain,
-      applicable, newDomain.isNotEmpty(),
+      applicable, !newDomain.equals(Domain.inapplicable()),
       valid, determineValidity(newDomain, newValue),
       rawValue, newValue
     );
@@ -108,7 +108,7 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel
   }
 
   private boolean determineValidity(Domain<T> domain, Value<T> newValue) {
-    return domain.isEmpty() || (newValue instanceof Value.Present<T>(T value) && domain.contains(value));
+    return domain.equals(Domain.inapplicable()) || (newValue instanceof Value.Present<T>(T value) && domain.contains(value));
   }
 
   @Override

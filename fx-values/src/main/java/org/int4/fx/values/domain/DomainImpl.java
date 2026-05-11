@@ -9,20 +9,18 @@ import java.util.function.Predicate;
 final class DomainImpl<T> implements Domain<T> {
   static final Domain<?> NON_NULL = Domain.of(v -> true);
   static final Domain<?> ANY = NON_NULL.nullable();
-  static final Domain<?> EMPTY = new DomainImpl<>(v -> false, false, true);
+  static final Domain<?> INAPPLICABLE = new DomainImpl<>(v -> false, false);
 
   private static final View<?> NOOP_VIEW = new View<>() {};
 
   private final Predicate<T> validator;
   private final Map<Class<?>, View<T>> views = new LinkedHashMap<>();  // order is important when making a copy for nullable
   private final boolean includesNull;
-  private final boolean empty;
 
   @SafeVarargs
-  DomainImpl(Predicate<T> validator, boolean includesNull, boolean empty, View<T>... views) {
+  DomainImpl(Predicate<T> validator, boolean includesNull, View<T>... views) {
     this.validator = validator;
     this.includesNull = includesNull;
-    this.empty = empty;
 
     for(View<T> view : views) {
       ArrayDeque<Class<?>> toScan = new ArrayDeque<>();
@@ -84,19 +82,15 @@ final class DomainImpl<T> implements Domain<T> {
     return new DomainImpl<>(
       validator,
       true,
-      false,
       views.values().stream().map(this::toNullable).toArray(View[]::new)
     );
   }
 
   @Override
-  public boolean isEmpty() {
-    return empty;
-  }
-
-  @Override
   public String toString() {
-    return "Domain[includesNull=" + includesNull + "; views=" + views + "]";
+    return this == INAPPLICABLE
+      ? "Domain[inapplicable]"
+      : "Domain[includesNull=" + includesNull + "; views=" + views + "]";  // TODO once there are rules, consider logging those instead of the views
   }
 
   private View<T> toNullable(View<T> view) {

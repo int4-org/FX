@@ -88,7 +88,7 @@ public class ModelSampleApplication extends Application {
      */
 
     Observe.values(returnTrip, departureDate).compute((isReturnTrip, dd) ->
-      !isReturnTrip ? Domain.<LocalDate>empty()  // Return Date is not applicable
+      !isReturnTrip ? Domain.<LocalDate>inapplicable()  // Return Date is not applicable
         : dd == null ? Domain.<LocalDate>any()  // Return Date can be anything as no departure date was chosen
         : Domain.bounded(dd.plusDays(1), LocalDate.MAX)  // Return Date must be after departure date
     ).subscribe(returnDate::setDomain);

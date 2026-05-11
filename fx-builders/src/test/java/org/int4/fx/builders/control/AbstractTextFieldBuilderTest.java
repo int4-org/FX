@@ -252,7 +252,7 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends ValueModel<D>> e
     @Nested
     class AndModelIsSetToAnEmptyDomain {
       {
-        model.setDomain(Domain.empty());
+        model.setDomain(Domain.inapplicable());
       }
 
       @Test
