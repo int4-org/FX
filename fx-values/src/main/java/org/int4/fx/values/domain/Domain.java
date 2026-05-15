@@ -31,6 +31,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * Creates a {@link Domain} that validates strings against the supplied
    * regular expression. The returned domain accepts exactly those strings
    * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
+   * <p>
+   * If a string does not match, the failure reason is provided by
+   * {@link DomainTemplates.NoMatch}.
    *
    * @param regex the regular expression to compile, not {@code null}
    * @return a domain accepting strings that match {@code regex}, never {@code null}
@@ -40,13 +43,16 @@ public sealed interface Domain<T> permits DomainImpl {
   static Domain<String> regex(String regex) {
     Pattern pattern = Pattern.compile(regex);
 
-    return where(v -> pattern.matcher(v).matches());
+    return where(Rule.of(v -> pattern.matcher(v).matches(), new DomainTemplates.NoMatch(regex)));
   }
 
   /**
    * Creates a domain defined by an arbitrary predicate. The predicate
    * controls which values (excluding {@code null}) are considered part of
    * the domain.
+   * <p>
+   * If a value does not satisfy the predicate, the failure reason is
+   * provided by {@link DomainTemplates.Invalid}.
    *
    * @param <T> the value type
    * @param predicate a predicate that returns {@code true} for valid values
@@ -54,13 +60,64 @@ public sealed interface Domain<T> permits DomainImpl {
    * @throws NullPointerException if {@code predicate} is {@code null}
    */
   static <T> Domain<T> where(Predicate<T> predicate) {
-    return new DomainImpl<>(predicate, false);
+    return new DomainImpl<>(Rule.of(predicate, DomainTemplates.INVALID), false);
+  }
+
+  /**
+   * Creates a domain defined by multiple predicates. All predicates must
+   * return {@code true} for a value (excluding {@code null}) to be
+   * considered part of the domain.
+   * <p>
+   * If any predicate is not satisfied, the failure reason is provided by
+   * {@link DomainTemplates.Invalid}.
+   *
+   * @param <T> the value type
+   * @param predicates the predicates to test, never {@code null}
+   * @return a domain validated by all supplied predicates, never {@code null}
+   * @throws NullPointerException if {@code predicates} or any of its elements is {@code null}
+   */
+  @SafeVarargs
+  static <T> Domain<T> where(Predicate<T>... predicates) {
+    Objects.requireNonNull(predicates, "predicates");
+
+    return new DomainImpl<>(Arrays.stream(predicates).map(p -> Rule.of(p, DomainTemplates.INVALID)).toList(), false);
+  }
+
+  /**
+   * Creates a domain defined by a single rule.
+   *
+   * @param <T> the value type
+   * @param rule the rule to apply, never {@code null}
+   * @return a domain validated by the rule, never {@code null}
+   * @throws NullPointerException if {@code rule} is {@code null}
+   */
+  static <T> Domain<T> where(Rule<T> rule) {
+    return new DomainImpl<>(rule, false);
+  }
+
+  /**
+   * Creates a domain defined by multiple rules. All rules must be satisfied
+   * for a value (excluding {@code null}) to be considered part of the domain.
+   *
+   * @param <T> the value type
+   * @param rules the rules to apply, never {@code null}
+   * @return a domain validated by all supplied rules, never {@code null}
+   * @throws NullPointerException if {@code rules} or any of its elements is {@code null}
+   */
+  @SafeVarargs
+  static <T> Domain<T> where(Rule<T>... rules) {
+    Objects.requireNonNull(rules, "rules");
+
+    return new DomainImpl<>(Arrays.asList(rules), false);
   }
 
   /**
    * Creates an enumerated domain from the provided items. The returned
    * domain supports an {@link IndexedView} that exposes the items as an
    * immutable list.
+   * <p>
+   * If a value is not among the items, the failure reason is provided by
+   * {@link DomainTemplates.NotContained}.
    *
    * @param <T> the value type
    * @param items the allowed items, cannot be {@code null} but can be empty
@@ -74,6 +131,9 @@ public sealed interface Domain<T> permits DomainImpl {
   /**
    * Creates an enumerated domain backed by the supplied list. The list should
    * not be modified. Behavior is undefined if the list is modified.
+   * <p>
+   * If a value is not among the items, the failure reason is provided by
+   * {@link DomainTemplates.NotContained}.
    *
    * @param <T> the value type
    * @param items a list of allowed items, cannot be {@code null} but can be empty
@@ -84,7 +144,7 @@ public sealed interface Domain<T> permits DomainImpl {
     List<T> readOnlyItems = Collections.unmodifiableList(Objects.requireNonNull(items, "items"));
 
     return new DomainImpl<>(
-      readOnlyItems::contains,
+      Rule.of(readOnlyItems::contains, new DomainTemplates.NotContained<>(items)),
       false,
       new AbstractIndexedView<T>() {
         @Override
@@ -127,6 +187,9 @@ public sealed interface Domain<T> permits DomainImpl {
   /**
    * Returns a domain that includes all values of type {@code T}, excluding
    * {@code null}.
+   * <p>
+   * If a value is {@code null}, the failure reason is provided by
+   * {@link DomainTemplates.Missing}.
    *
    * @param <T> the type of values this domain governs
    * @return an unrestricted domain that disallows {@code null}; never {@code null}
@@ -150,6 +213,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * This differs from a mathematically empty domain of constraints,
    * as it represents a <em>non-participating state</em> rather than a
    * constraint set with no valid values.
+   * <p>
+   * All values evaluated against this domain return a failure reason
+   * provided by {@link DomainTemplates.Inapplicable}.
    *
    * @param <T> the type of values this domain governs
    * @return a non-applicable domain instance, never {@code null}
@@ -165,6 +231,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * The returned domain exposes an {@link IndexedView} enumerating the
    * allowed integers (including both ends) and a {@link StepperView}
    * implementing logical stepping semantics.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -182,6 +251,10 @@ public sealed interface Domain<T> permits DomainImpl {
    * allowed integers (including both ends) and a {@link StepperView}
    * implementing logical stepping semantics. The supplied {@code step}
    * value must be positive and align with the range boundaries.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -206,7 +279,12 @@ public sealed interface Domain<T> permits DomainImpl {
     int size = (max - min) / step + 1;
 
     return new DomainImpl<>(
-      validator,
+      step == 1
+        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        : List.of(
+            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
+            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+          ),
       false,
       new AbstractIndexedView<Integer>() {
         @Override
@@ -259,6 +337,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * The returned domain exposes an {@link IndexedView} enumerating the
    * allowed longs (including both ends) and a {@link StepperView}
    * implementing logical stepping semantics.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -276,6 +357,10 @@ public sealed interface Domain<T> permits DomainImpl {
    * allowed longs (including both ends) and a {@link StepperView}
    * implementing logical stepping semantics. The supplied {@code step}
    * value must be positive and align with the range boundaries.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -300,7 +385,12 @@ public sealed interface Domain<T> permits DomainImpl {
     long size = (max - min) / step + 1;
 
     return new DomainImpl<>(
-      validator,
+      step == 1
+        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        : List.of(
+            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
+            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+          ),
       false,
       new AbstractIndexedView<Long>() {
         @Override
@@ -349,9 +439,13 @@ public sealed interface Domain<T> permits DomainImpl {
 
   /**
    * Creates a new stepped double domain with the given minimum and maximum values.
-   *
+   * <p>
    * The returned domain exposes an {@link IndexedView} and a {@link StepperView}.
    * The supplied {@code step} value must be positive.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -374,7 +468,12 @@ public sealed interface Domain<T> permits DomainImpl {
     int size = (int)Math.floor((max - min) / step) + 1;
 
     return new DomainImpl<>(
-      validator,
+      step == 1
+        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        : List.of(
+            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
+            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+          ),
       false,
       new AbstractIndexedView<Double>() {
         @Override
@@ -428,6 +527,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * <p>
    * The returned domain supports a {@link NormalizedView} that can
    * optionally snap values into the allowed range.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}.
    *
    * @param <T> element type
    * @param first inclusive lower bound, cannot be {@code null}
@@ -445,6 +547,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * <p>
    * The returned domain supports a {@link NormalizedView} that can
    * optionally snap values into the allowed range.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}.
    *
    * @param <T> element type
    * @param first inclusive lower bound, not {@code null}
@@ -461,7 +566,7 @@ public sealed interface Domain<T> permits DomainImpl {
     Predicate<T> validator = v -> comparator.compare(v, first) >= 0 && comparator.compare(v, last) <= 0;
 
     return new DomainImpl<>(
-      validator,
+      Rule.of(validator, new DomainTemplates.OutOfRange<>(first, last)),
       false,
       (NormalizedView<T>)v -> v == null ? first : comparator.compare(v, first) < 0 ? first : comparator.compare(v, last) > 0 ? last : v
     );
@@ -472,6 +577,9 @@ public sealed interface Domain<T> permits DomainImpl {
    * {@code [min, max]}. The returned domain exposes a
    * {@link ContinuousView} which maps normalized fractions in [0,1] to
    * domain values and vice versa.
+   * <p>
+   * If a value is outside the range, the failure reason is provided by
+   * {@link DomainTemplates.OutOfRange}.
    *
    * @param min inclusive minimum
    * @param max inclusive maximum
@@ -487,7 +595,7 @@ public sealed interface Domain<T> permits DomainImpl {
     Predicate<Double> validator = v -> v != null && v >= min && v <= max;
 
     return new DomainImpl<>(
-      validator,
+      Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)),
       false,
       new ContinuousView<Double>() {
         @Override
@@ -519,6 +627,23 @@ public sealed interface Domain<T> permits DomainImpl {
    * @return {@code true} if the value is part of this domain, otherwise {@code false}
    */
   boolean contains(T value);
+
+  /**
+   * Evaluates whether the given value belongs to this domain and returns a
+   * structured {@link Membership} result.
+   * <p>
+   * Unlike {@link #contains(Object)}, this method provides a detailed outcome
+   * that distinguishes between values that are part of the domain and values
+   * that are excluded by one of the domain's rules.
+   * <p>
+   * If the value is excluded, the returned result includes a {@link org.int4.fx.core.util.Template}
+   * indicating the constraint responsible for the exclusion. If there is more than
+   * one constraint violation, then the template of the first failing rule will be returned.
+   *
+   * @param value the value to evaluate, can be {@code null}
+   * @return a {@link Membership} representing whether the value belongs to the domain, never {@code null}
+   */
+  Membership evaluate(T value);
 
   /**
    * Returns a new domain, that contains {@code null} as a value.

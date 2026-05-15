@@ -1,6 +1,7 @@
 package org.int4.fx.values.domain;
 
 import java.util.Arrays;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -473,6 +474,53 @@ public class DomainTest {
     assertThat(domain.contains("123")).isTrue();
     assertThat(domain.contains("a12")).isFalse();
     assertThat(domain.contains(null)).isFalse();
+  }
+
+  @Test
+  void evaluateShouldReturnCorrectMembership() {
+    Domain<Integer> domain = Domain.bounded(0, 10, 2);
+
+    assertThat(domain.evaluate(0)).isEqualTo(new Membership.Member());
+    assertThat(domain.evaluate(2)).isEqualTo(new Membership.Member());
+    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
+    assertThat(domain.evaluate(11)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
+    assertThat(domain.evaluate(1)).isEqualTo(new Membership.Excluded(new DomainTemplates.Misaligned<>(0, 2)));
+    assertThat(domain.evaluate(null)).isEqualTo(new Membership.Excluded(new DomainTemplates.Missing()));
+
+    Domain<String> regexDomain = Domain.regex("\\d+");
+    assertThat(regexDomain.evaluate("123")).isEqualTo(new Membership.Member());
+    assertThat(regexDomain.evaluate("abc")).isEqualTo(new Membership.Excluded(new DomainTemplates.NoMatch("\\d+")));
+
+    Domain<String> listDomain = Domain.of("A", "B");
+    assertThat(listDomain.evaluate("A")).isEqualTo(new Membership.Member());
+    assertThat(listDomain.evaluate("C")).isEqualTo(new Membership.Excluded(new DomainTemplates.NotContained<>(Arrays.asList("A", "B"))));
+
+    Domain<String> predicateDomain = Domain.where(v -> v.length() > 2);
+    assertThat(predicateDomain.evaluate("abc")).isEqualTo(new Membership.Member());
+    assertThat(predicateDomain.evaluate("a")).isEqualTo(new Membership.Excluded(new DomainTemplates.Invalid()));
+
+    Domain<String> inapplicableDomain = Domain.inapplicable();
+    assertThat(inapplicableDomain.evaluate("any")).isEqualTo(new Membership.Excluded(new DomainTemplates.Inapplicable()));
+  }
+
+  @Test
+  void evaluateShouldReturnCorrectMembershipForNullable() {
+    Domain<Integer> domain = Domain.bounded(0, 10).nullable();
+
+    assertThat(domain.evaluate(null)).isEqualTo(new Membership.Member());
+    assertThat(domain.evaluate(5)).isEqualTo(new Membership.Member());
+    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
+  }
+
+  @Test
+  void shouldEnforceNonNullConstraintsOnWhere() {
+    assertThatThrownBy(() -> Domain.where((Predicate<String>)null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.where((Predicate<String>[])null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.where(v -> true, (Predicate<String>)null)).isInstanceOf(NullPointerException.class);
+
+    assertThatThrownBy(() -> Domain.where((Rule<String>)null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.where((Rule<String>[])null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.where(Rule.of(v -> true, new DomainTemplates.Invalid()), null)).isInstanceOf(NullPointerException.class);
   }
 
   @Nested

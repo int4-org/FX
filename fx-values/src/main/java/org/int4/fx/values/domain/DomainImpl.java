@@ -3,25 +3,40 @@ package org.int4.fx.values.domain;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 final class DomainImpl<T> implements Domain<T> {
   static final Domain<?> NON_NULL = Domain.where(v -> true);
   static final Domain<?> ANY = NON_NULL.nullable();
-  static final Domain<?> INAPPLICABLE = new DomainImpl<>(v -> false, false);
+  static final Domain<?> INAPPLICABLE = new DomainImpl<>(Rule.of(v -> false, DomainTemplates.INAPPLICABLE), false);
 
   private static final View<?> NOOP_VIEW = new View<>() {};
 
-  private final Predicate<T> validator;
+  /**
+   * The rules for this domain. In order for a value to be considered to
+   * be part of this domain, it must either be {@code null} and the domain allows
+   * {@code null}, or it must pass all the rules. Note that {@code null} is never
+   * passed to any rule. If {@code null} is allowed, and the value is {@code null}
+   * this bypasses all other rules.
+   */
+  private final List<Rule<T>> rules;
+
   private final Map<Class<?>, View<T>> views = new LinkedHashMap<>();  // order is important when making a copy for nullable
   private final boolean includesNull;
 
   @SafeVarargs
-  DomainImpl(Predicate<T> validator, boolean includesNull, View<T>... views) {
-    this.validator = validator;
+  DomainImpl(Rule<T> rule, boolean includesNull, View<T>... views) {
+    this(List.of(rule), includesNull, views);
+  }
+
+  @SafeVarargs
+  DomainImpl(List<Rule<T>> rules, boolean includesNull, View<T>... views) {
+    this.rules = List.copyOf(rules);
     this.includesNull = includesNull;
 
+    // TODO probably should only be looking for View interfaces (perhaps sealed type?)
     for(View<T> view : views) {
       ArrayDeque<Class<?>> toScan = new ArrayDeque<>();
       Class<?> cls = view.getClass();
@@ -43,7 +58,32 @@ final class DomainImpl<T> implements Domain<T> {
 
   @Override
   public boolean contains(T value) {
-    return value == null ? includesNull : validator.test(value);
+    if(value == null) {
+      return includesNull;
+    }
+
+    for(Predicate<T> rule : rules) {
+      if(!rule.test(value)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @Override
+  public Membership evaluate(T value) {
+    if(value == null) {
+      return includesNull ? new Membership.Member() : new Membership.Excluded(DomainTemplates.MISSING);
+    }
+
+    for(Rule<T> rule : rules) {
+      if(!rule.test(value)) {
+        return new Membership.Excluded(rule.template());
+      }
+    }
+
+    return new Membership.Member();
   }
 
   @Override
@@ -80,7 +120,7 @@ final class DomainImpl<T> implements Domain<T> {
   @Override
   public Domain<T> nullable() {
     return new DomainImpl<>(
-      validator,
+      rules,
       true,
       views.values().stream().map(this::toNullable).toArray(View[]::new)
     );
