@@ -250,7 +250,7 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends Model<D>> extend
     }
 
     @Nested
-    class AndModelIsSetToAnEmptyDomain {
+    class AndModelIsSetToAnInapplicableDomain {
       {
         model.setDomain(Domain.inapplicable());
       }

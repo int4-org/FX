@@ -4,32 +4,35 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
-import javafx.beans.value.ObservableValueBase;
 
+import org.int4.fx.core.util.Template;
 import org.int4.fx.core.util.UpdatableValue;
-import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.Membership;
 
-abstract class ModelBase<T> extends ObservableValueBase<T> implements Model<T> {
+abstract class ModelBase<T> extends ObservableModelBase<T> implements Model<T> {
   private final UpdatableValue<Domain<T>> domain = UpdatableValue.of();
-  private final UpdatableValue<Boolean> applicable = UpdatableValue.of();
   private final UpdatableValue<Boolean> valid = UpdatableValue.of();
-  private final UpdatableValue<Value<T>> rawValue = UpdatableValue.of();
+  private final UpdatableValue<Boolean> applicable;
+  private final UpdatableValue<RawValue<T>> rawValue;
 
   ModelBase(T initialValue, Domain<T> initialDomain) {
-    Value<T> rv = new Value.Present<>(initialValue);
+    UpdatableValue<Boolean> applicable = UpdatableValue.of();
+    UpdatableValue<RawValue<T>> rawValue = UpdatableValue.of();
+
+    super(applicable.asObservableValue(), rawValue.asObservableValue());
+
+    this.applicable = applicable;
+    this.rawValue = rawValue;
+
+    RawValue<T> newRawValue = evaluateValue(initialDomain, initialValue);
 
     UpdatableValue.set(
       domain, initialDomain,
       applicable, !initialDomain.equals(Domain.inapplicable()),
-      valid, determineValidity(initialDomain, rv),
-      rawValue, rv
+      valid, determineValidity(initialDomain, newRawValue),
+      rawValue, newRawValue
     );
-  }
-
-  @Override
-  public final ObservableValue<Boolean> applicable() {
-    return applicable.asObservableValue();
   }
 
   @Override
@@ -38,23 +41,8 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements Model<T> {
   }
 
   @Override
-  public final Value<T> getRawValue() {
-    return rawValue.getValue();
-  }
-
-  @Override
-  public final ObservableValue<Value<T>> rawValue() {
-    return rawValue.asObservableValue();
-  }
-
-  @Override
-  public final T getValue() {
-    return isValid() && isApplicable() ? getRawValue().orElse(null) : null;
-  }
-
-  @Override
   public final void setValue(T newValue) {
-    update(getDomain(), new Value.Present<>(newValue));
+    update(getDomain(), newValue);
   }
 
   @Override
@@ -66,53 +54,65 @@ abstract class ModelBase<T> extends ObservableValueBase<T> implements Model<T> {
   public final void setDomain(Domain<T> domain) {
     Objects.requireNonNull(domain, "domain");
 
-    update(domain, getRawValue());
+    update(
+      domain,
+      switch(getRawValue()) {
+        case RawValue.Incompatible<T> i -> i;
+        case RawValue<T> rv -> evaluateValue(domain, rv.orElseThrow());
+      }
+    );
   }
 
   @Override
-  public <U> boolean trySet(U value, Function<U, T> converter) {
-    Value<T> convertedValue = convert(value, converter);
-    Value<T> current = getRawValue();
+  public <U> boolean trySet(U value, Function<U, T> converter, Template template) {
+    Objects.requireNonNull(template, "template");
+
+    RawValue<T> convertedValue = convert(value, converter, template);
+    RawValue<T> current = getRawValue();
 
     if(!Objects.equals(current, convertedValue)) {
       update(getDomain(), convertedValue);
 
-      return convertedValue.isPresent();
+      return !(convertedValue instanceof RawValue.Incompatible);
     }
 
     return false;
   }
 
-  private <U> Value<T> convert(U value, Function<U, T> converter) {
+  private <U> RawValue<T> convert(U value, Function<U, T> converter, Template template) {
     try {
-      return Value.present(converter.apply(value));
+      return evaluateValue(getDomain(), converter.apply(value));
     }
     catch(Exception e) {
-      return Value.absent();
+      return RawValue.incompatible(template);
     }
   }
 
-  private void update(Domain<T> newDomain, Value<T> newValue) {
-    T oldValue = getValue();
+  private void update(Domain<T> newDomain, T newValue) {
+    update(newDomain, evaluateValue(newDomain, newValue));
+  }
 
+  private void update(Domain<T> newDomain, RawValue<T> newRawValue) {
     UpdatableValue.set(
       domain, newDomain,
       applicable, !newDomain.equals(Domain.inapplicable()),
-      valid, determineValidity(newDomain, newValue),
-      rawValue, newValue
+      valid, determineValidity(newDomain, newRawValue),
+      rawValue, newRawValue
     );
+  }
 
-    if(!Objects.equals(getValue(), oldValue)) {
-      fireValueChangedEvent();
+  private RawValue<T> evaluateValue(Domain<T> domain, T newValue) {
+    if(domain.equals(Domain.inapplicable())) {
+      return RawValue.valid(newValue);
     }
+
+    return switch(domain.evaluate(newValue)) {
+      case Membership.Member() -> RawValue.valid(newValue);
+      case Membership.Excluded(Template reason) -> RawValue.invalid(newValue, reason);
+    };
   }
 
-  private boolean determineValidity(Domain<T> domain, Value<T> newValue) {
-    return domain.equals(Domain.inapplicable()) || (newValue instanceof Value.Present<T>(T value) && domain.contains(value));
-  }
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "[" + (isApplicable() ? Objects.toString(getValue()) : "not applicable") + "]";
+  private boolean determineValidity(Domain<T> domain, RawValue<T> newRawValue) {
+    return domain.equals(Domain.inapplicable()) || newRawValue instanceof RawValue.Valid;
   }
 }

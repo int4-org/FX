@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
 
+import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 
 /**
@@ -18,7 +19,7 @@ import org.int4.fx.values.domain.Domain;
  *   <li>{@link #getValue()} returns {@code null} if the model is not
  *       applicable, currently invalid, or if the stored value is
  *       actually {@code null}.</li>
- *   <li>Setting a value via {@link #setValue(Object)} or {@link #trySet(Object, Function)}
+ *   <li>Setting a value via {@link #setValue(Object)} or {@link #trySet(Object, Function, Template)}
  *       updates the stored value and triggers listener notifications.</li>
  * </ul>
  *
@@ -115,7 +116,7 @@ public interface WritableModel<T> extends ObservableModel<T> {
    * <p>
    * If the conversion fails (by throwing an exception), the model is marked
    * as invalid due to unconvertible input, its {@link #getRawValue()} becomes
-   * {@link org.int4.fx.core.util.Value.Absent}, and the method returns {@code false}.
+   * {@link RawValue.Incompatible}, and the method returns {@code false}.
    * <p>
    * Conversion success does not imply validity; validity is determined
    * independently by the model, based on the current domain and other
@@ -127,11 +128,12 @@ public interface WritableModel<T> extends ObservableModel<T> {
    * @param value the value to convert, may be {@code null}
    * @param converter a conversion function producing a model value, cannot be
    *   {@code null}; may throw an exception
+   * @param template a template, cannot be {@code null}
    * @return {@code true} if the conversion succeeded and the value was updated,
    *   otherwise {@code false} if conversion failed or the value was unchanged
    * @throws NullPointerException if {@code converter} is {@code null}
    */
-  <S> boolean trySet(S value, Function<S, T> converter);
+  <S> boolean trySet(S value, Function<S, T> converter, Template template);
 
   /**
    * Sets the stored value of this model.

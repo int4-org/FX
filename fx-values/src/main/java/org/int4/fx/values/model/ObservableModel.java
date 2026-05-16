@@ -2,8 +2,6 @@ package org.int4.fx.values.model;
 
 import javafx.beans.value.ObservableValue;
 
-import org.int4.fx.core.util.Value;
-
 /**
  * A stateful, observable model that exposes a current value and its applicability.
  * <p>
@@ -56,28 +54,23 @@ public interface ObservableModel<T> extends ObservableValue<T> {
   /**
    * Returns the raw value currently stored by this model.
    * <p>
-   * The returned {@link Value} can be {@link org.int4.fx.core.util.Value.Present} or {@link org.int4.fx.core.util.Value.Absent}:
-   * <ul>
-   *   <li>When present, the value is the stored value, regardless of applicability or
-   *       validity, and may be {@code null}.</li>
-   *   <li>When absent, the model is in an error state representing a failure to
-   *       convert an input value to the required type.</li>
-   * </ul>
+   * The returned {@link RawValue} is a representation of the model's
+   * state, encompassing the data, validity, and compatibility status.
    *
    * @return the raw value, never {@code null}
    */
-  default Value<T> getRawValue() {
+  default RawValue<T> getRawValue() {
     return rawValue().getValue();
   }
 
   /**
    * An observable representing the raw value currently stored by this model.
    * <p>
-   * This observable provides access to the underlying value even when the model
-   * is invalid or not applicable.
+   * This observable provides access to the underlying {@link RawValue} state
+   * even when the model is invalid or not applicable.
    *
    * @return an observable raw value, never {@code null}
    */
-  ObservableValue<Value<T>> rawValue();
+  ObservableValue<RawValue<T>> rawValue();
 
 }

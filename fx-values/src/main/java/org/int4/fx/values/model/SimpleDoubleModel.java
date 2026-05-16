@@ -1,6 +1,5 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 
 class SimpleDoubleModel extends ModelBase<Double> implements DoubleModel {
@@ -11,10 +10,7 @@ class SimpleDoubleModel extends ModelBase<Double> implements DoubleModel {
 
   @Override
   public boolean isNull() {
-    return switch(getRawValue()) {
-      case Value.Present<Double>(Double value) -> value == null;
-      default -> false;
-    };
+    return getRawValue().isNull();
   }
 
   @Override

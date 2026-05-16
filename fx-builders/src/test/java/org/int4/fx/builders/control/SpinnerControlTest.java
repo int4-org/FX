@@ -3,9 +3,10 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.Spinner;
 
-import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainTemplates;
 import org.int4.fx.values.model.IntegerModel;
+import org.int4.fx.values.model.RawValue;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +61,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(Value.absent());
+        assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(ModelLinker.INCOMPATIBLE_TEMPLATE));
         assertThat(model.getValue()).isNull();
       }
 
@@ -84,14 +85,14 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldReflectBadInput() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(Value.absent());
+          assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(ModelLinker.INCOMPATIBLE_TEMPLATE));
           assertThat(model.getValue()).isNull();
         }
 
         @Test
         void controlShouldKeepExactValue() {
-          assertThat(control.getEditor().getText()).isEqualTo("illegal");
-          assertThat(control.getValue()).isEqualTo(50);
+          assertThat(control.getEditor().getText()).isEqualTo("");
+          assertThat(control.getValue()).isEqualTo(null);
         }
 
         @Test
@@ -109,7 +110,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldBeUpdatedAndBecomeValid() {
           assertThat(model.isValid()).isTrue();
-          assertThat(model.getRawValue()).isEqualTo(Value.present(99));
+          assertThat(model.getRawValue()).isEqualTo(RawValue.valid(99));
           assertThat(model.getValue()).isEqualTo(99);
         }
 
@@ -133,7 +134,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
           @Test
           void modelShouldRemainUnchanged() {
             assertThat(model.isValid()).isTrue();
-            assertThat(model.getRawValue()).isEqualTo(Value.present(99));
+            assertThat(model.getRawValue()).isEqualTo(RawValue.valid(99));
             assertThat(model.getValue()).isEqualTo(99);
           }
 
@@ -160,7 +161,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(Value.present(150));
+        assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, new DomainTemplates.OutOfRange<>(0, 100)));
         assertThat(model.getValue()).isNull();
       }
 
@@ -184,14 +185,14 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldRemainUnchanged() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(Value.present(150));
+          assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, new DomainTemplates.OutOfRange<>(0, 100)));
           assertThat(model.getValue()).isNull();
         }
 
         @Test
         void controlShouldKeepExactValue() {
           assertThat(control.getEditor().getText()).isEqualTo("150");
-          assertThat(control.getValue()).isEqualTo(50);
+          assertThat(control.getValue()).isEqualTo(150);
         }
 
         @Test

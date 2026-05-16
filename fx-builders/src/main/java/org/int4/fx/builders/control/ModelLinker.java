@@ -19,9 +19,12 @@ import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
 import org.int4.fx.core.event.BroadcastHandler;
 import org.int4.fx.core.util.Observe;
-import org.int4.fx.core.util.Value;
+import org.int4.fx.core.util.RecordBasedTemplate;
+import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.Membership;
+import org.int4.fx.values.model.RawValue;
 import org.int4.fx.values.model.WritableModel;
 
 /**
@@ -38,6 +41,15 @@ final class ModelLinker<N extends Node, R, T> {
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
+
+  record Incompatible() implements RecordBasedTemplate {
+    @Override
+    public String key() {
+      return "conversion.incompatible";
+    }
+  }
+
+  static final Template INCOMPATIBLE_TEMPLATE = new Incompatible();
 
   public static <N extends Node, T> ModelLinker<N, T, T> link(N node, WritableModel<T> model, Supplier<T> getter, Consumer<T> setter) {
     return new ModelLinker<>(node, model, getter, toSynchronizer(setter), Function.identity(), r -> Subscription.EMPTY);
@@ -63,7 +75,7 @@ final class ModelLinker<N extends Node, R, T> {
     return s -> {
       switch(s) {
         case ControlCommand.ModelValue(T value) -> setter.accept(value);
-        case ControlCommand.RawValue(Object value) -> setter.accept(null);
+        case ControlCommand.RawValue(Object _) -> setter.accept(null);
         case ControlCommand.Inapplicable() -> setter.accept(null);
       }
     };
@@ -146,23 +158,14 @@ final class ModelLinker<N extends Node, R, T> {
       };
     });
 
-    addSubscriber(() -> Observe.values(model.domain(), model.rawValue(), model.valid())
-      .subscribe((d, rv, valid) -> {
+    addSubscriber(() -> Observe.values(model.domain(), model.rawValue())
+      .subscribe((d, rv) -> {
         if(!controlInitiatedChange) {
           if(!isDirty()) {  // should not propagate any model changes when control is dirty
-            doModelInitiatedChange(() -> {
-              if(conversionFailed && rv.isAbsent()) {
-                setter.accept(model.isApplicable() ? new ControlCommand.RawValue<>(controlRawValue) : new ControlCommand.Inapplicable<>());
-              }
-              else {
-                conversionFailed = false;
-
-                setter.accept(model.isApplicable() ? new ControlCommand.ModelValue<>(rv.orElse(null)) : new ControlCommand.Inapplicable<>());
-              }
-            });
+            doModelInitiatedChange(() -> syncControl(rv));
           }
 
-          refreshValidationState(d, valid);
+          refreshValidationState(rv);  // should still make control reflect validity of its value
         }
       })
     );
@@ -174,7 +177,7 @@ final class ModelLinker<N extends Node, R, T> {
 
         doControlInitiatedChange(this::updateModel);
 
-        refreshValidationState(model.getDomain(), model.isValid());
+        refreshValidationState(model.getRawValue());
       }
     }));
 
@@ -229,29 +232,27 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  private void refreshValidationState(Domain<T> domain, boolean valid) {
-    Value<T> modelValue = toModelValue();
-
-    boolean isValid = isDirty()
-      ? (domain.equals(Domain.inapplicable()) ? getter.get() == null : containedInDomain(domain, modelValue))
-      : valid;
-
-    applyValidationState(modelValue, isValid);
+  private void refreshValidationState(RawValue<T> rawValue) {
+    applyValidationState(isDirty() ? evaluateCurrentInput() : rawValue);
   }
 
-  private static <T> boolean containedInDomain(Domain<T> domain, Value<T> modelValue) {
-    return switch(modelValue) {
-      case Value.Present<T>(T value) -> domain.contains(value);
-      case Value.Absent() -> false;
-    };
-  }
+  private RawValue<T> evaluateCurrentInput() {
+    if(model.getDomain().equals(Domain.inapplicable())) {
+      return getter.get() == null
+        ? RawValue.valid(null)
+        : RawValue.incompatible(INCOMPATIBLE_TEMPLATE);
+    }
 
-  private Value<T> toModelValue() {
     try {
-      return Value.present(isDirty() ? this.converter.apply(getter.get()) : model.getRawValue().orElse(null));
+      T value = converter.apply(getter.get());
+
+      return switch(model.getDomain().evaluate(value)) {
+        case Membership.Member() -> RawValue.valid(value);
+        case Membership.Excluded(Template reason) -> RawValue.invalid(value, reason);
+      };
     }
     catch(Exception e) {
-      return Value.absent();
+      return RawValue.incompatible(INCOMPATIBLE_TEMPLATE);
     }
   }
 
@@ -326,22 +327,30 @@ final class ModelLinker<N extends Node, R, T> {
 
       node.pseudoClassStateChanged(DIRTY, false);
 
-      if(model.isValid()) {
-        doModelInitiatedChange(() -> setter.accept(model.isApplicable() ? new ControlCommand.ModelValue<>(model.getRawValue().orElseThrow()) : new ControlCommand.Inapplicable<>()));
-      }
+      RawValue<T> rawValue = model.getRawValue();
 
-      applyValidationState(
-        model.getRawValue(),
-        model.isValid()
-      );
+      doModelInitiatedChange(() -> syncControl(rawValue));
+      applyValidationState(rawValue);
     }
   }
 
-  private boolean isDirty() {
-    return node.getPseudoClassStates().contains(DIRTY);
+  private void syncControl(RawValue<T> rv) {
+    setter.accept(model.isApplicable()
+      ? switch(rv) {
+          case RawValue.Incompatible(Template _) when conversionFailed -> new ControlCommand.RawValue<>(controlRawValue);
+          default -> {
+            conversionFailed = false;
+
+            yield new ControlCommand.ModelValue<>(rv.orElse(null));
+          }
+        }
+      : new ControlCommand.Inapplicable<>()
+    );
   }
 
-  private void applyValidationState(Value<T> value, boolean valid) {
+  private void applyValidationState(RawValue<T> value) {
+    boolean valid = model.getDomain().equals(Domain.inapplicable()) ? getter.get() == null : value instanceof RawValue.Valid;
+
     if(node.getPseudoClassStates().contains(INVALID) == valid) {
       node.pseudoClassStateChanged(INVALID, !valid);
     }
@@ -356,9 +365,9 @@ final class ModelLinker<N extends Node, R, T> {
 
     this.controlRawValue = getter.get();
 
-    model.trySet(controlRawValue, converter);
+    model.trySet(controlRawValue, converter, INCOMPATIBLE_TEMPLATE);
 
-    this.conversionFailed = model.getRawValue().isAbsent();
+    this.conversionFailed = model.getRawValue() instanceof RawValue.Incompatible;
   }
 
   /**
@@ -378,6 +387,10 @@ final class ModelLinker<N extends Node, R, T> {
     finally {
       modelInitiatedChange = previousState;
     }
+  }
+
+  private boolean isDirty() {
+    return node.getPseudoClassStates().contains(DIRTY);
   }
 
   private void doControlInitiatedChange(Runnable runnable) {

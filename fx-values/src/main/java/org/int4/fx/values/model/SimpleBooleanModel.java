@@ -10,7 +10,7 @@ class SimpleBooleanModel extends ModelBase<Boolean> implements BooleanModel {
 
   @Override
   public boolean isNull() {
-    return getRawValue() == null;
+    return getRawValue().isNull();
   }
 
   @Override

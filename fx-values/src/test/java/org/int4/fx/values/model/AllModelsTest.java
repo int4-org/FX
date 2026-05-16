@@ -2,6 +2,7 @@ package org.int4.fx.values.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -9,8 +10,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import org.int4.fx.core.util.Value;
+import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainTemplates;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -21,6 +23,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AllModelsTest {
+  private static final Template INCOMPATIBLE_TEMPLATE = new Template() {
+    @Override
+    public String key() {
+      return "conversion.incompatible";
+    }
+
+    @Override
+    public Map<String, Object> args() {
+      return Map.of();
+    }
+
+    @Override
+    public String toString() {
+      return "Template[key=" + key() + "]";
+    }
+  };
 
   static class Models implements ArgumentsProvider {
     @SuppressWarnings("unchecked")
@@ -30,8 +48,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           BooleanModel.class,
           true,
-          Domain.of(false, true),
-          Domain.of(false),
+          Domain.of(false, true), new DomainTemplates.NotContained<>(List.of(false, true)),
+          Domain.of(false), new DomainTemplates.NotContained<>(List.of(false)),
           true,
           false,
           null,
@@ -43,8 +61,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           BooleanModel.class,
           true,
-          Domain.of(null, false, true),
-          Domain.of(null, false),
+          Domain.of(false, true).nullable(), new DomainTemplates.NotContained<>(List.of(false, true)),
+          Domain.of(false).nullable(), new DomainTemplates.NotContained<>(List.of(false)),
           true,
           false,
           null,
@@ -56,8 +74,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           IntegerModel.class,
           true,
-          Domain.bounded(0, 12),
-          Domain.bounded(5, 15),
+          Domain.bounded(0, 12), new DomainTemplates.OutOfRange<>(0, 12),
+          Domain.bounded(5, 15), new DomainTemplates.OutOfRange<>(5, 15),
           2,
           10,
           100,
@@ -69,8 +87,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           IntegerModel.class,
           true,
-          Domain.bounded(0, 12).nullable(),
-          Domain.bounded(5, 15).nullable(),
+          Domain.bounded(0, 12).nullable(), new DomainTemplates.OutOfRange<>(0, 12),
+          Domain.bounded(5, 15).nullable(), new DomainTemplates.OutOfRange<>(5, 15),
           2,
           10,
           100,
@@ -82,8 +100,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           LongModel.class,
           true,
-          Domain.bounded(0L, 12),
-          Domain.bounded(5L, 15),
+          Domain.bounded(0L, 12), new DomainTemplates.OutOfRange<>(0L, 12L),
+          Domain.bounded(5L, 15), new DomainTemplates.OutOfRange<>(5L, 15L),
           2L,
           10L,
           100L,
@@ -95,8 +113,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           LongModel.class,
           true,
-          Domain.bounded(0L, 12).nullable(),
-          Domain.bounded(5L, 15).nullable(),
+          Domain.bounded(0L, 12).nullable(), new DomainTemplates.OutOfRange<>(0L, 12L),
+          Domain.bounded(5L, 15).nullable(), new DomainTemplates.OutOfRange<>(5L, 15L),
           2L,
           10L,
           100L,
@@ -108,8 +126,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           DoubleModel.class,
           true,
-          Domain.bounded(0, 12, 0.5),
-          Domain.bounded(5, 15, 0.5),
+          Domain.bounded(0, 12, 0.5), new DomainTemplates.OutOfRange<>(0.0, 12.0),
+          Domain.bounded(5, 15, 0.5), new DomainTemplates.OutOfRange<>(5.0, 15.0),
           2.5,
           10.5,
           100.5,
@@ -121,8 +139,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           DoubleModel.class,
           true,
-          Domain.bounded(0, 12, 0.5).nullable(),
-          Domain.bounded(5, 15, 0.5).nullable(),
+          Domain.bounded(0, 12, 0.5).nullable(), new DomainTemplates.OutOfRange<>(0.0, 12.0),
+          Domain.bounded(5, 15, 0.5).nullable(), new DomainTemplates.OutOfRange<>(5.0, 15.0),
           2.5,
           10.5,
           100.5,
@@ -134,8 +152,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ObjectModel<String>>)(Object)ObjectModel.class,
           false,
-          Domain.of("A", "B", "C"),
-          Domain.of("C", "D", "E"),
+          Domain.of("A", "B", "C"), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
+          Domain.of("C", "D", "E"), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -147,8 +165,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ObjectModel<String>>)(Object)ObjectModel.class,
           false,
-          Domain.of(null, "A", "B", "C"),
-          Domain.of(null, "C", "D", "E"),
+          Domain.of("A", "B", "C").nullable(), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
+          Domain.of("C", "D", "E").nullable(), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -160,8 +178,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ChoiceModel<String>>)(Object)ChoiceModel.class,
           false,
-          Domain.<String>of("A", "B", "C"),
-          Domain.<String>of("C", "D", "E"),
+          Domain.<String>of("A", "B", "C"), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
+          Domain.<String>of("C", "D", "E"), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -173,8 +191,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ChoiceModel<String>>)(Object)ChoiceModel.class,
           false,
-          Domain.<String>of(null, "A", "B", "C"),
-          Domain.<String>of(null, "C", "D", "E"),
+          Domain.<String>of("A", "B", "C").nullable(), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
+          Domain.<String>of("C", "D", "E").nullable(), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -186,8 +204,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           StringModel.class,
           false,
-          Domain.regex("[a-p]{1}"),
-          Domain.regex("[k-z]{1}"),
+          Domain.regex("[a-p]{1}"), new DomainTemplates.NoMatch("[a-p]{1}"),
+          Domain.regex("[k-z]{1}"), new DomainTemplates.NoMatch("[k-z]{1}"),
           "a",
           "n",
           "-",
@@ -207,7 +225,7 @@ public class AllModelsTest {
 
     assertThat(c.get(m)).isEqualTo(c.validInDomain1);
     assertThat(m.getValue()).isEqualTo(c.validInDomain1);
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
     assertThat(m.getDomain()).isEqualTo(c.domain1);
     assertThat(m.isApplicable()).isEqualTo(true);
   }
@@ -294,7 +312,7 @@ public class AllModelsTest {
     assertThat(m.isApplicable()).isEqualTo(true);
     assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(c.validInDomain1, c.reason2));
 
     m.setDomain(c.domain1);
 
@@ -302,13 +320,13 @@ public class AllModelsTest {
     assertThat(m.isApplicable()).isEqualTo(true);
     assertGet(c, m, c.validInDomain1);
     assertThat(m.getValue()).isEqualTo(c.validInDomain1);
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
 
     c.set(m, c.validInBoth);
 
     assertGet(c, m, c.validInBoth);
     assertThat(m.getValue()).isEqualTo(c.validInBoth);
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInBoth));
 
     m.setValue(null);
 
@@ -323,12 +341,12 @@ public class AllModelsTest {
       }
 
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.valid(null));
     }
     else {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(null, DomainTemplates.MISSING));
     }
 
     m.setDomain(c.domain1);
@@ -347,12 +365,12 @@ public class AllModelsTest {
       }
 
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.valid(null));
     }
     else {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(null));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(null, DomainTemplates.MISSING));
     }
 
     m.setValue(c.validInNone);
@@ -360,7 +378,7 @@ public class AllModelsTest {
     if(c.validInNone == null && !m.getDomain().allowsNull()) {
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(c.validInNone, DomainTemplates.MISSING));
 
       m.setDomain(c.domain2);
 
@@ -368,7 +386,7 @@ public class AllModelsTest {
       assertThat(m.isApplicable()).isEqualTo(true);
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(InvalidValueException.class);
       assertThat(m.getValue()).isNull();
-      assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
+      assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(c.validInNone, DomainTemplates.MISSING));
     }
 
     m.setDomain(Domain.inapplicable());
@@ -382,7 +400,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInNone));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInNone));
 
     m.setValue(c.validInDomain1);
 
@@ -395,7 +413,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
   }
 
   @ParameterizedTest
@@ -403,25 +421,25 @@ public class AllModelsTest {
   <M extends Model<T>, T, D extends Domain<T>> void trySetTest(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain1);
 
-    assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
+    assertThat(m.trySet(c.validInBoth, v -> v, INCOMPATIBLE_TEMPLATE)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInBoth));
 
-    assertThat(m.trySet(c.validInBoth, v -> { throw new NumberFormatException(); })).isFalse();
+    assertThat(m.trySet(c.validInBoth, v -> { throw new NumberFormatException(); }, INCOMPATIBLE_TEMPLATE)).isFalse();
     assertThat(m.isValid()).isFalse();
-    assertThat(m.getRawValue()).isEqualTo(Value.absent());
+    assertThat(m.getRawValue()).isEqualTo(RawValue.incompatible(INCOMPATIBLE_TEMPLATE));
 
-    assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
+    assertThat(m.trySet(c.validInBoth, v -> v, INCOMPATIBLE_TEMPLATE)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInBoth));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInBoth));
 
-    assertThat(m.trySet(c.validInDomain1, v -> v)).isTrue();
+    assertThat(m.trySet(c.validInDomain1, v -> v, INCOMPATIBLE_TEMPLATE)).isTrue();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
 
-    assertThat(m.trySet(c.validInDomain1, v -> v)).isFalse();
+    assertThat(m.trySet(c.validInDomain1, v -> v, INCOMPATIBLE_TEMPLATE)).isFalse();
     assertThat(m.isValid()).isTrue();
-    assertThat(m.getRawValue()).isEqualTo(Value.present(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
   }
 
   @ParameterizedTest
@@ -469,7 +487,9 @@ public class AllModelsTest {
     Class<M> cls,
     boolean primitive,
     D domain1,
+    Template reason1,
     D domain2,
+    Template reason2,
     T validInDomain1,
     T validInBoth,
     T validInNone,

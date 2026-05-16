@@ -3,11 +3,12 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 
-import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainTemplates;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
+import org.int4.fx.values.model.RawValue;
 import org.int4.fx.values.model.StringModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -151,7 +152,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(nullableModel.getRawValue()).isEqualTo(Value.present(null));
+      assertThat(nullableModel.getRawValue()).isEqualTo(RawValue.valid(null));
       assertThat(nullableModel.getValue()).isNull();
       assertThat(nullableModel.isValid()).isTrue();
     }
@@ -166,7 +167,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(model.getRawValue()).isEqualTo(Value.present(" "));
+      assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(" ", new DomainTemplates.NoMatch("[A-C]")));
       assertThat(model.getValue()).isNull();
       assertThat(model.isValid()).isFalse();
     }
@@ -181,7 +182,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(nullableModel.getRawValue()).isEqualTo(Value.present(" "));
+      assertThat(nullableModel.getRawValue()).isEqualTo(RawValue.valid(" "));
       assertThat(nullableModel.getValue()).isEqualTo(" ");
       assertThat(nullableModel.isValid()).isTrue();
     }
