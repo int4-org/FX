@@ -5,7 +5,7 @@
  * Builders support:
  * <ul>
  *   <li>Declarative creation of nodes, panes, and shapes through a fluent API.</li>
- *   <li>Automatic integration with {@link org.int4.fx.values.model.ValueModel} for bidirectional binding.</li>
+ *   <li>Automatic integration with {@link org.int4.fx.values.model.WritableModel} for bidirectional binding.</li>
  *   <li>Reactive style and visibility binding via observable properties.</li>
  *   <li>Extensible build-time behavior through configurable build contexts and strategies.</li>
  *   <li>Custom node and region builders for extensibility beyond standard JavaFX controls.</li>

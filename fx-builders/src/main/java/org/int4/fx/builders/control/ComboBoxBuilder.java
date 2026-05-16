@@ -14,7 +14,7 @@ import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.ListCell;
 
 import org.int4.fx.values.domain.IndexedView;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Abstract base builder for {@link ComboBox} instances.
@@ -165,7 +165,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * such view is present, the control's items list will be empty.
      * <p>
      * In most cases this method is used with a {@link org.int4.fx.values.model.ChoiceModel}, but any
-     * {@link ValueModel} providing an {@link IndexedView} is supported.
+     * {@link WritableModel} providing an {@link IndexedView} is supported.
      * <p>
      * This method establishes the concrete type of the builder.
      *
@@ -174,10 +174,10 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * @return the fluent builder, typed to {@code T}, never {@code null}
      * @throws NullPointerException if {@code model} is {@code null}
      * @see org.int4.fx.values.model.ChoiceModel
-     * @see ValueModel
+     * @see WritableModel
      * @see IndexedView
      */
-    public final <T> Typed<T> model(ValueModel<T> model) {
+    public final <T> Typed<T> model(WritableModel<T> model) {
       return model(toTyped(), model);
     }
 
@@ -237,16 +237,16 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * <p>
      * In most cases this method is used with a
      * {@link org.int4.fx.values.model.ChoiceModel}, but any
-     * {@link ValueModel} providing an {@link IndexedView} is supported.
+     * {@link WritableModel} providing an {@link IndexedView} is supported.
      *
      * @param model the value model backing this control; cannot be {@code null}
      * @return the fluent builder, never {@code null}
      * @throws NullPointerException if {@code model} is {@code null}
      * @see org.int4.fx.values.model.ChoiceModel
-     * @see ValueModel
+     * @see WritableModel
      * @see IndexedView
      */
-    public Typed<T> model(ValueModel<T> model) {
+    public Typed<T> model(WritableModel<T> model) {
       return model(this, model);
     }
 
@@ -289,7 +289,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
     }
   }
 
-  static <T> Typed<T> model(Typed<T> builder, ValueModel<T> model) {
+  static <T> Typed<T> model(Typed<T> builder, WritableModel<T> model) {
     Objects.requireNonNull(model, "model");
 
     return builder.apply(node -> {

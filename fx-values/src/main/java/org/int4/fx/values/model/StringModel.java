@@ -3,7 +3,7 @@ package org.int4.fx.values.model;
 import org.int4.fx.values.domain.Domain;
 
 /**
- * A {@link ValueModel} for {@link String} values.
+ * A {@link WritableModel} for {@link String} values.
  * <p>
  * This model supports string-specific constraints and validation, such as
  * regular expression matching. The domain of allowed values can be customized

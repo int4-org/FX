@@ -13,7 +13,7 @@ import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Builder for {@link Slider} instances.
@@ -171,7 +171,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     return model(model, Double::longValue);
   }
 
-  private <T extends Number> SliderBuilder model(ValueModel<T> model, Function<Double, T> toModel) {
+  private <T extends Number> SliderBuilder model(WritableModel<T> model, Function<Double, T> toModel) {
     Objects.requireNonNull(model, "model");
 
     return apply(node -> {
@@ -193,7 +193,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     });
   }
 
-  private static <T extends Number> ModelLinker<Slider, T, T> link(ValueModel<T> model, Slider node, Function<Double, T> toModel) {
+  private static <T extends Number> ModelLinker<Slider, T, T> link(WritableModel<T> model, Slider node, Function<Double, T> toModel) {
     return ModelLinker.link(
       node,
       model,
@@ -219,7 +219,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     );
   }
 
-  private static <T extends Number> void updateSlider(ValueModel<T> model, Slider node) {
+  private static <T extends Number> void updateSlider(WritableModel<T> model, Slider node) {
     node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
       case ContinuousView<T> cv -> model.getValue().doubleValue();
       case IndexedView<T> iv -> iv.indexOf(model.getValue());

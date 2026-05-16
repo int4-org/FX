@@ -10,7 +10,7 @@ import org.int4.fx.core.util.UpdatableValue;
 import org.int4.fx.core.util.Value;
 import org.int4.fx.values.domain.Domain;
 
-abstract class ModelBase<T> extends ObservableValueBase<T> implements ValueModel<T> {
+abstract class ModelBase<T> extends ObservableValueBase<T> implements WritableModel<T> {
   private final UpdatableValue<Domain<T>> domain = UpdatableValue.of();
   private final UpdatableValue<Boolean> applicable = UpdatableValue.of();
   private final UpdatableValue<Boolean> valid = UpdatableValue.of();

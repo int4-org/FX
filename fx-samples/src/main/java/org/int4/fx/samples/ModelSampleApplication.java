@@ -27,7 +27,7 @@ import org.int4.fx.values.model.StringModel;
  * <p>
  * The example implements a small booking form whose user interface is constructed
  * entirely using fluent builders. Application state and validation rules are
- * expressed through {@link org.int4.fx.values.model.ValueModel ValueModel}
+ * expressed through {@link org.int4.fx.values.model.WritableModel WritableModel}
  * instances rather than raw JavaFX properties.
  * <p>
  * Key aspects demonstrated by this sample include:

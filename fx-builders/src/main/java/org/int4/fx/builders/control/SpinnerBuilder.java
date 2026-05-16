@@ -18,7 +18,7 @@ import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Abstract base builder for {@link Spinner} instances.
@@ -208,7 +208,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     }
 
     /**
-     * Binds a spinner to a {@link ValueModel} and keeps the editor and spinner
+     * Binds a spinner to a {@link WritableModel} and keeps the editor and spinner
      * values synchronized with the model.
      * <p>
      * The spinner is automatically configured to reflect the model's domain:
@@ -225,21 +225,21 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @param model the value model to bind to, cannot be {@code null}
      * @return the fluent builder, typed to {@code String}, never {@code null}
      * @throws NullPointerException if {@code model} is {@code null}
-     * @see ValueModel
+     * @see WritableModel
      * @see IndexedView
      * @see StepperView
      * @see Spinner#valueFactoryProperty()
      */
-    public Typed<String> model(ValueModel<String> model) {
+    public Typed<String> model(WritableModel<String> model) {
       return create(toTyped(), model, Function.identity());
     }
 
     /**
-     * Binds a spinner to a {@link ValueModel} using a custom converter to
+     * Binds a spinner to a {@link WritableModel} using a custom converter to
      * translate between editor text and model values.
      * <p>
      * The spinner is automatically configured to reflect the model's domain
-     * similarly to {@link #model(ValueModel)}, but uses the provided converter
+     * similarly to {@link #model(WritableModel)}, but uses the provided converter
      * for value conversion.
      * <p>
      * This method establishes the concrete type of the builder.
@@ -249,12 +249,12 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @param converter converts editor text to model values, cannot be {@code null}
      * @return the fluent builder, typed to {@code T}, never {@code null}
      * @throws NullPointerException if {@code model} or {@code converter} is {@code null}
-     * @see ValueModel
+     * @see WritableModel
      * @see IndexedView
      * @see StepperView
      * @see Spinner#valueFactoryProperty()
      */
-    public <T> Typed<T> model(ValueModel<T> model, Function<String, T> converter) {
+    public <T> Typed<T> model(WritableModel<T> model, Function<String, T> converter) {
       return create(toTyped(), model, converter);
     }
   }
@@ -279,7 +279,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     }
   }
 
-  static <T> Typed<T> create(Typed<T> builder, ValueModel<T> model, Function<String, T> converter) {
+  static <T> Typed<T> create(Typed<T> builder, WritableModel<T> model, Function<String, T> converter) {
     Objects.requireNonNull(model, "model");
     Objects.requireNonNull(converter, "converter");
 

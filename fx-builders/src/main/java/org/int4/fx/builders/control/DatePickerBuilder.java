@@ -6,7 +6,7 @@ import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.scene.control.DatePicker;
 
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Builder for {@link DatePicker} instances.
@@ -45,7 +45,7 @@ public final class DatePickerBuilder extends AbstractComboBoxBaseBuilder<DatePic
    * @throws NullPointerException if {@code model} is {@code null}
    * @see DatePicker#valueProperty()
    */
-  public DatePickerBuilder model(ValueModel<LocalDate> model) {
+  public DatePickerBuilder model(WritableModel<LocalDate> model) {
     Objects.requireNonNull(model, "model");
 
     return apply(node -> ModelLinker.link(

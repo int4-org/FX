@@ -11,7 +11,7 @@ import org.int4.fx.values.domain.Domain;
  * A stateful, observable model whose value is constrained by a {@link Domain}
  * and whose validity and applicability are explicitly exposed.
  * <p>
- * A {@code ConstrainedModel} owns a current value of type {@code M} and
+ * A {@code ObservableModel} owns a current value of type {@code M} and
  * governs whether that value is considered valid according to a domain of
  * values of type {@code E}. The model is observable and intended to integrate
  * directly with UI components and validation logic.
@@ -35,7 +35,7 @@ import org.int4.fx.values.domain.Domain;
  * @param <M> the internal value type stored by this model
  * @param <E> the external value type governed by the domain
  */
-public interface ConstrainedModel<M, E> extends ObservableValue<M> {
+public interface ObservableModel<M, E> extends ObservableValue<M> {
 
   /**
    * Returns the domain that constrains values for this model.

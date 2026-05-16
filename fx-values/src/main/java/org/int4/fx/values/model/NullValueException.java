@@ -17,7 +17,7 @@ public class NullValueException extends RuntimeException {
    *
    * @param model the model that held {@code null}; cannot be {@code null}
    */
-  public NullValueException(ConstrainedModel<?, ?> model) {
+  public NullValueException(ObservableModel<?, ?> model) {
     super("Model " + model + " held null and is not representable");
   }
 }

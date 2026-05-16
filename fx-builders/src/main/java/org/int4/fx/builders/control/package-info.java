@@ -6,7 +6,7 @@
  * <p>
  * Controls created through this package automatically expose validation and
  * interaction state via CSS pseudo-classes when bound to a
- * {@link org.int4.fx.values.model.ValueModel}.
+ * {@link org.int4.fx.values.model.WritableModel}.
  * <p>
  * The following pseudo-classes are applied by the builders:
  * <ul>

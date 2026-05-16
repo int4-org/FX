@@ -22,11 +22,11 @@ import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.Value;
 import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.domain.Domain;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Orchestrates the bidirectional synchronization between a JavaFX {@link Node}
- * and a {@link ValueModel}, managing dirty state, focus, and validation.
+ * and a {@link WritableModel}, managing dirty state, focus, and validation.
  *
  * @param <N> the node type
  * @param <R> the raw value type from the control
@@ -39,23 +39,23 @@ final class ModelLinker<N extends Node, R, T> {
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
-  public static <N extends Node, T> ModelLinker<N, T, T> link(N node, ValueModel<T> model, Supplier<T> getter, Consumer<T> setter) {
+  public static <N extends Node, T> ModelLinker<N, T, T> link(N node, WritableModel<T> model, Supplier<T> getter, Consumer<T> setter) {
     return new ModelLinker<>(node, model, getter, toSynchronizer(setter), Function.identity(), r -> Subscription.EMPTY);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
     return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, r -> Subscription.EMPTY);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
     return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, trigger);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, ValueModel<T> model, Property<T> property) {
+  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Property<T> property) {
     return new ModelLinker<>(node, model, property);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, ValueModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
+  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, WritableModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
     return new ModelLinker<>(node, model, getter, setter, converter, trigger);
   }
 
@@ -89,7 +89,7 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private final N node;
-  private final ValueModel<T> model;
+  private final WritableModel<T> model;
   private final Supplier<R> getter;
   private final Consumer<ControlCommand<T>> setter;
   private final Function<R, T> converter;
@@ -111,7 +111,7 @@ final class ModelLinker<N extends Node, R, T> {
   private boolean controlInitiatedChange;
 
   @SuppressWarnings("unchecked")
-  ModelLinker(N node, ValueModel<T> model, Property<T> property) {
+  ModelLinker(N node, WritableModel<T> model, Property<T> property) {
     this(
       node,
       model,
@@ -124,7 +124,7 @@ final class ModelLinker<N extends Node, R, T> {
 
   ModelLinker(
     N node,
-    ValueModel<T> model,
+    WritableModel<T> model,
     Supplier<R> getter,
     Consumer<ControlCommand<T>> setter,
     Function<R, T> converter,

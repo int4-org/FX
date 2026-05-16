@@ -5,14 +5,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 
 import org.int4.fx.values.domain.Domain;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public abstract class AbstractTextFieldBuilderTest<D, M extends ValueModel<D>> extends ControlBuilderTest {
+public abstract class AbstractTextFieldBuilderTest<D, M extends WritableModel<D>> extends ControlBuilderTest {
   record Values<T>(T initialValid, T valid, T invalid) {}
 
   protected abstract M createModel();

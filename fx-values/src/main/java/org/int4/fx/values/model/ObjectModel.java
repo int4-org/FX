@@ -22,7 +22,7 @@ import org.int4.fx.values.domain.Domain;
  *
  * @param <T> the type of object held by this model
  */
-public interface ObjectModel<T> extends ValueModel<T> {
+public interface ObjectModel<T> extends WritableModel<T> {
 
   /**
    * Creates a non-null object model with {@code null} as the initial value.

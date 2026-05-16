@@ -5,7 +5,7 @@
  * layout panes, shapes, and scenes. The builders allow for:
  * <ul>
  *   <li>Declarative scene graph construction without manually managing node variables.</li>
- *   <li>Automatic integration with {@link org.int4.fx.values.model.ValueModel} instances for
+ *   <li>Automatic integration with {@link org.int4.fx.values.model.WritableModel} instances for
  *       reactive model-binding.</li>
  *   <li>Binding of common node properties (visibility, enablement, styles) to
  *       {@link javafx.beans.value.ObservableValue} instances.</li>

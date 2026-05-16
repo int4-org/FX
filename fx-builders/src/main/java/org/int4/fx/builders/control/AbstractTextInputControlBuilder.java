@@ -16,7 +16,7 @@ import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
 import org.int4.fx.values.model.StringModel;
-import org.int4.fx.values.model.ValueModel;
+import org.int4.fx.values.model.WritableModel;
 
 /**
  * Base builder for {@link TextInputControl} instances.
@@ -142,7 +142,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
     return apply(node -> link(node, model, Function.identity(), Function.identity()));
   }
 
-  private <T> void link(C node, ValueModel<T> model, Function<T, String> printer, Function<String, T> parser) {
+  private <T> void link(C node, WritableModel<T> model, Function<T, String> printer, Function<String, T> parser) {
     ModelLinker.sync(
       node,
       model,
