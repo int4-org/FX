@@ -258,6 +258,29 @@ public class Observe {
     }
 
     /**
+     * Subscribes to the dependencies.
+     * <p>
+     * The subscriber is invoked whenever any dependency is invalidated.
+     *
+     * @param subscriber a runnable that is invoked when any dependency is invalidated, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(Runnable subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      InvalidationListener listener = obs -> subscriber.run();
+
+      a.addListener(listener);
+      b.addListener(listener);
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+      };
+    }
+
+    /**
      * Subscribes to the values of the two dependencies.
      * <p>
      * The subscriber is invoked immediately with the current values of the
@@ -388,6 +411,31 @@ public class Observe {
       Objects.requireNonNull(mapper, "mapper");
 
       return combine(() -> mapper.apply(a.getValue(), b.getValue(), c.getValue()), a, b, c);
+    }
+
+    /**
+     * Subscribes to the dependencies.
+     * <p>
+     * The subscriber is invoked whenever any dependency is invalidated.
+     *
+     * @param subscriber a runnable that is invoked when any dependency is invalidated, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(Runnable subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      InvalidationListener listener = obs -> subscriber.run();
+
+      a.addListener(listener);
+      b.addListener(listener);
+      c.addListener(listener);
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+        c.removeListener(listener);
+      };
     }
 
     /**
@@ -531,6 +579,33 @@ public class Observe {
       Objects.requireNonNull(mapper, "mapper");
 
       return combine(() -> mapper.apply(a.getValue(), b.getValue(), c.getValue(), d.getValue()), a, b, c, d);
+    }
+
+    /**
+     * Subscribes to the dependencies.
+     * <p>
+     * The subscriber is invoked whenever any dependency is invalidated.
+     *
+     * @param subscriber a runnable that is invoked when any dependency is invalidated, cannot be {@code null}
+     * @return a {@link Subscription} that can be used to cancel the subscription, never {@code null}
+     * @throws NullPointerException if any argument is {@code null}
+     */
+    public Subscription subscribe(Runnable subscriber) {
+      Objects.requireNonNull(subscriber, "subscriber");
+
+      InvalidationListener listener = obs -> subscriber.run();
+
+      a.addListener(listener);
+      b.addListener(listener);
+      c.addListener(listener);
+      d.addListener(listener);
+
+      return () -> {
+        a.removeListener(listener);
+        b.removeListener(listener);
+        c.removeListener(listener);
+        d.removeListener(listener);
+      };
     }
 
     /**
