@@ -20,7 +20,7 @@ import org.int4.fx.values.domain.Domain;
  * Typically, {@link #get()} is used when manipulating the model directly for business logic,
  * whereas {@link #getValue()} is safer for UI binding and general inspection.
  */
-public interface BooleanModel extends WritableModel<Boolean> {
+public interface BooleanModel extends Model<Boolean> {
 
   /**
    * Creates a non-null boolean model with initial value {@code false}.

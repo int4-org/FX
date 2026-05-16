@@ -21,7 +21,7 @@ import org.int4.fx.values.domain.Domain;
  * Typically, {@link #get()} is used when manipulating the model directly for business logic,
  * whereas {@link #getValue()} is safer for UI binding and general inspection.
  */
-public interface IntegerModel extends WritableModel<Integer> {
+public interface IntegerModel extends Model<Integer> {
 
   /**
    * Creates a non-null integer model with initial value 0.

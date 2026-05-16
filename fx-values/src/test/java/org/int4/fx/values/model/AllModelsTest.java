@@ -202,7 +202,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void shouldCreateModelWithValidValue(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void shouldCreateModelWithValidValue(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain1);
 
     assertThat(c.get(m)).isEqualTo(c.validInDomain1);
@@ -214,7 +214,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void isValidShouldDependOnValueOrBeTrueWithEmptyDomain(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void isValidShouldDependOnValueOrBeTrueWithInapplicableDomain(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain2);
 
     assertThat(m.isValid()).isFalse();
@@ -242,7 +242,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void shouldNotifyOfChanges(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void shouldNotifyOfChanges(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain2);
     List<T> list = new ArrayList<>();
 
@@ -287,7 +287,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void shouldRestrictValueToDomain(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void shouldRestrictValueToDomain(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain2);
 
     assertThat(m.getDomain()).isEqualTo(c.domain2);
@@ -400,7 +400,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void trySetTest(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void trySetTest(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain1);
 
     assertThat(m.trySet(c.validInBoth, v -> v)).isTrue();
@@ -426,7 +426,7 @@ public class AllModelsTest {
 
   @ParameterizedTest
   @ArgumentsSource(Models.class)
-  <M extends WritableModel<T>, T, D extends Domain<T>> void listenerTest(Case<M, T, D> c) {
+  <M extends Model<T>, T, D extends Domain<T>> void listenerTest(Case<M, T, D> c) {
     M m = c.creator.apply(c.validInDomain1, c.domain1);
     AtomicReference<T> observed = new AtomicReference<>();
 
@@ -455,7 +455,7 @@ public class AllModelsTest {
     assertThat(observed).hasValue(c.validInBoth);
   }
 
-  private static <M extends WritableModel<T>, T, D extends Domain<T>> void assertGet(Case<M, T, D> c, M m, T expected) {
+  private static <M extends Model<T>, T, D extends Domain<T>> void assertGet(Case<M, T, D> c, M m, T expected) {
     if(c.primitive && expected == null) {
       assertThat(c.isNull(m)).isTrue();
       assertThatThrownBy(() -> c.get(m)).isInstanceOf(NullValueException.class);
@@ -465,7 +465,7 @@ public class AllModelsTest {
     }
   }
 
-  record Case<M extends WritableModel<T>, T, D extends Domain<T>>(
+  record Case<M extends Model<T>, T, D extends Domain<T>>(
     Class<M> cls,
     boolean primitive,
     D domain1,

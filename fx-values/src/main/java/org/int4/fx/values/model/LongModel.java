@@ -21,7 +21,7 @@ import org.int4.fx.values.domain.Domain;
  * Typically, {@link #get()} is used when manipulating the model directly for business logic,
  * whereas {@link #getValue()} is safer for UI binding and general inspection.
  */
-public interface LongModel extends WritableModel<Long> {
+public interface LongModel extends Model<Long> {
 
   /**
    * Creates a bounded long model with the given minimum value as the initial value.
