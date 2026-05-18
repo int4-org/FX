@@ -1,21 +1,38 @@
 package org.int4.fx.core.util;
 
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
+
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.ObservableValueBase;
 
 /**
- * A read-only observable value designed for coordinated atomic updates across
+ * A read-only observable value designed for coordinated updates across
  * multiple related values.
  * <p>
- * {@code UpdatableValue} exposes state as a standard {@link ObservableValue},
- * while ensuring that groups of related values can be updated together without
- * observers ever seeing intermediate or inconsistent states.
+ * {@code UpdatableValue} exposes state as a standard {@link ObservableValue}
+ * while ensuring that observers never observe intermediate or partially
+ * updated state.
  * <p>
- * All updates are applied as a single logical change, after which observers
- * are notified.
+ * Updates are grouped into atomic update operations. An update operation is:
+ * <ul>
+ *   <li>a single-value update via {@code set(value)}</li>
+ *   <li>a multi-value update via one of the {@code set(...)} overloads</li>
+ *   <li>a batched sequence of updates via {@link #batch(Runnable)}</li>
+ * </ul>
  * <p>
- * This type is intended for models where multiple observable properties must
- * remain consistent from the perspective of observers.
+ * Within a single update operation, all value changes are applied before any
+ * change notifications are dispatched, ensuring observers always observe a
+ * consistent final state.
+ * <p>
+ * By default, each update operation triggers notifications immediately after
+ * completion. When {@link #batch(Runnable)} is active on the current thread,
+ * notifications from multiple update operations are accumulated and delivered
+ * as a single consolidated notification phase after the batch completes.
+ * <p>
+ * Batching is thread-local and supports nested batch scopes. Nested batches
+ * do not create additional scopes but participate in the existing one.
  * <p>
  * Instances are typically owned privately and exposed only via their
  * read-only observable view.
@@ -23,6 +40,7 @@ import javafx.beans.value.ObservableValueBase;
  * @param <T> the type of value
  */
 public final class UpdatableValue<T> {
+  private static final ThreadLocal<Set<UpdatableValue<?>>> PENDING = new ThreadLocal<>();
 
   /**
    * Creates a new {@code UpdatableValue} initialized to {@code null}.
@@ -43,6 +61,56 @@ public final class UpdatableValue<T> {
    */
   public static <T> UpdatableValue<T> of(T initialValue) {
     return new UpdatableValue<>(initialValue);
+  }
+
+  /**
+   * Executes the given action while batching change notifications.
+   * <p>
+   * During execution of the provided {@code Runnable}, notifications from
+   * {@link UpdatableValue} instances are not immediately dispatched. Instead,
+   * affected values are recorded and a single consolidated notification phase
+   * is executed after the action completes.
+   * <p>
+   * This ensures that observers only see the final state after all intermediate
+   * updates, preventing transient or inconsistent observation.
+   * <p>
+   * Batching is scoped to the current thread. Nested calls to {@code batch}
+   * do not create additional batching scopes; instead, they execute within the
+   * existing batch.
+   * <p>
+   * Only notification delivery is deferred. Value updates occur immediately,
+   * and no rollback or state isolation is performed.
+   * <p>
+   * If an exception is thrown by the action, all accumulated notifications are
+   * still dispatched before the exception propagates.
+   *
+   * @param runnable the action to execute within a batched notification scope
+   * @throws NullPointerException if {@code runnable} is {@code null}
+   */
+  public static void batch(Runnable runnable) {
+    Objects.requireNonNull(runnable, "runnable");
+
+    boolean nested = PENDING.get() != null;
+
+    if(nested) {
+      runnable.run();
+    }
+    else {
+      Set<UpdatableValue<?>> updatableValues = new LinkedHashSet<>();
+
+      PENDING.set(updatableValues);
+
+      try {
+        runnable.run();
+      }
+      finally {
+        PENDING.remove();
+
+        for(UpdatableValue<?> uv : updatableValues) {
+          uv.observableValue.fire();
+        }
+      }
+    }
   }
 
   /**
@@ -186,7 +254,14 @@ public final class UpdatableValue<T> {
   }
 
   void fire() {
-    observableValue.fire();
+    Set<UpdatableValue<?>> pending = PENDING.get();
+
+    if(pending == null) {
+      observableValue.fire();
+    }
+    else {
+      pending.add(this);
+    }
   }
 
   private static final class ManualObservableValue<T> extends ObservableValueBase<T> {
