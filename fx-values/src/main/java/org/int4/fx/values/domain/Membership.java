@@ -13,6 +13,11 @@ import org.int4.fx.core.util.Template;
 public sealed interface Membership {
 
   /**
+   * Constant indicating membership of an evaluated value.
+   */
+  static final Member MEMBER = new Member();
+
+  /**
    * Returns {@code true} if the value is a member of the domain, otherwise {@code false}.
    *
    * @return {@code true} if the value is a member of the domain, otherwise {@code false}

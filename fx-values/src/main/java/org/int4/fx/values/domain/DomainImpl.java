@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 final class DomainImpl<T> implements Domain<T> {
   static final Domain<?> NON_NULL = Domain.where(v -> true);
@@ -58,32 +57,22 @@ final class DomainImpl<T> implements Domain<T> {
 
   @Override
   public boolean contains(T value) {
-    if(value == null) {
-      return includesNull;
-    }
-
-    for(Predicate<T> rule : rules) {
-      if(!rule.test(value)) {
-        return false;
-      }
-    }
-
-    return true;
+    return evaluate(value).isMember();
   }
 
   @Override
   public Membership evaluate(T value) {
     if(value == null) {
-      return includesNull ? new Membership.Member() : new Membership.Excluded(DomainTemplates.MISSING);
+      return includesNull ? Membership.MEMBER : new Membership.Excluded(DomainTemplates.MISSING);
     }
 
     for(Rule<T> rule : rules) {
-      if(!rule.test(value)) {
-        return new Membership.Excluded(rule.template());
+      if(rule.evaluate(value) instanceof Membership.Excluded excluded) {
+        return excluded;
       }
     }
 
-    return new Membership.Member();
+    return Membership.MEMBER;
   }
 
   @Override

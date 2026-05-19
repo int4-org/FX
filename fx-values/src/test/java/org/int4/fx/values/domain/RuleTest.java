@@ -15,7 +15,8 @@ class RuleTest {
 
     assertThat(rule.test("abc")).isFalse();
     assertThat(rule.test("abcd")).isTrue();
-    assertThat(rule.template()).isEqualTo(TEST_TEMPLATE);
+    assertThat(rule.evaluate("abc")).isEqualTo(new Membership.Excluded(TEST_TEMPLATE));
+    assertThat(rule.evaluate("abcd")).isEqualTo(Membership.MEMBER);
   }
 
   @Test

@@ -47,68 +47,47 @@ public sealed interface Domain<T> permits DomainImpl {
   }
 
   /**
-   * Creates a domain defined by an arbitrary predicate. The predicate
-   * controls which values (excluding {@code null}) are considered part of
-   * the domain.
+   * Creates a domain defined by a predicate.
    * <p>
-   * If a value does not satisfy the predicate, the failure reason is
-   * provided by {@link DomainTemplates.Invalid}.
+   * The predicate defines which values are considered part of the domain.
+   * If the predicate is also a {@link Rule}, it is used directly and its
+   * failure template is preserved. Otherwise, the predicate is converted into a rule using
+   * {@link Rule#of(Predicate, org.int4.fx.core.util.Template)} with
+   * {@link DomainTemplates#INVALID} as the default failure template.
    *
    * @param <T> the value type
-   * @param predicate a predicate that returns {@code true} for valid values
-   * @return a domain validated by {@code predicate}, never {@code null}
+   * @param predicate a predicate used to validate values, cannot be {@code null}
+   * @return a domain constrained by the given predicate, never {@code null}
    * @throws NullPointerException if {@code predicate} is {@code null}
    */
   static <T> Domain<T> where(Predicate<T> predicate) {
-    return new DomainImpl<>(Rule.of(predicate, DomainTemplates.INVALID), false);
+    return new DomainImpl<>(predicate instanceof Rule<T> r ? r : Rule.of(predicate, DomainTemplates.INVALID), false);
   }
 
   /**
-   * Creates a domain defined by multiple predicates. All predicates must
-   * return {@code true} for a value (excluding {@code null}) to be
-   * considered part of the domain.
+   * Creates a domain defined by multiple predicates.
    * <p>
-   * If any predicate is not satisfied, the failure reason is provided by
-   * {@link DomainTemplates.Invalid}.
+   * All predicates must evaluate to {@code true} for a value (excluding
+   * {@code null}) to be considered part of the domain.
+   * <p>
+   * Each predicate is treated as follows:
+   * <ul>
+   *   <li>If it is a {@link Rule}, it is used directly and its failure template is preserved.</li>
+   *   <li>If it is a plain {@link Predicate}, it is converted into a rule using
+   *       {@link Rule#of(Predicate, org.int4.fx.core.util.Template)} with
+   *       {@link DomainTemplates#INVALID} as the default failure template.</li>
+   * </ul>
    *
    * @param <T> the value type
-   * @param predicates the predicates to test, never {@code null}
-   * @return a domain validated by all supplied predicates, never {@code null}
-   * @throws NullPointerException if {@code predicates} or any of its elements is {@code null}
+   * @param predicates the predicates to apply; neither the array nor any of its elements may be {@code null}
+   * @return a domain constrained by all predicates, never {@code null}
+   * @throws NullPointerException if {@code predicates} or any element is {@code null}
    */
   @SafeVarargs
   static <T> Domain<T> where(Predicate<T>... predicates) {
     Objects.requireNonNull(predicates, "predicates");
 
-    return new DomainImpl<>(Arrays.stream(predicates).map(p -> Rule.of(p, DomainTemplates.INVALID)).toList(), false);
-  }
-
-  /**
-   * Creates a domain defined by a single rule.
-   *
-   * @param <T> the value type
-   * @param rule the rule to apply, never {@code null}
-   * @return a domain validated by the rule, never {@code null}
-   * @throws NullPointerException if {@code rule} is {@code null}
-   */
-  static <T> Domain<T> where(Rule<T> rule) {
-    return new DomainImpl<>(rule, false);
-  }
-
-  /**
-   * Creates a domain defined by multiple rules. All rules must be satisfied
-   * for a value (excluding {@code null}) to be considered part of the domain.
-   *
-   * @param <T> the value type
-   * @param rules the rules to apply, never {@code null}
-   * @return a domain validated by all supplied rules, never {@code null}
-   * @throws NullPointerException if {@code rules} or any of its elements is {@code null}
-   */
-  @SafeVarargs
-  static <T> Domain<T> where(Rule<T>... rules) {
-    Objects.requireNonNull(rules, "rules");
-
-    return new DomainImpl<>(Arrays.asList(rules), false);
+    return new DomainImpl<>(Arrays.stream(predicates).map(p -> p instanceof Rule<T> r ? r : Rule.of(p, DomainTemplates.INVALID)).toList(), false);
   }
 
   /**

@@ -6,11 +6,9 @@ import java.util.function.Predicate;
 import org.int4.fx.core.util.Template;
 
 /**
- * A rule that associates a {@link Predicate} with a {@link Template}.
+ * A rule that checks a value against a constraint.
  * <p>
- * Rules are used within a {@link Domain} to define membership constraints.
- * When a rule fails, its associated template provides the reason for the
- * exclusion.
+ * Rules are used within a {@link Domain} to define membership conditions.
  *
  * @param <T> the type of value this rule validates
  */
@@ -21,31 +19,29 @@ public interface Rule<T> extends Predicate<T> {
    *
    * @param <T> the value type
    * @param predicate the predicate to test, never {@code null}
-   * @param template the template providing the failure reason, never {@code null}
+   * @param failureTemplate the template providing the failure reason, never {@code null}
    * @return a new rule, never {@code null}
    * @throws NullPointerException if any argument is {@code null}
    */
-  static <T> Rule<T> of(Predicate<T> predicate, Template template) {
+  static <T> Rule<T> of(Predicate<T> predicate, Template failureTemplate) {
     Objects.requireNonNull(predicate, "predicate");
-    Objects.requireNonNull(template, "template");
+    Objects.requireNonNull(failureTemplate, "failureTemplate");
 
-    return new Rule<>() {
-      @Override
-      public boolean test(T value) {
-        return predicate.test(value);
-      }
+    Membership.Excluded excluded = new Membership.Excluded(failureTemplate);
 
-      @Override
-      public Template template() {
-        return template;
-      }
-    };
+    return value -> predicate.test(value) ? Membership.MEMBER : excluded;
+  }
+
+  @Override
+  default boolean test(T value) {
+    return evaluate(value).equals(Membership.MEMBER);
   }
 
   /**
-   * Returns the template associated with this rule.
+   * Checks the rule against the given value and returns its membership status.
    *
-   * @return the template, never {@code null}
+   * @param value a value to check against this rule, cannot be {@code null}
+   * @return a {@link Membership}, never {@code null}
    */
-  Template template();
+  Membership evaluate(T value);
 }
