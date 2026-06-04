@@ -50,7 +50,7 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
     return domain.asObservableValue();
   }
 
-  void setDomain(Domain<T> domain) {
+  final void updateDomain(Domain<T> domain) {
     Objects.requireNonNull(domain, "domain");
 
     update(

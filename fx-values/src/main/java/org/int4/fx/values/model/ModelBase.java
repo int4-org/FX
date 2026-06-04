@@ -10,6 +10,6 @@ abstract class ModelBase<T> extends WritableModelBase<T> implements Model<T> {
 
   @Override
   public final void setDomain(Domain<T> domain) {
-    super.setDomain(domain);
+    super.updateDomain(domain);
   }
 }
