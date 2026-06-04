@@ -33,7 +33,8 @@ public interface ChoiceModel<T> extends ObjectModel<T> {
    * @return a new choice model containing the supplied values, never {@code null}
    * @throws NullPointerException if values arrays is {@code null}
    */
-  static <T> ChoiceModel<T> of(@SuppressWarnings("unchecked") T... values) {
+  @SafeVarargs
+  static <T> ChoiceModel<T> of(T... values) {
     return of(values.length == 0 ? null : values[0], Domain.of(values));
   }
 
@@ -46,7 +47,8 @@ public interface ChoiceModel<T> extends ObjectModel<T> {
    * @return a new choice model with the supplied initial value and domain, never {@code null}
    * @throws NullPointerException if values arrays is {@code null}
    */
-  static <T> ChoiceModel<T> withInitial(T initialValue, @SuppressWarnings("unchecked") T... values) {
+  @SafeVarargs
+  static <T> ChoiceModel<T> withInitial(T initialValue, T... values) {
     return of(initialValue, Domain.of(values));
   }
 

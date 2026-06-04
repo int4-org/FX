@@ -103,7 +103,8 @@ public sealed interface Domain<T> permits DomainImpl {
    * @return a domain enumerating the supplied items, never {@code null}
    * @throws NullPointerException if the items array is {@code null}
    */
-  static <T> Domain<T> of(@SuppressWarnings("unchecked") T... items) {
+  @SafeVarargs
+  static <T> Domain<T> of(T... items) {
     return from(Arrays.asList(items));
   }
 
