@@ -261,7 +261,7 @@ StringModel name = StringModel.regex(".{5,}");
 StringModel phoneNumber = StringModel.nullable();
 IntegerModel luggageWeight = IntegerModel.nullableRange(0, 100);
 ChoiceModel<String> tripType = ChoiceModel.of("Return", "One Way");
-ObjectModel<LocalDate> departureDate = ObjectModel.of(Domain.of(dd -> dd.getDayOfWeek().getValue() < 6));
+ObjectModel<LocalDate> departureDate = ObjectModel.of(Domain.where(dd -> dd.getDayOfWeek().getValue() < 6));
 ObjectModel<LocalDate> returnDate = ObjectModel.nullable();
 
 /*
@@ -276,10 +276,10 @@ ObservableValue<Boolean> returnTrip = tripType.map("Return"::equals);
  */
 
 Observe.values(returnTrip, departureDate).compute((isReturnTrip, dd) ->
-    !isReturnTrip ? Domain.<LocalDate>empty()  // Return Date is not applicable
+    !isReturnTrip ? Domain.<LocalDate>inapplicable()  // Return Date is not applicable
         : dd == null ? Domain.<LocalDate>any()  // Return Date can be anything as no departure date was chosen
         : Domain.bounded(dd.plusDays(1), LocalDate.MAX)  // Return Date must be after departure date
-).subscribe(returnDate.domainProperty()::setValue);
+).subscribe(returnDate::setDomain);
 
 /*
  * When SMS alerts are wanted, set the phone number domain to require
@@ -287,7 +287,7 @@ Observe.values(returnTrip, departureDate).compute((isReturnTrip, dd) ->
  */
 
 smsAlerts.map(v -> v ? Domain.regex("[0-9]{5,}") : Domain.<String>any())
-    .subscribe(phoneNumber.domainProperty()::setValue);
+    .subscribe(phoneNumber::setDomain);
 
 /*
  * The phone number must be provided and valid only when SMS alerts are requested.
