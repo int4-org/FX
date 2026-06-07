@@ -101,17 +101,30 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
   }
 
   private RawValue<T> evaluateValue(Domain<T> domain, T newValue) {
+    T immutableNewValue = newValue == null ? null : makeImmutable(newValue);
+
     if(domain.equals(Domain.inapplicable())) {
-      return RawValue.valid(newValue);
+      return RawValue.valid(immutableNewValue);
     }
 
     return switch(domain.evaluate(newValue)) {
-      case Membership.Member() -> RawValue.valid(newValue);
-      case Membership.Excluded(Template reason) -> RawValue.invalid(newValue, reason);
+      case Membership.Member() -> RawValue.valid(immutableNewValue);
+      case Membership.Excluded(Template reason) -> RawValue.invalid(immutableNewValue, reason);
     };
   }
 
   private boolean determineValidity(Domain<T> domain, RawValue<T> newRawValue) {
     return domain.equals(Domain.inapplicable()) || newRawValue instanceof RawValue.Valid;
+  }
+
+  /**
+   * Override this method if a call to {@link WritableModel#setValue(Object)} requires another
+   * action to make the value immutable.
+   *
+   * @param input the input value, not {@code null}
+   * @return the adjusted value, not {@code null}
+   */
+  protected T makeImmutable(T input) {
+    return input;
   }
 }
