@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  *
  * @param <T> the value type governed by this domain
  */
-public sealed interface Domain<T> permits DomainImpl {
+public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
 
   /**
    * Creates a {@link Domain} that validates strings against the supplied
@@ -61,7 +61,7 @@ public sealed interface Domain<T> permits DomainImpl {
    * @throws NullPointerException if {@code predicate} is {@code null}
    */
   static <T> Domain<T> where(Predicate<T> predicate) {
-    return new DomainImpl<>(predicate instanceof Rule<T> r ? r : Rule.of(predicate, DomainTemplates.INVALID), false);
+    return new NormalDomain<>(predicate instanceof Rule<T> r ? r : Rule.of(predicate, DomainTemplates.INVALID), false);
   }
 
   /**
@@ -87,7 +87,7 @@ public sealed interface Domain<T> permits DomainImpl {
   static <T> Domain<T> where(Predicate<T>... predicates) {
     Objects.requireNonNull(predicates, "predicates");
 
-    return new DomainImpl<>(Arrays.stream(predicates).map(p -> p instanceof Rule<T> r ? r : Rule.of(p, DomainTemplates.INVALID)).toList(), false);
+    return new NormalDomain<>(Arrays.stream(predicates).map(p -> p instanceof Rule<T> r ? r : Rule.of(p, DomainTemplates.INVALID)).toList(), false);
   }
 
   /**
@@ -123,7 +123,7 @@ public sealed interface Domain<T> permits DomainImpl {
   static <T> Domain<T> from(List<T> items) {
     List<T> readOnlyItems = Collections.unmodifiableList(Objects.requireNonNull(items, "items"));
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       Rule.of(readOnlyItems::contains, new DomainTemplates.NotContained<>(items)),
       false,
       new AbstractIndexedView<T>() {
@@ -161,7 +161,7 @@ public sealed interface Domain<T> permits DomainImpl {
    */
   @SuppressWarnings("unchecked")
   static <T> Domain<T> any() {
-    return (Domain<T>)DomainImpl.ANY;
+    return (Domain<T>)NormalDomain.ANY;
   }
 
   /**
@@ -176,7 +176,7 @@ public sealed interface Domain<T> permits DomainImpl {
    */
   @SuppressWarnings("unchecked")
   static <T> Domain<T> nonNull() {
-    return (Domain<T>)DomainImpl.NON_NULL;
+    return (Domain<T>)NormalDomain.NON_NULL;
   }
 
   /**
@@ -200,9 +200,8 @@ public sealed interface Domain<T> permits DomainImpl {
    * @param <T> the type of values this domain governs
    * @return a non-applicable domain instance, never {@code null}
    */
-  @SuppressWarnings("unchecked")
   public static <T> Domain<T> inapplicable() {
-    return (Domain<T>)DomainImpl.INAPPLICABLE;
+    return InapplicableDomain.instance();
   }
 
   /**
@@ -258,7 +257,7 @@ public sealed interface Domain<T> permits DomainImpl {
     Predicate<Integer> validator = v -> normalizer.apply(v).equals(v);
     int size = (max - min) / step + 1;
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       step == 1
         ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
         : List.of(
@@ -364,7 +363,7 @@ public sealed interface Domain<T> permits DomainImpl {
     Predicate<Long> validator = v -> normalizer.apply(v).equals(v);
     long size = (max - min) / step + 1;
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       step == 1
         ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
         : List.of(
@@ -447,7 +446,7 @@ public sealed interface Domain<T> permits DomainImpl {
     Predicate<Double> validator = v -> normalizer.apply(v).equals(v);
     int size = (int)Math.floor((max - min) / step) + 1;
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       step == 1
         ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
         : List.of(
@@ -545,7 +544,7 @@ public sealed interface Domain<T> permits DomainImpl {
 
     Predicate<T> validator = v -> comparator.compare(v, first) >= 0 && comparator.compare(v, last) <= 0;
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       Rule.of(validator, new DomainTemplates.OutOfRange<>(first, last)),
       false,
       (NormalizedView<T>)v -> v == null ? first : comparator.compare(v, first) < 0 ? first : comparator.compare(v, last) > 0 ? last : v
@@ -574,7 +573,7 @@ public sealed interface Domain<T> permits DomainImpl {
     UnaryOperator<Double> normalizer = v -> Math.clamp(v, min, max);
     Predicate<Double> validator = v -> v != null && v >= min && v <= max;
 
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)),
       false,
       new ContinuousView<Double>() {

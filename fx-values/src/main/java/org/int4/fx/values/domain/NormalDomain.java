@@ -6,11 +6,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class DomainImpl<T> implements Domain<T> {
+final class NormalDomain<T> implements Domain<T> {
   static final Domain<?> NON_NULL = Domain.where(v -> true);
   static final Domain<?> ANY = NON_NULL.nullable();
-  static final Domain<?> INAPPLICABLE = new DomainImpl<>(Rule.of(v -> false, DomainTemplates.INAPPLICABLE), false);
 
+  private static final Membership.Excluded MISSING_EXCLUSION = new Membership.Excluded(DomainTemplates.MISSING);
   private static final View<?> NOOP_VIEW = new View<>() {};
 
   /**
@@ -26,12 +26,12 @@ final class DomainImpl<T> implements Domain<T> {
   private final boolean includesNull;
 
   @SafeVarargs
-  DomainImpl(Rule<T> rule, boolean includesNull, View<T>... views) {
+  NormalDomain(Rule<T> rule, boolean includesNull, View<T>... views) {
     this(List.of(rule), includesNull, views);
   }
 
   @SafeVarargs
-  DomainImpl(List<Rule<T>> rules, boolean includesNull, View<T>... views) {
+  NormalDomain(List<Rule<T>> rules, boolean includesNull, View<T>... views) {
     this.rules = List.copyOf(rules);
     this.includesNull = includesNull;
 
@@ -63,7 +63,7 @@ final class DomainImpl<T> implements Domain<T> {
   @Override
   public Membership evaluate(T value) {
     if(value == null) {
-      return includesNull ? Membership.MEMBER : new Membership.Excluded(DomainTemplates.MISSING);
+      return includesNull ? Membership.MEMBER : MISSING_EXCLUSION;
     }
 
     for(Rule<T> rule : rules) {
@@ -108,7 +108,7 @@ final class DomainImpl<T> implements Domain<T> {
   @SuppressWarnings("unchecked")
   @Override
   public Domain<T> nullable() {
-    return new DomainImpl<>(
+    return new NormalDomain<>(
       rules,
       true,
       views.values().stream().map(this::toNullable).toArray(View[]::new)
@@ -117,9 +117,7 @@ final class DomainImpl<T> implements Domain<T> {
 
   @Override
   public String toString() {
-    return this == INAPPLICABLE
-      ? "Domain[inapplicable]"
-      : "Domain[includesNull=" + includesNull + "; views=" + views + "]";  // TODO once there are rules, consider logging those instead of the views
+    return "Domain[includesNull=" + includesNull + "; views=" + views + "]";  // TODO once there are rules, consider logging those instead of the views
   }
 
   private View<T> toNullable(View<T> view) {

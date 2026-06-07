@@ -409,6 +409,8 @@ public class DomainTest {
     assertThat(domain.allowsNull()).isFalse();
     assertThat(domain.contains(null)).isFalse();
     assertThat(domain.contains("x")).isFalse();
+    assertThat(domain.evaluate(null)).isEqualTo(new Membership.Excluded(DomainTemplates.INAPPLICABLE));
+    assertThat(domain.evaluate("x")).isEqualTo(new Membership.Excluded(DomainTemplates.INAPPLICABLE));
   }
 
   @Test
