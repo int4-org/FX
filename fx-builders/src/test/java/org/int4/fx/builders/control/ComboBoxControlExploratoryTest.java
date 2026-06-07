@@ -11,10 +11,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.Region;
 
-import org.int4.fx.builders.explorer.Action;
-import org.int4.fx.builders.explorer.Assertion;
-import org.int4.fx.builders.explorer.Explorable;
-import org.int4.fx.builders.explorer.ExploratoryTestRunner;
+import org.int4.common.test.explorer.Action;
+import org.int4.common.test.explorer.Assertion;
+import org.int4.common.test.explorer.Explorable;
+import org.int4.common.test.explorer.ExploratoryTestRunner;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
@@ -32,7 +32,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
 
   @Test
   void validateStates() {
-    ExploratoryTestRunner.explore(ComboBoxExplorable.class);
+    ExploratoryTestRunner.explore(ComboBoxExplorable.class, ComboBoxExplorable::new);
   }
 
   public static class ComboBoxExplorable implements Explorable {

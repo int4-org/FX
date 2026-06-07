@@ -25,7 +25,7 @@
     <revision>1.0.0-SNAPSHOT</revision>
     <java.version>25</java.version>
     <fx.version>23.0.1</fx.version>
-    <common.version>0.0.4</common.version>
+    <common.version>0.0.6</common.version>
   </properties>
 
   <licenses>
@@ -64,6 +64,12 @@
   </distributionManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.int4.common</groupId>
+      <artifactId>common-test</artifactId>
+      <version>${common.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
