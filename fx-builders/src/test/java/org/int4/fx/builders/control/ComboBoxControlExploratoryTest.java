@@ -249,10 +249,6 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     }
 
     private RawValue<String> reevaluate(String value) {
-      if(expectedDomain.equals(Domain.inapplicable())) {
-        return RawValue.valid(value);
-      }
-
       return switch(expectedDomain.evaluate(value)) {
         case Membership.Member() -> RawValue.valid(value);
         case Membership.Excluded(Template reason) -> RawValue.invalid(value, reason);

@@ -400,7 +400,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInNone));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(c.validInNone, DomainTemplates.INAPPLICABLE));
 
     m.setValue(c.validInDomain1);
 
@@ -413,7 +413,7 @@ public class AllModelsTest {
       assertThat(c.get(m)).isNull();
     }
     assertThat(m.getValue()).isNull();
-    assertThat(m.getRawValue()).isEqualTo(RawValue.valid(c.validInDomain1));
+    assertThat(m.getRawValue()).isEqualTo(RawValue.invalid(c.validInDomain1, DomainTemplates.INAPPLICABLE));
   }
 
   @ParameterizedTest

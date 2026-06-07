@@ -103,11 +103,7 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
   private RawValue<T> evaluateValue(Domain<T> domain, T newValue) {
     T immutableNewValue = newValue == null ? null : makeImmutable(newValue);
 
-    if(domain.equals(Domain.inapplicable())) {
-      return RawValue.valid(immutableNewValue);
-    }
-
-    return switch(domain.evaluate(newValue)) {
+    return switch(domain.evaluate(immutableNewValue)) {
       case Membership.Member() -> RawValue.valid(immutableNewValue);
       case Membership.Excluded(Template reason) -> RawValue.invalid(immutableNewValue, reason);
     };

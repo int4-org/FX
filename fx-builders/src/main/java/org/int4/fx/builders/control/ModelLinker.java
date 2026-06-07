@@ -237,7 +237,7 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private RawValue<T> evaluateCurrentInput() {
-    if(model.getDomain().equals(Domain.inapplicable())) {
+    if(!model.isApplicable()) {
       return getter.get() == null
         ? RawValue.valid(null)
         : RawValue.incompatible(INCOMPATIBLE_TEMPLATE);
@@ -349,7 +349,7 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private void applyValidationState(RawValue<T> value) {
-    boolean valid = model.getDomain().equals(Domain.inapplicable()) ? getter.get() == null : value instanceof RawValue.Valid;
+    boolean valid = model.isApplicable() ? value instanceof RawValue.Valid : getter.get() == null;
 
     if(node.getPseudoClassStates().contains(INVALID) == valid) {
       node.pseudoClassStateChanged(INVALID, !valid);
