@@ -16,6 +16,10 @@
       <groupId>org.int4.fx</groupId>
       <artifactId>fx-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.int4.common</groupId>
+      <artifactId>common-collection</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.openjfx</groupId>

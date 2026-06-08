@@ -100,6 +100,11 @@
         <version>${common.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.int4.common</groupId>
+        <artifactId>common-collection</artifactId>
+        <version>${common.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.int4.fx</groupId>
         <artifactId>fx-builders</artifactId>
         <version>${revision}</version>
