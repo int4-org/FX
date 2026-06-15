@@ -2,6 +2,7 @@ package org.int4.fx.values.model;
 
 import java.util.List;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.values.domain.Domain;
 
 /**

@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.DomainTemplates;

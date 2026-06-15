@@ -3,6 +3,7 @@ package org.int4.fx.values.model;
 import java.util.List;
 import java.util.Map;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 import org.junit.jupiter.api.Test;

@@ -7,6 +7,7 @@ import java.util.Objects;
 import javafx.beans.value.ObservableValue;
 
 import org.int4.common.collection.Immutable;
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.core.util.UpdatableValue;
 import org.int4.fx.values.domain.Domain;

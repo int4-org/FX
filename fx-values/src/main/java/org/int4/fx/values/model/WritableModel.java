@@ -4,6 +4,7 @@ import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 

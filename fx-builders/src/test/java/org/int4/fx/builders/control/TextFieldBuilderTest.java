@@ -3,12 +3,12 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.DomainTemplates;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
-import org.int4.fx.values.model.RawValue;
 import org.int4.fx.values.model.StringModel;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -6,6 +6,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.beans.value.ObservableValueBase;
 
 import org.int4.fx.core.util.Observe;
+import org.int4.fx.core.util.RawValue;
 
 class ObservableModelBase<T> extends ObservableValueBase<T> implements ObservableModel<T> {
   private final ObservableValue<Boolean> applicable;

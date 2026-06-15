@@ -2,6 +2,8 @@ package org.int4.fx.values.model;
 
 import javafx.beans.value.ObservableValue;
 
+import org.int4.fx.core.util.RawValue;
+
 /**
  * A stateful, observable model that exposes a current value and its applicability.
  * <p>

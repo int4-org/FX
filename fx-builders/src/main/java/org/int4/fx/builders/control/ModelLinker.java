@@ -19,12 +19,12 @@ import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
 import org.int4.fx.core.event.BroadcastHandler;
 import org.int4.fx.core.util.Observe;
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.RecordBasedTemplate;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.Membership;
-import org.int4.fx.values.model.RawValue;
 import org.int4.fx.values.model.WritableModel;
 
 /**

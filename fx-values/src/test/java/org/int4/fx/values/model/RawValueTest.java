@@ -3,6 +3,7 @@ package org.int4.fx.values.model;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.junit.jupiter.api.Test;
 

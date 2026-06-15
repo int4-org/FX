@@ -1,9 +1,7 @@
-package org.int4.fx.values.model;
+package org.int4.fx.core.util;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
-
-import org.int4.fx.core.util.Template;
 
 /**
  * Represents the state of a model value along with its validation context.
