@@ -18,6 +18,7 @@ import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
 import org.int4.fx.core.event.BroadcastHandler;
+import org.int4.fx.core.event.ValidationEvent;
 import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.RecordBasedTemplate;
@@ -354,6 +355,12 @@ final class ModelLinker<N extends Node, R, T> {
     if(node.getPseudoClassStates().contains(INVALID) == valid) {
       node.pseudoClassStateChanged(INVALID, !valid);
     }
+
+    node.fireEvent(switch(value) {
+      case RawValue.Valid(Object _) -> ValidationEvent.valid();
+      case RawValue.Invalid(Object v, Template template) -> ValidationEvent.invalid(template, v, false);
+      case RawValue.Incompatible(Template template) -> ValidationEvent.invalid(template, null, true);
+    });
   }
 
   private boolean subscriptionsActive() {
