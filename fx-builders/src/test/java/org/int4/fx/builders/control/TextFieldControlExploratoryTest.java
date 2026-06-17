@@ -45,7 +45,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     private final DecimalFormat formatter = new DecimalFormat();
 
     private RawValue<Double> expectedModelRawValue = RawValue.valid(5.0);
-    private String expectedControlValue = "";
+    private String expectedControlValue = "";  // only relevant for applicable domains
     private String lastControlValue;
     private boolean connectedToScene;
     private Domain<Double> expectedDomain = INITIAL_DOMAIN;
@@ -58,7 +58,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     public Object snapshot() {
       return new State(
         expectedModelRawValue,
-        expectedControlValue,
+        expectedDomain.equals(Domain.inapplicable()) ? null : expectedControlValue,
         lastControlValue,
         dirty,
         touched,
@@ -83,12 +83,11 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
         }
 
         boolean controlValid;
+
         if(dirty) {
           Double parsedValue = parseDouble(expectedControlValue);
 
-          controlValid = inapplicable
-            ? expectedControlValue == null
-            : expectedDomain.contains(parsedValue);
+          controlValid = inapplicable ? true : expectedDomain.contains(parsedValue);
         }
         else {
           controlValid = modelValid;
@@ -100,13 +99,19 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
       }
 
       assertAll(
-        () -> assertThat(control.getText()).describedAs("control.text").isEqualTo(expectedControlValue),
         () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates),
         () -> assertThat(model.getValue()).describedAs("model.value").isEqualTo(expectedModelValue),
         () -> assertThat(model.getRawValue()).describedAs("model.rawValue").isEqualTo(expectedModelRawValue),
         () -> assertThat(model.getDomain()).describedAs("model.domain").isEqualTo(expectedDomain),
         () -> assertThat(model.isValid()).describedAs("model.valid").isEqualTo(modelValid)
       );
+    }
+
+    @Assertion
+    public void assertControlValue() {
+      if(!expectedDomain.equals(Domain.inapplicable())) {
+        assertThat(control.getText()).describedAs("control.text").isEqualTo(expectedControlValue);
+      }
     }
 
     @Action

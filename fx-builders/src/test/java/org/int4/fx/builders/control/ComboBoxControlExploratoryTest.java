@@ -46,7 +46,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     private final ComboBox<String> control = new ComboBoxBuilder.Raw().model(model).build();
 
     private RawValue<String> expectedModelRawValue = RawValue.valid("C");
-    private String expectedControlValue;
+    private String expectedControlValue;  // only relevant for applicable domains
     private boolean connectedToScene;
     private Domain<String> expectedDomain = INITIAL_DOMAIN;
     private boolean dirty;
@@ -58,7 +58,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     public Object snapshot() {
       return new State(
         expectedModelRawValue,
-        expectedControlValue,
+        expectedDomain.equals(Domain.inapplicable()) ? null : expectedControlValue,
         dirty,
         touched,
         connectedToScene,
@@ -75,7 +75,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
       Set<PseudoClass> expectedControlStates = new HashSet<>();
 
       boolean controlValid = dirty
-        ? (inapplicable ? expectedControlValue == null : expectedDomain.contains(expectedControlValue))
+        ? (inapplicable ? true : expectedDomain.contains(expectedControlValue))
         : modelValid;
 
       if(connectedToScene && !controlValid) {
@@ -94,7 +94,6 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
       int expectedControlIndex = expectedControlItems.indexOf(expectedControlValue);
 
       assertAll(
-        () -> assertThat(control.getValue()).describedAs("control.value").isEqualTo(expectedControlValue),
         () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates),
         () -> assertThat(control.getSelectionModel().getSelectedIndex()).describedAs("control.selectionModel.selectedIndex").isEqualTo(expectedControlIndex),
         () -> assertThat(control.getItems()).describedAs("control.items").containsExactlyElementsOf(expectedControlItems),
@@ -103,6 +102,13 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
         () -> assertThat(model.getDomain()).describedAs("model.domain").isEqualTo(expectedDomain),
         () -> assertThat(model.isValid()).describedAs("model.valid").isEqualTo(modelValid)
       );
+    }
+
+    @Assertion
+    public void assertControlValue() {
+      if(!expectedDomain.equals(Domain.inapplicable())) {
+        assertThat(control.getValue()).describedAs("control.value").isEqualTo(expectedControlValue);
+      }
     }
 
     @Action

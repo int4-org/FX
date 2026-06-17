@@ -349,7 +349,7 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   private void applyValidationState(RawValue<T> value) {
-    boolean valid = model.isApplicable() ? value instanceof RawValue.Valid : getter.get() == null;
+    boolean valid = model.isApplicable() ? value instanceof RawValue.Valid : true;
 
     if(node.getPseudoClassStates().contains(INVALID) == valid) {
       node.pseudoClassStateChanged(INVALID, !valid);
