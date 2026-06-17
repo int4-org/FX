@@ -4,7 +4,6 @@ import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
 
-import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 
@@ -117,7 +116,7 @@ public interface WritableModel<T> extends ObservableModel<T> {
    * <p>
    * If the conversion fails (by throwing an exception), the model is marked
    * as invalid due to unconvertible input, its {@link #getRawValue()} becomes
-   * {@link RawValue.Incompatible}, and the method returns {@code false}.
+   * {@link org.int4.fx.core.util.RawValue.Incompatible}, and the method returns {@code false}.
    * <p>
    * Conversion success does not imply validity; validity is determined
    * independently by the model, based on the current domain and other
