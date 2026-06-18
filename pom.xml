@@ -112,6 +112,11 @@
       </dependency>
       <dependency>
         <groupId>org.int4.fx</groupId>
+        <artifactId>fx-controls</artifactId>
+        <version>${revision}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.int4.fx</groupId>
         <artifactId>fx-core</artifactId>
         <version>${revision}</version>
       </dependency>

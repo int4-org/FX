@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>org.int4.fx</groupId>
-      <artifactId>fx-builders</artifactId>
+      <artifactId>fx-controls</artifactId>
     </dependency>
 
     <dependency>

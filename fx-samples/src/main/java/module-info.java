@@ -8,6 +8,7 @@
  */
 module org.int4.fx.samples {
   requires transitive org.int4.fx.builders;
+  requires transitive org.int4.fx.controls;
 
   exports org.int4.fx.samples;
 }
