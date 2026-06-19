@@ -3,7 +3,8 @@ package org.int4.fx.core.util;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 class TemplateTest {
 
@@ -25,9 +26,7 @@ class TemplateTest {
     "a._b"
   })
   void shouldMatchValidKeys(String key) {
-    assertThat(Template.KEY_PATTERN.matcher(key).matches())
-      .describedAs("Key '%s' should be valid", key)
-      .isTrue();
+    assertDoesNotThrow(() -> Template.of(key));
   }
 
   @ParameterizedTest
@@ -56,8 +55,6 @@ class TemplateTest {
     "a.123"
   })
   void shouldNotMatchInvalidKeys(String key) {
-    assertThat(Template.KEY_PATTERN.matcher(key).matches())
-      .describedAs("Key '%s' should be invalid", key)
-      .isFalse();
+    assertThatThrownBy(() -> Template.of(key)).isInstanceOf(IllegalArgumentException.class);
   }
 }

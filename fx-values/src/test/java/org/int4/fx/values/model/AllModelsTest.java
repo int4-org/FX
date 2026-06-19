@@ -2,7 +2,6 @@ package org.int4.fx.values.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -24,22 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class AllModelsTest {
-  private static final Template INCOMPATIBLE_TEMPLATE = new Template() {
-    @Override
-    public String key() {
-      return "conversion.incompatible";
-    }
-
-    @Override
-    public Map<String, Object> args() {
-      return Map.of();
-    }
-
-    @Override
-    public String toString() {
-      return "Template[key=" + key() + "]";
-    }
-  };
+  private static final Template INCOMPATIBLE_TEMPLATE = Template.of("conversion.incompatible");
 
   static class Models implements ArgumentsProvider {
     @SuppressWarnings("unchecked")
@@ -49,8 +33,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           BooleanModel.class,
           true,
-          Domain.of(false, true), new DomainTemplates.NotContained<>(List.of(false, true)),
-          Domain.of(false), new DomainTemplates.NotContained<>(List.of(false)),
+          Domain.of(false, true), DomainTemplates.notContained(List.of(false, true)),
+          Domain.of(false), DomainTemplates.notContained(List.of(false)),
           true,
           false,
           null,
@@ -62,8 +46,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           BooleanModel.class,
           true,
-          Domain.of(false, true).nullable(), new DomainTemplates.NotContained<>(List.of(false, true)),
-          Domain.of(false).nullable(), new DomainTemplates.NotContained<>(List.of(false)),
+          Domain.of(false, true).nullable(), DomainTemplates.notContained(List.of(false, true)),
+          Domain.of(false).nullable(), DomainTemplates.notContained(List.of(false)),
           true,
           false,
           null,
@@ -75,8 +59,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           IntegerModel.class,
           true,
-          Domain.bounded(0, 12), new DomainTemplates.OutOfRange<>(0, 12),
-          Domain.bounded(5, 15), new DomainTemplates.OutOfRange<>(5, 15),
+          Domain.bounded(0, 12), DomainTemplates.outOfRange(0, 12),
+          Domain.bounded(5, 15), DomainTemplates.outOfRange(5, 15),
           2,
           10,
           100,
@@ -88,8 +72,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           IntegerModel.class,
           true,
-          Domain.bounded(0, 12).nullable(), new DomainTemplates.OutOfRange<>(0, 12),
-          Domain.bounded(5, 15).nullable(), new DomainTemplates.OutOfRange<>(5, 15),
+          Domain.bounded(0, 12).nullable(), DomainTemplates.outOfRange(0, 12),
+          Domain.bounded(5, 15).nullable(), DomainTemplates.outOfRange(5, 15),
           2,
           10,
           100,
@@ -101,8 +85,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           LongModel.class,
           true,
-          Domain.bounded(0L, 12), new DomainTemplates.OutOfRange<>(0L, 12L),
-          Domain.bounded(5L, 15), new DomainTemplates.OutOfRange<>(5L, 15L),
+          Domain.bounded(0L, 12), DomainTemplates.outOfRange(0L, 12L),
+          Domain.bounded(5L, 15), DomainTemplates.outOfRange(5L, 15L),
           2L,
           10L,
           100L,
@@ -114,8 +98,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           LongModel.class,
           true,
-          Domain.bounded(0L, 12).nullable(), new DomainTemplates.OutOfRange<>(0L, 12L),
-          Domain.bounded(5L, 15).nullable(), new DomainTemplates.OutOfRange<>(5L, 15L),
+          Domain.bounded(0L, 12).nullable(), DomainTemplates.outOfRange(0L, 12L),
+          Domain.bounded(5L, 15).nullable(), DomainTemplates.outOfRange(5L, 15L),
           2L,
           10L,
           100L,
@@ -127,8 +111,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           DoubleModel.class,
           true,
-          Domain.bounded(0, 12, 0.5), new DomainTemplates.OutOfRange<>(0.0, 12.0),
-          Domain.bounded(5, 15, 0.5), new DomainTemplates.OutOfRange<>(5.0, 15.0),
+          Domain.bounded(0, 12, 0.5), DomainTemplates.outOfRange(0.0, 12.0),
+          Domain.bounded(5, 15, 0.5), DomainTemplates.outOfRange(5.0, 15.0),
           2.5,
           10.5,
           100.5,
@@ -140,8 +124,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           DoubleModel.class,
           true,
-          Domain.bounded(0, 12, 0.5).nullable(), new DomainTemplates.OutOfRange<>(0.0, 12.0),
-          Domain.bounded(5, 15, 0.5).nullable(), new DomainTemplates.OutOfRange<>(5.0, 15.0),
+          Domain.bounded(0, 12, 0.5).nullable(), DomainTemplates.outOfRange(0.0, 12.0),
+          Domain.bounded(5, 15, 0.5).nullable(), DomainTemplates.outOfRange(5.0, 15.0),
           2.5,
           10.5,
           100.5,
@@ -153,8 +137,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ObjectModel<String>>)(Object)ObjectModel.class,
           false,
-          Domain.of("A", "B", "C"), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
-          Domain.of("C", "D", "E"), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
+          Domain.of("A", "B", "C"), DomainTemplates.notContained(List.of("A", "B", "C")),
+          Domain.of("C", "D", "E"), DomainTemplates.notContained(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -166,8 +150,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ObjectModel<String>>)(Object)ObjectModel.class,
           false,
-          Domain.of("A", "B", "C").nullable(), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
-          Domain.of("C", "D", "E").nullable(), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
+          Domain.of("A", "B", "C").nullable(), DomainTemplates.notContained(List.of("A", "B", "C")),
+          Domain.of("C", "D", "E").nullable(), DomainTemplates.notContained(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -179,8 +163,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ChoiceModel<String>>)(Object)ChoiceModel.class,
           false,
-          Domain.<String>of("A", "B", "C"), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
-          Domain.<String>of("C", "D", "E"), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
+          Domain.<String>of("A", "B", "C"), DomainTemplates.notContained(List.of("A", "B", "C")),
+          Domain.<String>of("C", "D", "E"), DomainTemplates.notContained(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -192,8 +176,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           (Class<ChoiceModel<String>>)(Object)ChoiceModel.class,
           false,
-          Domain.<String>of("A", "B", "C").nullable(), new DomainTemplates.NotContained<>(List.of("A", "B", "C")),
-          Domain.<String>of("C", "D", "E").nullable(), new DomainTemplates.NotContained<>(List.of("C", "D", "E")),
+          Domain.<String>of("A", "B", "C").nullable(), DomainTemplates.notContained(List.of("A", "B", "C")),
+          Domain.<String>of("C", "D", "E").nullable(), DomainTemplates.notContained(List.of("C", "D", "E")),
           "A",
           "C",
           "-",
@@ -205,8 +189,8 @@ public class AllModelsTest {
         Arguments.of(new Case<>(
           StringModel.class,
           false,
-          Domain.regex("[a-p]{1}"), new DomainTemplates.NoMatch("[a-p]{1}"),
-          Domain.regex("[k-z]{1}"), new DomainTemplates.NoMatch("[k-z]{1}"),
+          Domain.regex("[a-p]{1}"), DomainTemplates.noMatch("[a-p]{1}"),
+          Domain.regex("[k-z]{1}"), DomainTemplates.noMatch("[k-z]{1}"),
           "a",
           "n",
           "-",

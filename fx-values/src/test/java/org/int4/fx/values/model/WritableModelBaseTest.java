@@ -3,7 +3,6 @@ package org.int4.fx.values.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.int4.fx.core.util.Template;
@@ -14,10 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class WritableModelBaseTest {
 
-  private static final Template TEMPLATE = new Template() {
-    @Override public String key() { return "test"; }
-    @Override public Map<String, Object> args() { return Map.of(); }
-  };
+  private static final Template TEMPLATE = Template.of("test");
 
   static class ListModel extends WritableModelBase<List<String>> {
     ListModel(List<String> initialValue, Domain<List<String>> initialDomain) {

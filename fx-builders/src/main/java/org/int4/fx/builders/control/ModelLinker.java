@@ -21,7 +21,6 @@ import org.int4.fx.core.event.BroadcastHandler;
 import org.int4.fx.core.event.ValidationEvent;
 import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.RawValue;
-import org.int4.fx.core.util.RecordBasedTemplate;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.domain.Domain;
@@ -43,14 +42,7 @@ final class ModelLinker<N extends Node, R, T> {
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
-  record Incompatible() implements RecordBasedTemplate {
-    @Override
-    public String key() {
-      return "conversion.incompatible";
-    }
-  }
-
-  static final Template INCOMPATIBLE_TEMPLATE = new Incompatible();
+  static final Template INCOMPATIBLE_TEMPLATE = Template.of("conversion.incompatible");
 
   public static <N extends Node, T> ModelLinker<N, T, T> link(N node, WritableModel<T> model, Supplier<T> getter, Consumer<T> setter) {
     return new ModelLinker<>(node, model, getter, toSynchronizer(setter), Function.identity(), r -> Subscription.EMPTY);

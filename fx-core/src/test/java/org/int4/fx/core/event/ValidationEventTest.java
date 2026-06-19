@@ -3,16 +3,11 @@ package org.int4.fx.core.event;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.Map;
-
 import org.int4.fx.core.util.Template;
 import org.junit.jupiter.api.Test;
 
 class ValidationEventTest {
-  private static final Template TEMPLATE = new Template() {
-    @Override public String key() { return "test.key"; }
-    @Override public Map<String, Object> args() { return Map.of(); }
-  };
+  private static final Template TEMPLATE = Template.of("test.key");
 
   @Test
   void validShouldReturnValidEvent() {

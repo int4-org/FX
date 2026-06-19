@@ -468,7 +468,7 @@ public class DomainTest {
 
   @Test
   void validateRegexDomain() {
-    assertThatThrownBy(() -> Domain.regex(null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.regex((String)null)).isInstanceOf(NullPointerException.class);
 
     Domain<String> domain = Domain.regex("\\d+");
 
@@ -484,25 +484,25 @@ public class DomainTest {
 
     assertThat(domain.evaluate(0)).isEqualTo(new Membership.Member());
     assertThat(domain.evaluate(2)).isEqualTo(new Membership.Member());
-    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
-    assertThat(domain.evaluate(11)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
-    assertThat(domain.evaluate(1)).isEqualTo(new Membership.Excluded(new DomainTemplates.Misaligned<>(0, 2)));
-    assertThat(domain.evaluate(null)).isEqualTo(new Membership.Excluded(new DomainTemplates.Missing()));
+    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(DomainTemplates.outOfRange(0, 10)));
+    assertThat(domain.evaluate(11)).isEqualTo(new Membership.Excluded(DomainTemplates.outOfRange(0, 10)));
+    assertThat(domain.evaluate(1)).isEqualTo(new Membership.Excluded(DomainTemplates.misaligned(0, 2)));
+    assertThat(domain.evaluate(null)).isEqualTo(new Membership.Excluded(DomainTemplates.MISSING));
 
     Domain<String> regexDomain = Domain.regex("\\d+");
     assertThat(regexDomain.evaluate("123")).isEqualTo(new Membership.Member());
-    assertThat(regexDomain.evaluate("abc")).isEqualTo(new Membership.Excluded(new DomainTemplates.NoMatch("\\d+")));
+    assertThat(regexDomain.evaluate("abc")).isEqualTo(new Membership.Excluded(DomainTemplates.noMatch("\\d+")));
 
     Domain<String> listDomain = Domain.of("A", "B");
     assertThat(listDomain.evaluate("A")).isEqualTo(new Membership.Member());
-    assertThat(listDomain.evaluate("C")).isEqualTo(new Membership.Excluded(new DomainTemplates.NotContained<>(Arrays.asList("A", "B"))));
+    assertThat(listDomain.evaluate("C")).isEqualTo(new Membership.Excluded(DomainTemplates.notContained(Arrays.asList("A", "B"))));
 
     Domain<String> predicateDomain = Domain.where(v -> v.length() > 2);
     assertThat(predicateDomain.evaluate("abc")).isEqualTo(new Membership.Member());
-    assertThat(predicateDomain.evaluate("a")).isEqualTo(new Membership.Excluded(new DomainTemplates.Invalid()));
+    assertThat(predicateDomain.evaluate("a")).isEqualTo(new Membership.Excluded(DomainTemplates.INVALID));
 
     Domain<String> inapplicableDomain = Domain.inapplicable();
-    assertThat(inapplicableDomain.evaluate("any")).isEqualTo(new Membership.Excluded(new DomainTemplates.Inapplicable()));
+    assertThat(inapplicableDomain.evaluate("any")).isEqualTo(new Membership.Excluded(DomainTemplates.INAPPLICABLE));
   }
 
   @Test
@@ -511,7 +511,7 @@ public class DomainTest {
 
     assertThat(domain.evaluate(null)).isEqualTo(new Membership.Member());
     assertThat(domain.evaluate(5)).isEqualTo(new Membership.Member());
-    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(new DomainTemplates.OutOfRange<>(0, 10)));
+    assertThat(domain.evaluate(-1)).isEqualTo(new Membership.Excluded(DomainTemplates.outOfRange(0, 10)));
   }
 
   @Test
@@ -522,7 +522,7 @@ public class DomainTest {
 
     assertThatThrownBy(() -> Domain.where((Rule<String>)null)).isInstanceOf(NullPointerException.class);
     assertThatThrownBy(() -> Domain.where((Rule<String>[])null)).isInstanceOf(NullPointerException.class);
-    assertThatThrownBy(() -> Domain.where(Rule.of(v -> true, new DomainTemplates.Invalid()), null)).isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> Domain.where(Rule.of(v -> true, DomainTemplates.INVALID), null)).isInstanceOf(NullPointerException.class);
   }
 
   @Nested

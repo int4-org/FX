@@ -35,7 +35,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
    * <p>
    * If a string does not match, the failure reason is provided by
-   * {@link DomainTemplates.NoMatch}.
+   * {@link DomainTemplates#noMatch(String)}.
    *
    * @param regex the regular expression to compile, not {@code null}
    * @return a domain accepting strings that match {@code regex}, never {@code null}
@@ -70,14 +70,14 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
    * <p>
    * If a string does not match, the failure reason is provided by
-   * {@link DomainTemplates.NoMatch}.
+   * {@link DomainTemplates#noMatch(String)}.
    *
    * @param pattern the compiled regular expression pattern to validate against, not {@code null}
    * @return a domain accepting strings that match the pattern, never {@code null}
    * @throws NullPointerException if the pattern is {@code null}
    */
   static Domain<String> regex(Pattern pattern) {
-    return regex(pattern, new DomainTemplates.NoMatch(pattern.pattern()));
+    return regex(pattern, DomainTemplates.noMatch(pattern.pattern()));
   }
 
   /**
@@ -147,7 +147,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * immutable list.
    * <p>
    * If a value is not among the items, the failure reason is provided by
-   * {@link DomainTemplates.NotContained}.
+   * {@link DomainTemplates#notContained(List)}.
    *
    * @param <T> the value type
    * @param items the allowed items, cannot be {@code null} but can be empty
@@ -164,7 +164,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * not be modified. Behavior is undefined if the list is modified.
    * <p>
    * If a value is not among the items, the failure reason is provided by
-   * {@link DomainTemplates.NotContained}.
+   * {@link DomainTemplates#notContained(List)}.
    *
    * @param <T> the value type
    * @param items a list of allowed items, cannot be {@code null} but can be empty
@@ -175,7 +175,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
     List<T> readOnlyItems = Collections.unmodifiableList(Objects.requireNonNull(items, "items"));
 
     return new NormalDomain<>(
-      Rule.of(readOnlyItems::contains, new DomainTemplates.NotContained<>(items)),
+      Rule.of(readOnlyItems::contains, DomainTemplates.notContained(items)),
       false,
       new AbstractIndexedView<T>() {
         @Override
@@ -220,7 +220,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * {@code null}.
    * <p>
    * If a value is {@code null}, the failure reason is provided by
-   * {@link DomainTemplates.Missing}.
+   * {@link DomainTemplates#MISSING}.
    *
    * @param <T> the type of values this domain governs
    * @return an unrestricted domain that disallows {@code null}; never {@code null}
@@ -246,7 +246,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * constraint set with no valid values.
    * <p>
    * All values evaluated against this domain return a failure reason
-   * provided by {@link DomainTemplates.Inapplicable}.
+   * provided by {@link DomainTemplates#INAPPLICABLE}.
    *
    * @param <T> the type of values this domain governs
    * @return a non-applicable domain instance, never {@code null}
@@ -263,7 +263,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * implementing logical stepping semantics.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -283,8 +283,8 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * value must be positive and align with the range boundaries.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
-   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates#misaligned(Number, Number)}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -310,10 +310,10 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
 
     return new NormalDomain<>(
       step == 1
-        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        ? List.of(Rule.of(validator, DomainTemplates.outOfRange(min, max)))
         : List.of(
-            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
-            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+            Rule.of(v -> v != null && v >= min && v <= max, DomainTemplates.outOfRange(min, max)),
+            Rule.of(validator, DomainTemplates.misaligned(min, step))
           ),
       false,
       new AbstractIndexedView<Integer>() {
@@ -369,7 +369,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * implementing logical stepping semantics.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -389,8 +389,8 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * value must be positive and align with the range boundaries.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
-   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates#misaligned(Number, Number)}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -416,10 +416,10 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
 
     return new NormalDomain<>(
       step == 1
-        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        ? List.of(Rule.of(validator, DomainTemplates.outOfRange(min, max)))
         : List.of(
-            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
-            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+            Rule.of(v -> v != null && v >= min && v <= max, DomainTemplates.outOfRange(min, max)),
+            Rule.of(validator, DomainTemplates.misaligned(min, step))
           ),
       false,
       new AbstractIndexedView<Long>() {
@@ -474,8 +474,8 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * The supplied {@code step} value must be positive.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}. If it is within range but not on a
-   * step, the reason is provided by {@link DomainTemplates.Misaligned}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}. If it is within range but not on a
+   * step, the reason is provided by {@link DomainTemplates#misaligned(Number, Number)}.
    *
    * @param min inclusive minimum value
    * @param max inclusive maximum value
@@ -499,10 +499,10 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
 
     return new NormalDomain<>(
       step == 1
-        ? List.of(Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)))
+        ? List.of(Rule.of(validator, DomainTemplates.outOfRange(min, max)))
         : List.of(
-            Rule.of(v -> v != null && v >= min && v <= max, new DomainTemplates.OutOfRange<>(min, max)),
-            Rule.of(validator, new DomainTemplates.Misaligned<>(min, step))
+            Rule.of(v -> v != null && v >= min && v <= max, DomainTemplates.outOfRange(min, max)),
+            Rule.of(validator, DomainTemplates.misaligned(min, step))
           ),
       false,
       new AbstractIndexedView<Double>() {
@@ -559,7 +559,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * optionally snap values into the allowed range.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
    * @param <T> element type
    * @param first inclusive lower bound, cannot be {@code null}
@@ -579,7 +579,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * optionally snap values into the allowed range.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
    * @param <T> element type
    * @param first inclusive lower bound, not {@code null}
@@ -596,7 +596,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
     Predicate<T> validator = v -> comparator.compare(v, first) >= 0 && comparator.compare(v, last) <= 0;
 
     return new NormalDomain<>(
-      Rule.of(validator, new DomainTemplates.OutOfRange<>(first, last)),
+      Rule.of(validator, DomainTemplates.outOfRange(first, last)),
       false,
       (NormalizedView<T>)v -> v == null ? first : comparator.compare(v, first) < 0 ? first : comparator.compare(v, last) > 0 ? last : v
     );
@@ -609,7 +609,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * domain values and vice versa.
    * <p>
    * If a value is outside the range, the failure reason is provided by
-   * {@link DomainTemplates.OutOfRange}.
+   * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
    * @param min inclusive minimum
    * @param max inclusive maximum
@@ -625,7 +625,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
     Predicate<Double> validator = v -> v != null && v >= min && v <= max;
 
     return new NormalDomain<>(
-      Rule.of(validator, new DomainTemplates.OutOfRange<>(min, max)),
+      Rule.of(validator, DomainTemplates.outOfRange(min, max)),
       false,
       new ContinuousView<Double>() {
         @Override

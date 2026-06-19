@@ -161,7 +161,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, new DomainTemplates.OutOfRange<>(0, 100)));
+        assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, DomainTemplates.outOfRange(0, 100)));
         assertThat(model.getValue()).isNull();
       }
 
@@ -185,7 +185,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldRemainUnchanged() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, new DomainTemplates.OutOfRange<>(0, 100)));
+          assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(150, DomainTemplates.outOfRange(0, 100)));
           assertThat(model.getValue()).isNull();
         }
 

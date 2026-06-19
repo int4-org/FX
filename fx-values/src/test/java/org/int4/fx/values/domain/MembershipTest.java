@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MembershipTest {
-  private static final Template TEST_TEMPLATE = new DomainTemplates.Invalid();
+  private static final Template TEST_TEMPLATE = DomainTemplates.INVALID;
 
   @Test
   void memberShouldReturnTrue() {

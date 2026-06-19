@@ -1,7 +1,6 @@
 package org.int4.fx.values.model;
 
 import java.util.List;
-import java.util.Map;
 
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
@@ -11,10 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SimpleMultiChoiceModelTest {
-  private static final Template INCOMPATIBLE_TEMPLATE = new Template() {
-    @Override public String key() { return "test.incompatible"; }
-    @Override public Map<String, Object> args() { return Map.of(); }
-  };
+  private static final Template INCOMPATIBLE_TEMPLATE = Template.of("test.incompatible");
 
   @Test
   void addShouldAppendToTheEndAndPreserveOrder() {

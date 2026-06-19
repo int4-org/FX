@@ -3,7 +3,7 @@ package org.int4.fx.values.domain;
 import java.util.List;
 import java.util.Objects;
 
-import org.int4.fx.core.util.RecordBasedTemplate;
+import org.int4.common.collection.Immutable;
 import org.int4.fx.core.util.Template;
 
 /**
@@ -14,140 +14,82 @@ public interface DomainTemplates {
   /**
    * Inapplicable template singleton.
    */
-  static final Template INAPPLICABLE = new Inapplicable();
+  static final Template INAPPLICABLE = Template.of("domain.inapplicable");
 
   /**
    * Missing template singleton.
    */
-  static final Template MISSING = new Missing();
+  static final Template MISSING = Template.of("domain.missing");
 
   /**
    * Invalid template singleton.
    */
-  static final Template INVALID = new Invalid();
+  static final Template INVALID = Template.of("domain.invalid");
 
   /**
-   * A template indicating that a domain is not applicable in the current context.
-   */
-  record Inapplicable() implements RecordBasedTemplate {
-    @Override
-    public String key() {
-      return "domain.inapplicable";
-    }
-  }
-
-  /**
-   * A template indicating that a value is missing.
-   */
-  record Missing() implements RecordBasedTemplate {
-    @Override
-    public String key() {
-      return "domain.missing";
-    }
-  }
-
-  /**
-   * A template indicating that a value is outside a defined range.
+   * Creates a template indicating that a value is outside a defined range.
    *
    * @param <T> the value type
    * @param min the inclusive minimum value, never {@code null}
    * @param max the inclusive maximum value, never {@code null}
+   * @return a {@link Template}, never {@code null}
    */
-  record OutOfRange<T>(T min, T max) implements RecordBasedTemplate {
-
-    /**
-     * Constructs a new instance.
-     *
-     * @throws NullPointerException if {@code min} or {@code max} is {@code null}
-     */
-    public OutOfRange {
-      Objects.requireNonNull(min, "min");
-      Objects.requireNonNull(max, "max");
-    }
-
-    @Override
-    public String key() {
-      return "domain.outOfRange";
-    }
+  static <T> Template outOfRange(T min, T max) {
+    return Template.of(
+      "domain.outOfRange",
+      Immutable.sequencedMap(
+        "min", Objects.requireNonNull(min, "min"),
+        "max", Objects.requireNonNull(max, "max")
+      )
+    );
   }
 
   /**
-   * A template indicating that a value is not aligned with a required step increment.
+   * Creates a template indicating that a value is not aligned with a required step increment.
    *
    * @param <T> the value type
    * @param min the base value for alignment, never {@code null}
    * @param step the required step size, never {@code null}
+   * @return a {@link Template}, never {@code null}
    */
-  record Misaligned<T extends Number>(T min, T step) implements RecordBasedTemplate {
-
-    /**
-     * Constructs a new instance.
-     *
-     * @throws NullPointerException if {@code min} or {@code step} is {@code null}
-     */
-    public Misaligned {
-      Objects.requireNonNull(min, "min");
-      Objects.requireNonNull(step, "step");
-    }
-
-    @Override
-    public String key() {
-      return "domain.misaligned";
-    }
+  static <T extends Number> Template misaligned(T min, T step) {
+    return Template.of(
+      "domain.misaligned",
+      Immutable.sequencedMap(
+        "min", Objects.requireNonNull(min, "min"),
+        "step", Objects.requireNonNull(step, "step")
+      )
+    );
   }
 
   /**
-   * A template indicating that a value is not contained within a specific set of items.
+   * Creates a template indicating that a value is not contained within a specific set of items.
    *
    * @param <T> the value type
    * @param items the allowed items, never {@code null}
+   * @return a {@link Template}, never {@code null}
    */
-  record NotContained<T>(List<T> items) implements RecordBasedTemplate {
-
-    /**
-     * Constructs a new instance.
-     *
-     * @throws NullPointerException if {@code items} is {@code null}
-     */
-    public NotContained {
-      Objects.requireNonNull(items, "items");
-    }
-
-    @Override
-    public String key() {
-      return "domain.notContained";
-    }
+  static <T> Template notContained(List<T> items) {
+    return Template.of(
+      "domain.notContained",
+      Immutable.sequencedMap(
+        "items", Immutable.of(Objects.requireNonNull(items, "items"))
+      )
+    );
   }
 
   /**
-   * A template indicating that a string does not match a required regular expression.
+   * Creates a template indicating that a string does not match a required regular expression.
    *
    * @param regex the regular expression pattern, never {@code null}
+   * @return a {@link Template}, never {@code null}
    */
-  record NoMatch(String regex) implements RecordBasedTemplate {
-
-    /**
-     * Constructs a new instance.
-     *
-     * @throws NullPointerException if {@code regex} is {@code null}
-     */
-    public NoMatch {
-      Objects.requireNonNull(regex, "regex");
-    }
-
-    @Override
-    public String key() {
-      return "domain.noMatch";
-    }
-  }
-
-  /**
-   * A template for generic validation failures.
-   */
-  record Invalid() implements RecordBasedTemplate {
-    @Override
-    public String key() {
-      return "domain.invalid";
-    }
+  static Template noMatch(String regex) {
+    return Template.of(
+      "domain.noMatch",
+      Immutable.sequencedMap(
+        "regex", Objects.requireNonNull(regex, "regex")
+      )
+    );
   }
 }

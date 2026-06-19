@@ -1,8 +1,8 @@
 package org.int4.fx.values.model;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.int4.common.collection.Immutable;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.junit.jupiter.api.Test;
@@ -11,17 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RawValueTest {
-  private static final Template TEST_TEMPLATE = new Template() {
-    @Override
-    public String key() {
-      return "test";
-    }
-
-    @Override
-    public Map<String, Object> args() {
-      return Map.of("a", "b");
-    }
-  };
+  private static final Template TEST_TEMPLATE = Template.of("test", Immutable.sequencedMap("a", "b"));
 
   @Test
   void validShouldHoldValue() {

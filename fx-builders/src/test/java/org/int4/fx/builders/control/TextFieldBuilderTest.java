@@ -167,7 +167,7 @@ public class TextFieldBuilderTest  {
       control.setText(" ");
       control.fireEvent(new ModelLinker.TestFocusEvent(false));
 
-      assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(" ", new DomainTemplates.NoMatch("[A-C]")));
+      assertThat(model.getRawValue()).isEqualTo(RawValue.invalid(" ", DomainTemplates.noMatch("[A-C]")));
       assertThat(model.getValue()).isNull();
       assertThat(model.isValid()).isFalse();
     }
