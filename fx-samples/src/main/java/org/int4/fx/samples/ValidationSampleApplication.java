@@ -36,9 +36,15 @@ public class ValidationSampleApplication extends Application {
     Application.launch(args);
   }
 
+  /**
+   * Constructs a new instance.
+   */
+  public ValidationSampleApplication() {
+  }
+
   @Override
   public void start(Stage primaryStage) {
-    StringModel name = StringModel.regex("[A-Z][a-z]+");
+    StringModel name = StringModel.of(Domain.regex("[A-Z][a-z]+", Template.of("custom.startWithCapital")));
     IntegerModel age = IntegerModel.of(null, Domain.bounded(18, 120));
 
     /*
@@ -101,6 +107,7 @@ public class ValidationSampleApplication extends Application {
         case "domain.outOfRange" -> "Must be between {0} and {1}";
         case "domain.misaligned" -> "Must be a multiple of {1} starting from {0}";
         case "conversion.incompatible" -> "Must be a compatible value";
+        case "custom.startWithCapital" -> "Must consist of two or more letters and start with a capital";
         default -> "Invalid (" + template.key() + ")";
       },
       template.args().values().toArray()
