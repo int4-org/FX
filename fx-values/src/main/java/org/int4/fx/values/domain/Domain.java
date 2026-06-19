@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
+import org.int4.fx.core.util.Template;
+
 /**
  * A domain of values defining membership constraints for a value type.
  * <p>
@@ -41,9 +43,58 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * @throws NullPointerException when any argument is {@code null}
    */
   static Domain<String> regex(String regex) {
-    Pattern pattern = Pattern.compile(regex);
+    return regex(Pattern.compile(regex));
+  }
 
-    return where(Rule.of(v -> pattern.matcher(v).matches(), new DomainTemplates.NoMatch(regex)));
+  /**
+   * Creates a {@link Domain} that validates strings against the supplied
+   * regular expression. The returned domain accepts exactly those strings
+   * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
+   * <p>
+   * If a string does not match, the failure reason is provided by
+   * the specified {@code template}.
+   *
+   * @param regex the regular expression to compile, not {@code null}
+   * @param template the template providing the failure reason, not {@code null}
+   * @return a domain accepting strings that match {@code regex}, never {@code null}
+   * @throws java.util.regex.PatternSyntaxException if the regex is invalid
+   * @throws NullPointerException when any argument is {@code null}
+   */
+  static Domain<String> regex(String regex, Template template) {
+    return regex(Pattern.compile(regex), template);
+  }
+
+  /**
+   * Creates a {@link Domain} that validates strings against the supplied
+   * compiled regular expression pattern. The returned domain accepts exactly those strings
+   * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
+   * <p>
+   * If a string does not match, the failure reason is provided by
+   * {@link DomainTemplates.NoMatch}.
+   *
+   * @param pattern the compiled regular expression pattern to validate against, not {@code null}
+   * @return a domain accepting strings that match the pattern, never {@code null}
+   * @throws NullPointerException if the pattern is {@code null}
+   */
+  static Domain<String> regex(Pattern pattern) {
+    return regex(pattern, new DomainTemplates.NoMatch(pattern.pattern()));
+  }
+
+  /**
+   * Creates a {@link Domain} that validates strings against the supplied
+   * compiled regular expression pattern. The returned domain accepts exactly those strings
+   * for which {@link java.util.regex.Matcher#matches()} returns {@code true}.
+   * <p>
+   * If a string does not match, the failure reason is provided by
+   * the specified {@code template}.
+   *
+   * @param pattern the compiled regular expression pattern to validate against, not {@code null}
+   * @param template the template providing the failure reason, not {@code null}
+   * @return a domain accepting strings that match the pattern, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   */
+  static Domain<String> regex(Pattern pattern, Template template) {
+    return where(Rule.of(v -> pattern.matcher(v).matches(), template));
   }
 
   /**
