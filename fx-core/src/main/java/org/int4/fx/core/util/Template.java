@@ -61,7 +61,7 @@ public record Template(String key, SequencedMap<String, Object> args) {
    * @throws NullPointerException if {@code key} is {@code null}
    */
   public static Template of(String key, SequencedMap<String, Object> args) {
-    return new Template(key, args);
+    return new Template(key, Immutable.of(args));
   }
 
   /**
