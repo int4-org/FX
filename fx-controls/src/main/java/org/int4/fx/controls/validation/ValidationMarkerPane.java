@@ -1,7 +1,7 @@
 package org.int4.fx.controls.validation;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Consumer;
 
 import javafx.css.CssMetaData;
 import javafx.geometry.Bounds;
@@ -9,7 +9,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TextInputControl;
-import javafx.scene.control.Tooltip;
 import javafx.scene.text.Font;
 
 import org.int4.fx.builders.Panes;
@@ -55,7 +54,6 @@ import org.int4.fx.core.util.StyleSheets;
  * }</pre>
  */
 public class ValidationMarkerPane extends AbstractMarkerPane {
-  private static final Object TOOLTIP_KEY = new Object();
 
   /**
    * Creates a builder for a {@link ValidationMarkerPane}, initialising
@@ -69,22 +67,12 @@ public class ValidationMarkerPane extends AbstractMarkerPane {
     return new ValidationMarkerPaneBuilder(styleClasses);
   }
 
+  private Consumer<Marker> markerCreatedHandler;
+
   /**
    * Creates a new validation marker overlay pane.
    */
   public ValidationMarkerPane() {
-    this(null);
-  }
-
-  /**
-   * Creates a new validation marker overlay pane.
-   * <p>
-   * If no message resolver is supplied, then the pane will not provide tooltips
-   * for the markers.
-   *
-   * @param messageResolver an optional {@link MessageResolver}, can be {@code null}
-   */
-  public ValidationMarkerPane(MessageResolver messageResolver) {
     getStyleClass().add("validation-marker-pane");
 
     addEventFilter(ValidationEvent.VALIDATION_CHANGED, e -> {
@@ -93,29 +81,36 @@ public class ValidationMarkerPane extends AbstractMarkerPane {
           removeMarker(target);
         }
         else {
-          ScaledStackPane marker = (ScaledStackPane)getMarkerNode(target);
-
-          String message = messageResolver == null ? null : Objects.requireNonNullElse(messageResolver.resolve(toValidationIssue(e)), "Invalid");
+          Marker marker = (Marker)getMarkerNode(target);
 
           if(marker == null) {
-            setNewMarker(target, message);
+            installNewMarker(target, toValidationIssue(e));
           }
-          else if(message != null) {
-            // marker already exists, just update the tooltip message:
-            Tooltip tooltip = (Tooltip)marker.getProperties().get(TOOLTIP_KEY);
-
-            tooltip.setText(message);
+          else {
+            marker.setValidationIssue(toValidationIssue(e));
           }
         }
       }
     });
   }
 
-  private void setNewMarker(Node target, String message) {
-    ScaledStackPane marker = new ScaledStackPane();
+  /**
+   * Set a callback that is called when a new marker is created. This
+   * allows customizing the marker further. For example, a tooltip
+   * could be installed on it.
+   *
+   * @param markerCreatedHandler a consumer that may customize the marker, can be {@code null}
+   */
+  public void setOnMarkerCreated(Consumer<Marker> markerCreatedHandler) {
+    this.markerCreatedHandler = markerCreatedHandler;
+  }
+
+  private void installNewMarker(Node target, ValidationIssue<?> validationIssue) {
+    Marker marker = new Marker(validationIssue);
 
     marker.setSnapToPixel(false);
     marker.setPickOnBounds(false);
+    marker.setFont(resolveFont(target));
     marker.getStyleClass().add("marker");
 
     marker.getChildren().addAll(
@@ -123,17 +118,11 @@ public class ValidationMarkerPane extends AbstractMarkerPane {
       Panes.pane("foreground").ignoreBounds().build()
     );
 
-    marker.setFont(resolveFont(target));
-
-    if(message != null) {
-      Tooltip tooltip = new Tooltip(message);
-
-      marker.getProperties().put(TOOLTIP_KEY, tooltip);
-
-      Tooltip.install(marker, tooltip);
-    }
-
     putMarker(target, marker);
+
+    if(markerCreatedHandler != null) {
+      markerCreatedHandler.accept(marker);
+    }
   }
 
   private static ValidationIssue<?> toValidationIssue(ValidationEvent event) {

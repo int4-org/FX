@@ -1,5 +1,7 @@
 package org.int4.fx.controls.validation;
 
+import java.util.function.Consumer;
+
 import org.int4.fx.builders.common.AbstractRegionBuilder;
 import org.int4.fx.builders.context.BuildContext;
 
@@ -26,6 +28,16 @@ public class ValidationMarkerPaneBuilder extends AbstractRegionBuilder<Validatio
    */
   public ValidationMarkerPaneBuilder content(Object content) {
     return applyContentStrategy(content, ValidationMarkerPane::setContent);
+  }
+
+  /**
+   * Sets a handler for when a new marker is create.
+   *
+   * @param markerCreatedHandler a handler, can be {@code null}
+   * @return this builder, never {@code null}
+   */
+  public ValidationMarkerPaneBuilder onMarkerCreated(Consumer<Marker> markerCreatedHandler) {
+    return apply(n -> n.setOnMarkerCreated(markerCreatedHandler));
   }
 
   @Override

@@ -4,11 +4,13 @@ import java.text.MessageFormat;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 
 import org.int4.fx.builders.FX;
 import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
+import org.int4.fx.controls.validation.Marker;
 import org.int4.fx.controls.validation.ValidationIssue;
 import org.int4.fx.controls.validation.ValidationMarkerPane;
 import org.int4.fx.core.util.Observe;
@@ -44,34 +46,25 @@ public class ValidationSampleApplication extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    StringModel name = StringModel.of(Domain.regex("[A-Z][a-z]+", Template.of("custom.startWithCapital")));
+    StringModel name = StringModel.of(Domain.regex("[A-Z][a-z]+", Template.of("custom.startsWithCapital")));
     IntegerModel age = IntegerModel.of(null, Domain.bounded(18, 120));
 
     /*
-     * Create a ValidationMarkerPane with a message resolver.
-     * The resolver translates internal ValidationIssue objects into
-     * human-readable strings for tooltips.
-     */
-
-    ValidationMarkerPane root = new ValidationMarkerPane(issue -> switch(issue) {
-      case ValidationIssue.Invalid(Object _, Template template) -> toMessage(template);
-      case ValidationIssue.Incompatible(Template template) -> toMessage(template);
-    });
-
-    /*
-     * Set the content of the marker pane. Markers will be overlaid
+     * Create a scene with a ValidationMarkerPane as the root. Markers will be overlaid
      * on the controls within this content.
      */
 
-    root.setContent(Panes.vbox("form").nodes(
-      Panes.grid("grid")
-        .row("Name", FX.textField().promptText("Name (e.g. John)").model(name))
-        .row("Age", FX.textField().promptText("Age (18-120)").model(age)),
-      FX.button().text("Submit")
-        .enable(Observe.booleans(name.valid(), age.valid()).allTrue())
-    ).build());
-
-    Scene scene = Scenes.create(root);
+    Scene scene = Scenes.create(
+      ValidationMarkerPane.of().onMarkerCreated(this::installTooltip).content(
+        Panes.vbox("form").nodes(
+          Panes.grid("grid")
+            .row("Name", FX.textField().promptText("Name (e.g. John)").model(name))
+            .row("Age", FX.textField().promptText("Age (18-120)").model(age)),
+          FX.button().text("Submit")
+            .enable(Observe.booleans(name.valid(), age.valid()).allTrue())
+        )
+      )
+    );
 
     /*
      * Add some basic styling.
@@ -97,6 +90,23 @@ public class ValidationSampleApplication extends Application {
     primaryStage.show();
   }
 
+  private void installTooltip(Marker marker) {
+    marker.validationIssueProperty().subscribe(issue -> {
+      Tooltip tooltip = marker.getTooltip();
+
+      if(tooltip == null) {
+        tooltip = new Tooltip();
+
+        marker.setTooltip(tooltip);
+      }
+
+      tooltip.setText(switch(issue) {
+        case ValidationIssue.Invalid(Object _, Template template) -> toMessage(template);
+        case ValidationIssue.Incompatible(Template template) -> toMessage(template);
+      });
+    });
+  }
+
   static String toMessage(Template template) {
     return MessageFormat.format(
       switch(template.key()) {
@@ -107,7 +117,7 @@ public class ValidationSampleApplication extends Application {
         case "domain.outOfRange" -> "Must be between {0} and {1}";
         case "domain.misaligned" -> "Must be a multiple of {1} starting from {0}";
         case "conversion.incompatible" -> "Must be a compatible value";
-        case "custom.startWithCapital" -> "Must consist of two or more letters and start with a capital";
+        case "custom.startsWithCapital" -> "Must consist of two or more letters and start with a capital";
         default -> "Invalid (" + template.key() + ")";
       },
       template.args().values().toArray()
