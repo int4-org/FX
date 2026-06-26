@@ -1,6 +1,9 @@
 package org.int4.fx.builders.control;
 
+import java.text.DecimalFormat;
+import java.text.ParsePosition;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -11,9 +14,12 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
-import javafx.util.Subscription;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
+import org.int4.fx.builders.control.ModelLinker.ControlCommand;
+import org.int4.fx.core.util.RawValue;
+import org.int4.fx.core.util.Template;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
 import org.int4.fx.values.model.DoubleModel;
@@ -190,7 +196,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public Typed<Integer> model(IntegerModel model) {
-      return create(toTyped(), model, Integer::parseInt);
+      return create(toTyped(), model, v -> Integer.toString(v), SpinnerBuilder::parseInt);
     }
 
     /**
@@ -204,7 +210,9 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public Typed<Double> model(DoubleModel model) {
-      return create(toTyped(), model, Double::parseDouble);
+      DecimalFormat formatter = new DecimalFormat();  // TODO should support locales
+
+      return create(toTyped(), model, formatter::format, s -> parseDouble(formatter, s));
     }
 
     /**
@@ -231,7 +239,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public Typed<String> model(WritableModel<String> model) {
-      return create(toTyped(), model, Function.identity());
+      return create(toTyped(), model, Object::toString, Function.identity());
     }
 
     /**
@@ -255,7 +263,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public <T> Typed<T> model(WritableModel<T> model, Function<String, T> converter) {
-      return create(toTyped(), model, converter);
+      return create(toTyped(), model, Object::toString, converter);
     }
   }
 
@@ -279,30 +287,99 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     }
   }
 
-  static <T> Typed<T> create(Typed<T> builder, WritableModel<T> model, Function<String, T> converter) {
+  static <T> Typed<T> create(Typed<T> builder, WritableModel<T> model, Function<T, String> printer, Function<String, T> parser) {
     Objects.requireNonNull(model, "model");
-    Objects.requireNonNull(converter, "converter");
+    Objects.requireNonNull(parser, "parser");
 
     return builder.apply(node -> {
-      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.link(
+
+      /*
+       * Spinners have two separate values that should be kept in sync at
+       * all times, but this is not satisfactory by default. Setting the
+       * value to null for example will forcibly clear the editor text, while
+       * having an unparseable text will leave the Spinner's value untouched
+       * instead of set to null.
+       *
+       * The listener below enforces the desired invariants with the editor
+       * value in the lead:
+       * - If editor is null, empty or unparseable, spinner value is null
+       * - If editor is parseable, spinner value reflects editor value
+       */
+
+      node.getEditor().textProperty().subscribe(new Consumer<String>() {
+        private boolean ignoreNestedChanges;
+
+        @Override
+        public void accept(String v) {
+          if(ignoreNestedChanges || node.getValueFactory() == null) {
+            return;
+          }
+
+          try {
+            ignoreNestedChanges = true;
+
+            try {
+              T value = parser.apply(v);
+
+              node.getValueFactory().setValue(value);
+            }
+            catch(Exception e) {
+              node.getValueFactory().setValue(null);  // this clears the editor value unfortunately
+            }
+            finally {
+              node.getEditor().setText(v);  // ensure editor always ends up with its notified value
+            }
+          }
+          finally {
+            ignoreNestedChanges = false;
+          }
+        }
+      });
+
+      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.sync(
         node,
         model,
         () -> node.getEditor().getText(),
-        v -> {
-          SpinnerValueFactory<T> factory = node.getValueFactory();
-
-          if(factory != null) {
-            factory.setValue(v);
+        v -> node.getEditor().setText(
+          switch(v) {
+            case ControlCommand.ModelValue(T value) -> value == null ? "" : printer.apply(value);
+            case ControlCommand.RawValue(String value) -> value;
+            case ControlCommand.Inapplicable() -> null;
           }
+        ),
+        r -> {
+
+          /*
+           * The suppplied parser will:
+           * - Return a parsed value if it was parseable
+           * - Return null if it was unparseable but input was blank
+           * - Throw an exception if it was unparseable and input was not blank
+           */
+
+          T modelValue = parser.apply(r);  // if parsing throws exception, model is marked invalid via trySet
+
+          /*
+           * Special exception for blank strings. If the domain does NOT accept the current blank string,
+           * but it does accept null, then it is coerced to null:
+           */
+
+          if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
+            @SuppressWarnings("unchecked")
+            T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
+
+            if(!model.getDomain().contains(cast)) {
+              return null;
+            }
+          }
+
+          return modelValue;
         },
-        converter,
-        r -> Subscription.combine(
-          node.valueProperty().subscribe((ov, nv) -> r.run()),
-          node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
-        )
+        r -> node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
       );
 
       linker.addSubscriber(() -> model.domain().subscribe(d -> linker.doModelInitiatedChange(() -> {
+        String oldRawValue = node.getEditor().getText();
+
         SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
           case StepperView<T> sv -> new SimpleValueFactory<>() {
             @Override
@@ -324,9 +401,11 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
                 index = (int)iv.indexOf(getValue()) + steps;
               }
 
-              index = Math.clamp(index, 0, (int)iv.size() - 1);
+              T value = iv.size() == 0
+                ? getValue()
+                : iv.get(Math.clamp(index, 0, (int)iv.size() - 1));
 
-              setValue(iv.get(index));
+              setValue(value);
 
               indexValid = true;  // must be after setValue
             }
@@ -336,10 +415,57 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
 
         node.setValueFactory(vf);
 
-        if(vf != null) {
-          vf.setValue(model.getValue());
+        /*
+         * Domain change is handled. Because changing the value factory can have other effects on
+         * Spinner, restore the current value if it was dirty (as a domain change should not
+         * interfere with user input) or ensure the Spinner still reflects the current model value:
+         */
+
+        if(linker.isDirty()) {
+          node.getEditor().setText(oldRawValue);
+        }
+        else {
+          if(d.equals(Domain.inapplicable())) {
+            node.getEditor().setText(null);
+          }
+          else if(vf != null) {
+            switch(model.getRawValue()) {
+              case RawValue.Valid<T>(T value) -> vf.setValue(value);
+              case RawValue.Invalid<T>(T value, Template _) -> vf.setValue(value);
+              case RawValue.Incompatible(Template _) -> vf.setValue(null);
+            }
+          }
         }
       })));
     });
+  }
+
+  /*
+   * All parse functions:
+   * - Must consume all input, and throw an exception if they can't
+   * - Should return null when input is blank or null
+   */
+
+  private static Integer parseInt(String input) {
+    if(input == null || input.isBlank()) {
+      return null;
+    }
+
+    return Integer.parseInt(input);
+  }
+
+  private static Double parseDouble(DecimalFormat formatter, String input) {
+    if(input == null || input.isBlank()) {
+      return null;
+    }
+
+    ParsePosition pp = new ParsePosition(0);
+    Number n = formatter.parse(input, pp);
+
+    if(n != null && pp.getIndex() == input.length()) {
+      return n.doubleValue();
+    }
+
+    throw new NumberFormatException("Unable to parse: " + input);
   }
 }

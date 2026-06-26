@@ -23,7 +23,6 @@ import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
-import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.Membership;
 import org.int4.fx.values.model.WritableModel;
 
@@ -60,15 +59,15 @@ final class ModelLinker<N extends Node, R, T> {
     return new ModelLinker<>(node, model, property);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, WritableModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
+  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, WritableModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T, R>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
     return new ModelLinker<>(node, model, getter, setter, converter, trigger);
   }
 
-  private static <T> Consumer<ControlCommand<T>> toSynchronizer(Consumer<T> setter) {
+  private static <T, R> Consumer<ControlCommand<T, R>> toSynchronizer(Consumer<T> setter) {
     return s -> {
       switch(s) {
         case ControlCommand.ModelValue(T value) -> setter.accept(value);
-        case ControlCommand.RawValue(Object _) -> setter.accept(null);
+        case ControlCommand.RawValue(R _) -> setter.accept(null);
         case ControlCommand.Inapplicable() -> setter.accept(null);
       }
     };
@@ -87,16 +86,16 @@ final class ModelLinker<N extends Node, R, T> {
   }
 
   @SuppressWarnings("unused")
-  sealed interface ControlCommand<T> {
-    record ModelValue<T>(T value) implements ControlCommand<T> {}
-    record RawValue<T>(Object rawValue) implements ControlCommand<T> {}
-    record Inapplicable<T>() implements ControlCommand<T> {}
+  sealed interface ControlCommand<T, R> {
+    record ModelValue<T, R>(T value) implements ControlCommand<T, R> {}
+    record RawValue<T, R>(R rawValue) implements ControlCommand<T, R> {}
+    record Inapplicable<T, R>() implements ControlCommand<T, R> {}
   }
 
   private final N node;
   private final WritableModel<T> model;
   private final Supplier<R> getter;
-  private final Consumer<ControlCommand<T>> setter;
+  private final Consumer<ControlCommand<T, R>> setter;
   private final Function<R, T> converter;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
   private final BroadcastHandler<WindowEvent> handler = e -> {
@@ -131,7 +130,7 @@ final class ModelLinker<N extends Node, R, T> {
     N node,
     WritableModel<T> model,
     Supplier<R> getter,
-    Consumer<ControlCommand<T>> setter,
+    Consumer<ControlCommand<T, R>> setter,
     Function<R, T> converter,
     Function<Runnable, Subscription> trigger
   ) {
@@ -388,7 +387,13 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  private boolean isDirty() {
+  /**
+   * Returns the current dirty state of the control. A dirty control will ignore model
+   * changes until the control loses focus or becomes clean in some other way.
+   *
+   * @return {@code true} if the control is in a dirty state, otherwise {@code false}
+   */
+  protected boolean isDirty() {
     return node.getPseudoClassStates().contains(DIRTY);
   }
 

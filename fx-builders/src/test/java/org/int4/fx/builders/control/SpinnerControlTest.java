@@ -68,7 +68,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void controlShouldKeepExactValue() {
         assertThat(control.getEditor().getText()).isEqualTo("illegal");
-        assertThat(control.getValue()).isEqualTo(50);
+        assertThat(control.getValue()).isNull();
       }
 
       @Test
@@ -91,8 +91,8 @@ public class SpinnerControlTest extends ControlBuilderTest {
 
         @Test
         void controlShouldKeepExactValue() {
-          assertThat(control.getEditor().getText()).isEqualTo("");
-          assertThat(control.getValue()).isEqualTo(null);
+          assertThat(control.getEditor().getText()).isEqualTo("illegal");
+          assertThat(control.getValue()).isNull();
         }
 
         @Test
@@ -117,7 +117,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void controlShouldKeepExactValueUntilFocusLoss() {
           assertThat(control.getEditor().getText()).isEqualTo("99");
-          assertThat(control.getValue()).isEqualTo(50);
+          assertThat(control.getValue()).isEqualTo(99);
         }
 
         @Test
@@ -168,7 +168,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void controlShouldKeepExactValue() {
         assertThat(control.getEditor().getText()).isEqualTo("150");
-        assertThat(control.getValue()).isEqualTo(50);
+        assertThat(control.getValue()).isEqualTo(150);
       }
 
       @Test
