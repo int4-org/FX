@@ -358,7 +358,7 @@ final class ModelLinker<N extends Node, R, T> {
     return subscription != Subscription.EMPTY;
   }
 
-  public void updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
+  private void updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
     assert subscriptionsActive();
 
     this.controlRawValue = getter.get();
