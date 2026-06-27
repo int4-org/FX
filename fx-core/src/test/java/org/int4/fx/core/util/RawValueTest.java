@@ -1,10 +1,8 @@
-package org.int4.fx.values.model;
+package org.int4.fx.core.util;
 
 import java.util.NoSuchElementException;
 
 import org.int4.common.collection.Immutable;
-import org.int4.fx.core.util.RawValue;
-import org.int4.fx.core.util.Template;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
