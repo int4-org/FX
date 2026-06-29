@@ -2,6 +2,7 @@ package org.int4.fx.core.util;
 
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Represents the state of a model value along with its validation context.
@@ -88,6 +89,23 @@ public sealed interface RawValue<T> {
    * @throws NoSuchElementException if there is no value present
    */
   T orElseThrow();
+
+  /**
+   * If a value is present, performs the given action with the value, otherwise
+   * performs no action.
+   *
+   * @param action the action to perform if a value is present, cannot be {@code null}
+   * @throws NullPointerException if the action is {@code null}
+   */
+  default void ifPresent(Consumer<? super T> action) {
+    Objects.requireNonNull(action, "action");
+
+    switch(this) {
+      case RawValue.Valid(T value) -> action.accept(value);
+      case RawValue.Invalid(T value, Template _) -> action.accept(value);
+      case RawValue.Incompatible(Template _) -> {}
+    }
+  }
 
   /**
    * Represents a value that satisfies all current constraints.

@@ -1,6 +1,7 @@
 package org.int4.fx.core.util;
 
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.int4.common.collection.Immutable;
 import org.junit.jupiter.api.Test;
@@ -86,5 +87,60 @@ class RawValueTest {
     assertThat(i1).isEqualTo(i2).hasSameHashCodeAs(i2);
     assertThat(inc1).isEqualTo(inc2).hasSameHashCodeAs(inc2);
     assertThat(i1).isNotEqualTo(inc1);
+  }
+
+  @Test
+  void ifPresentShouldCallConsumerWithValidValue() {
+    RawValue<String> rv = RawValue.valid("hello");
+    AtomicBoolean called = new AtomicBoolean(false);
+
+    rv.ifPresent(v -> {
+      assertThat(v).isEqualTo("hello");
+      called.set(true);
+    });
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
+  void ifPresentShouldCallConsumerWithNullValueInValidState() {
+    RawValue<String> rv = RawValue.valid(null);
+    AtomicBoolean called = new AtomicBoolean(false);
+
+    rv.ifPresent(v -> {
+      assertThat(v).isNull();
+      called.set(true);
+    });
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
+  void ifPresentShouldCallConsumerInInvalidValue() {
+    RawValue<String> rv = RawValue.invalid("bad", TEST_TEMPLATE);
+    AtomicBoolean called = new AtomicBoolean(false);
+
+    rv.ifPresent(v -> {
+      assertThat(v).isEqualTo("bad");
+      called.set(true);
+    });
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
+  void ifPresentShouldNotCallConsumerWithIncompatibleValue() {
+    RawValue<String> rv = RawValue.incompatible(TEST_TEMPLATE);
+    AtomicBoolean called = new AtomicBoolean(false);
+
+    rv.ifPresent(v -> called.set(true));
+    assertThat(called.get()).isFalse();
+  }
+
+  @Test
+  void ifPresentShouldRejectNullConsumers() {
+    assertThatThrownBy(() -> RawValue.valid("a").ifPresent(null))
+      .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> RawValue.invalid("a", TEST_TEMPLATE).ifPresent(null))
+      .isInstanceOf(NullPointerException.class);
+    assertThatThrownBy(() -> RawValue.incompatible(TEST_TEMPLATE).ifPresent(null))
+      .isInstanceOf(NullPointerException.class);
   }
 }
