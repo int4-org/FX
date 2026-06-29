@@ -33,7 +33,7 @@ public interface DoubleModel extends Model<Double> {
   }
 
   /**
-   * Creates a double model with a bounded domain and the minimum value as the initial value.
+   * Creates a double model with a continuous domain and the minimum value as the initial value.
    *
    * @param min the minimum value (inclusive)
    * @param max the maximum value (inclusive)
@@ -41,11 +41,11 @@ public interface DoubleModel extends Model<Double> {
    * @throws IllegalArgumentException if {@code min > max}
    */
   static DoubleModel range(double min, double max) {
-    return of(min, Domain.bounded(min, max));
+    return of(min, Domain.continuous(min, max));
   }
 
   /**
-   * Creates a double model with a bounded domain that allows {@code null}, with initial value {@code null}.
+   * Creates a double model with a continuous domain that allows {@code null}, with initial value {@code null}.
    *
    * @param min the minimum value (inclusive)
    * @param max the maximum value (inclusive)
@@ -53,7 +53,7 @@ public interface DoubleModel extends Model<Double> {
    * @throws IllegalArgumentException if {@code min > max}
    */
   static DoubleModel nullableRange(double min, double max) {
-    return of(null, Domain.bounded(min, max).nullable());
+    return of(null, Domain.continuous(min, max).nullable());
   }
 
   /**
