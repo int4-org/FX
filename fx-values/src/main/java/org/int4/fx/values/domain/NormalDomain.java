@@ -2,6 +2,7 @@ package org.int4.fx.values.domain;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ final class NormalDomain<T> implements Domain<T> {
 
     // TODO probably should only be looking for View interfaces (perhaps sealed type?)
     for(View<T> view : views) {
-      ArrayDeque<Class<?>> toScan = new ArrayDeque<>();
+      Deque<Class<?>> toScan = new ArrayDeque<>();
       Class<?> cls = view.getClass();
 
       while (cls != null) {
