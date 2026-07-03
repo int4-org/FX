@@ -1,7 +1,6 @@
 package org.int4.fx.builders.control;
 
 import java.text.NumberFormat;
-import java.text.ParsePosition;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
@@ -276,18 +275,12 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     }
 
     private Double parseDouble(String input) {
-      if(input == null || input.isBlank()) {
-        return null;
+      try {
+        return Parsers.parseDouble(formatter, input);
       }
-
-      ParsePosition pp = new ParsePosition(0);
-      Number n = formatter.parse(input, pp);
-
-      if(n != null && pp.getIndex() == input.length()) {
-        return n.doubleValue();
+      catch(NumberFormatException e) {
+        return Double.NaN; // Signals failure in this context
       }
-
-      return Double.NaN; // Signals failure in this context
     }
   }
 }

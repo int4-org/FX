@@ -1,7 +1,6 @@
 package org.int4.fx.builders.control;
 
 import java.text.NumberFormat;
-import java.text.ParsePosition;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
@@ -332,18 +331,12 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
     }
 
     private Integer parseInteger(String input) {
-      if(input == null || input.isBlank()) {
-        return null;
+      try {
+        return Parsers.parseInt(formatter, input);
       }
-
-      ParsePosition pp = new ParsePosition(0);
-      Number n = formatter.parse(input, pp);
-
-      if(n != null && pp.getIndex() == input.length()) {
-        return n.intValue();
+      catch(NumberFormatException e) {
+        return Integer.MIN_VALUE; // Sentinel for failure
       }
-
-      return Integer.MIN_VALUE; // Sentinel for failure
     }
   }
 }

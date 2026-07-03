@@ -1,7 +1,6 @@
 package org.int4.fx.builders.control;
 
-import java.text.DecimalFormat;
-import java.text.ParsePosition;
+import java.text.NumberFormat;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -96,7 +95,11 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   public final B model(IntegerModel model) {
     Objects.requireNonNull(model, "model");
 
-    return apply(node -> link(node, model, v -> Integer.toString(v), AbstractTextInputControlBuilder::parseInt));
+    return apply(node -> {
+      NumberFormat formatter = NumberFormat.getIntegerInstance();  // TODO should support locales
+
+      link(node, model, formatter::format, s -> Parsers.parseInt(formatter, s));
+    });
   }
 
   /**
@@ -109,7 +112,11 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   public final B model(LongModel model) {
     Objects.requireNonNull(model, "model");
 
-    return apply(node -> link(node, model, v -> Long.toString(v), AbstractTextInputControlBuilder::parseLong));
+    return apply(node -> {
+      NumberFormat formatter = NumberFormat.getIntegerInstance();  // TODO should support locales
+
+      link(node, model, formatter::format, s -> Parsers.parseLong(formatter, s));
+    });
   }
 
   /**
@@ -123,9 +130,9 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
     Objects.requireNonNull(model, "model");
 
     return apply(node -> {
-      DecimalFormat formatter = new DecimalFormat();  // TODO should support locales
+      NumberFormat formatter = NumberFormat.getNumberInstance();  // TODO should support locales
 
-      link(node, model, formatter::format, s -> parseDouble(formatter, s));
+      link(node, model, formatter::format, s -> Parsers.parseDouble(formatter, s));
     });
   }
 
@@ -218,43 +225,6 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
     }
 
     return modelValue;
-  }
-
-  /*
-   * All parse functions:
-   * - Must consume all input, and throw an exception if they can't
-   * - Should return null when input is blank or null
-   */
-
-  private static Integer parseInt(String input) {
-    if(input == null || input.isBlank()) {
-      return null;
-    }
-
-    return Integer.parseInt(input);
-  }
-
-  private static Long parseLong(String input) {
-    if(input == null || input.isBlank()) {
-      return null;
-    }
-
-    return Long.parseLong(input);
-  }
-
-  private static Double parseDouble(DecimalFormat formatter, String input) {
-    if(input == null || input.isBlank()) {
-      return null;
-    }
-
-    ParsePosition pp = new ParsePosition(0);
-    Number n = formatter.parse(input, pp);
-
-    if(n != null && pp.getIndex() == input.length()) {
-      return n.doubleValue();
-    }
-
-    throw new NumberFormatException("Unable to parse: " + input);
   }
 }
 

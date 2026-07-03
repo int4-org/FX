@@ -1,7 +1,6 @@
 package org.int4.fx.builders.control;
 
-import java.text.DecimalFormat;
-import java.text.ParsePosition;
+import java.text.NumberFormat;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -193,7 +192,9 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public Typed<Integer> model(IntegerModel model) {
-      return create(toTyped(), model, v -> Integer.toString(v), SpinnerBuilder::parseInt);
+      NumberFormat formatter = NumberFormat.getIntegerInstance();  // TODO should support locales
+
+      return create(toTyped(), model, formatter::format, s -> Parsers.parseInt(formatter, s));
     }
 
     /**
@@ -207,9 +208,9 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
      * @see Spinner#valueFactoryProperty()
      */
     public Typed<Double> model(DoubleModel model) {
-      DecimalFormat formatter = new DecimalFormat();  // TODO should support locales
+      NumberFormat formatter = NumberFormat.getNumberInstance();  // TODO should support locales
 
-      return create(toTyped(), model, formatter::format, s -> parseDouble(formatter, s));
+      return create(toTyped(), model, formatter::format, s -> Parsers.parseDouble(formatter, s));
     }
 
     /**
@@ -437,34 +438,5 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
     }
 
     return modelValue;
-  }
-
-  /*
-   * All parse functions:
-   * - Must consume all input, and throw an exception if they can't
-   * - Should return null when input is blank or null
-   */
-
-  private static Integer parseInt(String input) {
-    if(input == null || input.isBlank()) {
-      return null;
-    }
-
-    return Integer.parseInt(input);
-  }
-
-  private static Double parseDouble(DecimalFormat formatter, String input) {
-    if(input == null || input.isBlank()) {
-      return null;
-    }
-
-    ParsePosition pp = new ParsePosition(0);
-    Number n = formatter.parse(input, pp);
-
-    if(n != null && pp.getIndex() == input.length()) {
-      return n.doubleValue();
-    }
-
-    throw new NumberFormatException("Unable to parse: " + input);
   }
 }
