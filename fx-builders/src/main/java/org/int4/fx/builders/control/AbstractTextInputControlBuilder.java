@@ -142,6 +142,30 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
     return apply(node -> link(node, model, Function.identity(), Function.identity()));
   }
 
+  /**
+   * Attaches any {@link WritableModel} to the text input control.
+   * <p>
+   * Two converter functions must be provided. The {@code printer} function converts
+   * a model value to a string, and is not allowed to throw an exception. The
+   * {@code parser} function converts a string to a model value {@code T}. In case
+   * conversion is not possible because the value is incompatible, then this must be
+   * signaled with an exception.
+   *
+   * @param <T> the model type
+   * @param model a {@link WritableModel}, cannot be {@code null}
+   * @param printer a function to convert a model value to a string, cannot be {@code null}
+   * @param parser a function to convert a string to a model value, cannot be {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   */
+  public final <T> B model(WritableModel<T> model, Function<T, String> printer, Function<String, T> parser) {
+    Objects.requireNonNull(model, "model");
+    Objects.requireNonNull(printer, "printer");
+    Objects.requireNonNull(parser, "parser");
+
+    return apply(node -> link(node, model, printer, parser));
+  }
+
   private <T> void link(C node, WritableModel<T> model, Function<T, String> printer, Function<String, T> parser) {
     ModelLinker<C, T> linker = ModelLinker.sync(
       node,
