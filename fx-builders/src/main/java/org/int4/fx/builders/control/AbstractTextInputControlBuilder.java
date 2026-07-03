@@ -62,33 +62,32 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   /**
-   * Creates the text input control with the given initial value.
+   * Sets the text property to the given initial value.
    *
    * @param initialValue the initial text value
    * @return the fluent builder, never {@code null}
    * @see TextInputControl#textProperty()
    */
-  public final B value(String initialValue) {
+  public final B text(String initialValue) {
     return apply(node -> node.setText(initialValue));
   }
 
   /**
-   * Creates the text input control and binds its value bidirectionally
-   * to the given string property.
+   * Binds the text property bidirectionally to the given string property.
    *
    * @param property the property to bind to, cannot be {@code null}
    * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code property} is {@code null}
    * @see TextInputControl#textProperty()
    */
-  public final B value(StringProperty property) {
+  public final B text(StringProperty property) {
     Objects.requireNonNull(property, "property");
 
     return apply(node -> node.textProperty().bindBidirectional(property));
   }
 
   /**
-   * Creates the text input control and links it to the given integer model.
+   * Attaches the given model to the text input control.
    *
    * @param model the integer model, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -101,7 +100,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   /**
-   * Creates the text input control and links it to the given long model.
+   * Attaches the given model to the text input control.
    *
    * @param model the long model, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -114,7 +113,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   /**
-   * Creates the text input control and links it to the given double model.
+   * Attaches the given model to the text input control.
    *
    * @param model the double model, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -131,7 +130,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   /**
-   * Creates the text input control and links it to the given string model.
+   * Attaches the given model to the text input control.
    *
    * @param model the string model, cannot be {@code null}
    * @return the fluent builder, never {@code null}

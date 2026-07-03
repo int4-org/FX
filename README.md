@@ -24,7 +24,7 @@ Example:
 Scene scene = Scenes.create(
     Panes.vbox("form").nodes(
         "Name",
-        FX.textField().value(nameModel),
+        FX.textField().text(nameProperty),
         FX.button().text("Submit").onAction(e -> submit())
     )
 );
@@ -50,7 +50,7 @@ Label nameLabel = new Label("Name");
 Button submitButton = new Button("Submit");
 VBox root = new VBox(nameLabel, nameField, submitButton);
 
-nameField.textProperty().bindBidirectional(nameModel);
+nameField.textProperty().bindBidirectional(nameProperty);
 submitButton.setOnAction(e -> submit());
 root.getStyleClass().add("form");
 

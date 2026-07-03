@@ -126,13 +126,13 @@ public class SampleApplication extends Application {
           "Name",
           FX.textField().promptText("Name")
             .styleProvider(name.map(v -> !v.isBlank() ? null : "invalid"))
-            .value(name)
+            .text(name)
         )
         .row(
           "Luggage weight",
           FX.textField().promptText("Weight (in kg)")
             .styleProvider(luggageWeightValid.map(v -> v ? null : "invalid"))
-            .value(luggageWeight)
+            .text(luggageWeight)
         )
         .row(
           "SMS alerts",
@@ -140,7 +140,7 @@ public class SampleApplication extends Application {
             FX.checkBox().value(smsAlerts),
             FX.textField().enable(smsAlerts).promptText("Phone number")
               .styleProvider(phoneNumberValid.map(v -> v ? null : "invalid"))
-              .value(phoneNumber)
+              .text(phoneNumber)
           )
         ),
 
