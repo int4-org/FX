@@ -3,7 +3,6 @@ package org.int4.fx.builders.control;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javafx.beans.property.Property;
@@ -13,6 +12,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.ListCell;
 
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.WritableModel;
 
@@ -300,49 +300,44 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
         node.setItems(new SortedList<>(items, builder.comparator));
       }
 
-      ModelLinker<ComboBox<T>, T, T> linker = ModelLinker.link(
+      ModelLinker<ComboBox<T>, T> linker = ModelLinker.sync(
         node,
         model,
-        node::getValue,
-        node::setValue,
-        Function.identity(),
-        r -> node.valueProperty().subscribe((o, n) -> r.run())
+        rv -> node.setValue(switch(rv) {
+          case RawValue.Valid(T value) -> value;
+          case RawValue.Invalid(T value, _) -> value;
+          case RawValue.Incompatible(_) -> null;
+        })
       );
 
-      // Remove items when disconnecting from model:
-      linker.addSubscriber(() -> () -> node.getItems().clear());
+      node.valueProperty().subscribe((ov, nv) -> linker.push(nv));
 
       // React to domain changes:
-      linker.addSubscriber(() -> model.domain().subscribe(
+      linker.onDomainChanged(d -> {
 
         /*
          * Note: setAll may trigger a change in selected item and/or index, so this must be
          * wrapped in a doModelInitiatedChange as otherwise these indirect changes would be
          * interpreted as a user interaction (which would make the field dirty).
+         *
+         * Note: ComboBox is somewhat unpredictable (it internally has some odd state tracking that
+         * looks like a bug as it only happens when the control is still fresh). Explicitely
+         * putting it in a known state before changing its items makes this a lot more predictable:
          */
 
-        d -> linker.doModelInitiatedChange(() -> {
+        T value = node.getValue();
 
-          /*
-           * ComboBox is somewhat unpredictable (it internally has some odd state tracking that
-           * looks like a bug as it only happens when the control is still fresh). Explicitely
-           * putting it in a known state before changing its items makes this a lot more predictable:
-           */
+        node.getSelectionModel().clearSelection();
+        node.setValue(null);
 
-          T value = node.getValue();
+        items.setAll(switch(d.view(IndexedView.class)) {
+          case IndexedView<T> iv -> iv.asList();
+          default -> List.of();
+        });
 
-          node.getSelectionModel().clearSelection();
-          node.setValue(null);
-
-          items.setAll(switch(d.view(IndexedView.class)) {
-            case IndexedView<T> iv -> iv.asList();
-            default -> List.of();
-          });
-
-          // Restore correct state:
-          node.setValue(value);
-        })
-      ));
+        // Restore correct state:
+        node.setValue(model.isApplicable() ? value : null);
+      });
     });
   }
 }

@@ -1,8 +1,9 @@
 package org.int4.fx.builders.control;
 
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 
+import org.int4.common.collection.Immutable;
 import org.int4.common.test.explorer.Action;
 import org.int4.common.test.explorer.Assertion;
 import org.int4.common.test.explorer.Explorable;
@@ -42,7 +44,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     private final Scene scene = new Scene(new Region());
     private final DoubleModel model = DoubleModel.of(5.0, INITIAL_DOMAIN);
     private final TextField control = new TextFieldBuilder().model(model).build();
-    private final DecimalFormat formatter = new DecimalFormat();
+    private final NumberFormat formatter = NumberFormat.getNumberInstance(Locale.ROOT);
 
     private RawValue<Double> expectedModelRawValue = RawValue.valid(5.0);
     private String expectedControlValue = "";  // only relevant for applicable domains
@@ -52,54 +54,28 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     private boolean dirty;
     private boolean touched;
 
-    public record State(RawValue<Double> modelRawValue, String controlValue, String lastControlValue, boolean dirty, boolean touched, boolean connectedToScene, Domain<Double> domain) {}
+    public record State(String controlValue, String lastControlValue, boolean dirty, boolean touched, boolean connectedToScene, RawValue<Double> modelRawValue, Domain<Double> domain) {}
 
     @Override
     public Object snapshot() {
       return new State(
-        expectedModelRawValue,
-        expectedDomain.equals(Domain.inapplicable()) ? null : expectedControlValue,
+        expectedControlValue,
         lastControlValue,
         dirty,
         touched,
         connectedToScene,
+        expectedModelRawValue,
         expectedDomain
       );
     }
 
     @Assertion
-    public void assertState() {
+    public void assertModelState() {
       boolean inapplicable = expectedDomain.equals(Domain.inapplicable());
-      boolean modelValid = inapplicable || (expectedModelRawValue.isPresent() && expectedDomain.contains(expectedModelRawValue.orElseThrow()));
-      Double expectedModelValue = (modelValid && !inapplicable) ? expectedModelRawValue.orElseThrow() : null;
-      Set<PseudoClass> expectedControlStates = new HashSet<>();
-
-      if(connectedToScene) {
-        if(dirty) {
-          expectedControlStates.add(DIRTY);
-        }
-        if(touched) {
-          expectedControlStates.add(TOUCHED);
-        }
-
-        boolean controlValid;
-
-        if(dirty) {
-          Double parsedValue = parseDouble(expectedControlValue);
-
-          controlValid = inapplicable ? true : expectedDomain.contains(parsedValue);
-        }
-        else {
-          controlValid = modelValid;
-        }
-
-        if(!controlValid) {
-          expectedControlStates.add(INVALID);
-        }
-      }
+      boolean modelValid = inapplicable || expectedModelRawValue instanceof RawValue.Valid;
+      Double expectedModelValue = modelValid && !inapplicable ? expectedModelRawValue.orElseThrow() : null;
 
       assertAll(
-        () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates),
         () -> assertThat(model.getValue()).describedAs("model.value").isEqualTo(expectedModelValue),
         () -> assertThat(model.getRawValue()).describedAs("model.rawValue").isEqualTo(expectedModelRawValue),
         () -> assertThat(model.getDomain()).describedAs("model.domain").isEqualTo(expectedDomain),
@@ -108,9 +84,28 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     }
 
     @Assertion
-    public void assertControlValue() {
-      if(!expectedDomain.equals(Domain.inapplicable())) {
-        assertThat(control.getText()).describedAs("control.text").isEqualTo(expectedControlValue);
+    public void assertControlState() {
+      if(connectedToScene) {
+        Set<PseudoClass> expectedControlStates = new HashSet<>();
+        boolean controlValid = expectedDomain.equals(Domain.inapplicable())
+          || (dirty ? expectedDomain.contains(parseDouble(expectedControlValue)) : expectedModelRawValue instanceof RawValue.Valid);
+
+        if(!controlValid) {
+          expectedControlStates.add(INVALID);
+        }
+
+        if(dirty) {
+          expectedControlStates.add(DIRTY);
+        }
+
+        if(touched) {
+          expectedControlStates.add(TOUCHED);
+        }
+
+        assertAll(
+          () -> assertThat(control.getText()).describedAs("control.text").isEqualTo(expectedControlValue),
+          () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates)
+        );
       }
     }
 
@@ -119,6 +114,10 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
       Assumptions.assumeFalse(connectedToScene);
 
       connectedToScene = true;
+
+      if(expectedDomain.equals(Domain.inapplicable())) {
+        expectedControlValue = null;
+      }
 
       syncControl();
 
@@ -133,8 +132,6 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
 
       touched = false;
       connectedToScene = false;
-      expectedControlValue = null;
-      lastControlValue = "";
 
       return () -> scene.setRoot(new Region());
     }
@@ -173,17 +170,16 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     }
 
     @Action
-    @ValueSource(strings = {"2.0", "8.0", "12.0", "25.51", "13"})
-    public Runnable changeModel(String valueStr) {
-      Double value = Double.valueOf(valueStr);
-
-      applyModelChange(value);
+    @ValueSource(doubles = {2.0, 8.0, 12.0, 25.51, 13.0})
+    public Runnable changeModel(double value) {
+      applyModelChange(value, null);
+      syncControl();
 
       return () -> model.set(value);
     }
 
     @Action
-    @ValueSource(strings = {"1", "7", "13", "abc", ""})
+    @ValueSource(strings = {"1", "7.5", "013.0", "abc", ""})
     public Runnable changeControl(String text) {
       applyControlChange(text);
 
@@ -202,7 +198,11 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
         dirty = false;
 
         // Rare case: if both model and control changed, control wins
-        applyModelChange(parseDouble(expectedControlValue));
+        applyModelChange(expectedControlValue);
+
+        if(expectedModelRawValue.isPresent()) {
+          syncControl();  // reformat value
+        }
       }
     }
 
@@ -217,6 +217,10 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
         default -> reevaluate(expectedModelRawValue.orElseThrow());
       };
 
+      if(expectedDomain.equals(Domain.inapplicable())) {
+        expectedControlValue = null;
+      }
+
       syncControl();
     }
 
@@ -227,21 +231,26 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
 
       expectedControlValue = text;
 
-      if(connectedToScene) {
+      if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
         lastControlValue = text;  // Only update this when connected to model, because changes done while unconnected are to be discarded
         dirty = true;
         touched = true;
 
-        applyModelChange(parseDouble(text));
+        applyModelChange(text);
       }
     }
 
-    private void applyModelChange(Double value) {
-      expectedModelRawValue = value == null || !Double.isNaN(value)
-        ? reevaluate(value)
-        : RawValue.incompatible(ModelLinker.INCOMPATIBLE_TEMPLATE);
+    private void applyModelChange(String raw) {
+      Double parsed = parseDouble(raw);
 
-      syncControl();
+      applyModelChange(
+        parsed,
+        parsed == null || !Double.isNaN(parsed) ? null : Template.of("conversion.incompatible", Immutable.sequencedMap("value", raw))
+      );
+    }
+
+    private void applyModelChange(Double value, Template template) {
+      expectedModelRawValue = template == null ? reevaluate(value) : RawValue.incompatible(template);
     }
 
     private RawValue<Double> reevaluate(Double value) {
@@ -252,14 +261,18 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
     }
 
     private void syncControl() {
-      if(connectedToScene && !dirty) {
-        expectedControlValue = expectedDomain.equals(Domain.inapplicable())
-          ? null
-          : switch(expectedModelRawValue) {
-              case RawValue.Valid(Double v) -> v == null ? "" : formatter.format(v);
-              case RawValue.Invalid(Double v, @SuppressWarnings("unused") Template reason) -> v == null ? "" : formatter.format(v);
-              default -> lastControlValue;
-            };
+      if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
+        if(!dirty) {
+          expectedControlValue = switch(expectedModelRawValue) {
+            case RawValue.Valid(Double v) -> v == null ? "" : formatter.format(v);
+            case RawValue.Invalid(Double v, _) -> v == null ? "" : formatter.format(v);
+            default -> "";
+          };
+        }
+      }
+      else {
+        dirty = false;
+        touched = false;
       }
     }
 

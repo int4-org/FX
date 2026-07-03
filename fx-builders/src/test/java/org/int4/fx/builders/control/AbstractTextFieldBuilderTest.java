@@ -21,7 +21,7 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends Model<D>> extend
   protected abstract Values<String> controlValues();
   protected abstract Values<String> notNormalizedControlValues();
 
-  private M model = createModel(); //DoubleModel.of(5.0, Domain.bounded(0, 10, 0.1));
+  private M model = createModel();
   private TextField control = createControl(model);
 
   @Nested
@@ -300,12 +300,12 @@ public abstract class AbstractTextFieldBuilderTest<D, M extends Model<D>> extend
       void controlShouldNotReactToModelChanges() {
         model.setValue(modelValues().valid);
 
-        assertThat(control.getText()).isNull();
+        assertThat(control.getText()).isEqualTo(controlValues().initialValid());
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
 
         model.setValue(modelValues().invalid);
 
-        assertThat(control.getText()).isNull();
+        assertThat(control.getText()).isEqualTo(controlValues().initialValid());
         assertThat(control.getPseudoClassStates()).doesNotContain(TOUCHED, INVALID, DIRTY);
       }
 

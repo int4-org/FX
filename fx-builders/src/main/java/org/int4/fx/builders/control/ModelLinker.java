@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javafx.beans.property.Property;
@@ -14,6 +13,7 @@ import javafx.event.EventType;
 import javafx.scene.Node;
 import javafx.util.Subscription;
 
+import org.int4.common.collection.Immutable;
 import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.builders.internal.CommitEvent;
 import org.int4.fx.builders.internal.ShowingStateListener;
@@ -23,54 +23,82 @@ import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.Membership;
 import org.int4.fx.values.model.WritableModel;
 
 /**
- * Orchestrates the bidirectional synchronization between a JavaFX {@link Node}
- * and a {@link WritableModel}, managing dirty state, focus, and validation.
+ * Orchestrates bidirectional synchronization between a JavaFX {@link Node}
+ * and a {@link WritableModel}, managing connection state, editing state,
+ * validation, and value synchronization.
+ *
+ * <h3>Connection States</h3>
+ * Synchronization is active only while the control is part of an active scene
+ * and the model is applicable.
+ * <ul>
+ * <li><b>Disconnected (Scene Graph):</b> When the control leaves the active
+ * scene, all listeners are terminated to prevent memory leaks. The control is
+ * left in its current state and no longer participates in model synchronization.
+ * When reattached, the current model state is immediately replayed to restore
+ * synchronization.</li>
+ * <li><b>Paused (Model Inapplicability):</b> When the model becomes
+ * inapplicable, synchronization is suspended and the current editing session
+ * ends. Controls typically adapt themselves through the domain change callback,
+ * for example by clearing domain-derived state such as available options or
+ * ranges. When the model becomes applicable again, synchronization resumes from
+ * the model's current state.</li>
+ * </ul>
+ *
+ * <h3>Editing State & Domain Changes</h3>
+ * A control enters an editing (dirty) state after accepting user input and
+ * remains dirty until the editing session ends.
+ * While dirty, model-driven value synchronization is suppressed and validation
+ * is performed against the current control input.
+ * <ul>
+ * <li><b>Value Persistence:</b> Model value changes do not overwrite the
+ * control's current input while it is dirty.</li>
+ * <li><b>Domain Transitions:</b> Applicable domain changes immediately
+ * re-evaluate the current input. Controls capable of representing
+ * out-of-domain values may preserve the user's input and mark it invalid,
+ * while constrained controls (for example a {@code Slider}) may be forced by
+ * their implementation to clamp or otherwise adapt the value.</li>
+ * <li><b>Editing Session End:</b> Losing focus, becoming inapplicable, or
+ * disconnecting from the scene ends the editing session and discards any
+ * remaining transient editing state.</li>
+ * <li><b>Focus Loss:</b> On focus loss, the current input is synchronized with
+ * the model and the control is refreshed from the model's value, allowing its
+ * presentation to be normalized (for example {@code 1} becoming
+ * {@code 1.0}) while preserving its semantic value.</li>
+ * </ul>
  *
  * @param <N> the node type
- * @param <R> the raw value type from the control
  * @param <T> the model's value type
  */
-final class ModelLinker<N extends Node, R, T> {
+final class ModelLinker<N extends Node, T> {
   public static boolean RESPOND_TO_TEST_FOCUS_EVENT;
 
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
-  static final Template INCOMPATIBLE_TEMPLATE = Template.of("conversion.incompatible");
-
-  public static <N extends Node, T> ModelLinker<N, T, T> link(N node, WritableModel<T> model, Supplier<T> getter, Consumer<T> setter) {
-    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), Function.identity(), r -> Subscription.EMPTY);
+  public static <N extends Node, T> ModelLinker<N, T> link(N node, WritableModel<T> model, Consumer<T> setter) {
+    return new ModelLinker<>(node, model, toSynchronizer(setter));
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter) {
-    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, r -> Subscription.EMPTY);
+  public static <N extends Node, T> ModelLinker<N, T> link(N node, WritableModel<T> model, Property<T> property) {
+    return new ModelLinker<>(node, model, toSynchronizer(property::setValue));
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Supplier<R> getter, Consumer<T> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
-    return new ModelLinker<>(node, model, getter, toSynchronizer(setter), converter, trigger);
+  public static <N extends Node, T> ModelLinker<N, T> sync(N node, WritableModel<T> model, Consumer<RawValue<T>> setter) {
+    return new ModelLinker<>(node, model, setter);
   }
 
-  public static <N extends Node, R, T> ModelLinker<N, R, T> link(N node, WritableModel<T> model, Property<T> property) {
-    return new ModelLinker<>(node, model, property);
-  }
-
-  public static <N extends Node, R, T> ModelLinker<N, R, T> sync(N node, WritableModel<T> model, Supplier<R> getter, Consumer<ControlCommand<T, R>> setter, Function<R, T> converter, Function<Runnable, Subscription> trigger) {
-    return new ModelLinker<>(node, model, getter, setter, converter, trigger);
-  }
-
-  private static <T, R> Consumer<ControlCommand<T, R>> toSynchronizer(Consumer<T> setter) {
-    return s -> {
-      switch(s) {
-        case ControlCommand.ModelValue(T value) -> setter.accept(value);
-        case ControlCommand.RawValue(R _) -> setter.accept(null);
-        case ControlCommand.Inapplicable() -> setter.accept(null);
-      }
-    };
+  private static <T> Consumer<RawValue<T>> toSynchronizer(Consumer<T> setter) {
+    return rv -> setter.accept(switch(rv) {
+      case RawValue.Valid(T value) -> value;
+      case RawValue.Invalid(T value, _) -> value;
+      case RawValue.Incompatible(_) -> null;
+    });
   }
 
   static class TestFocusEvent extends Event {
@@ -85,18 +113,60 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  @SuppressWarnings("unused")
-  sealed interface ControlCommand<T, R> {
-    record ModelValue<T, R>(T value) implements ControlCommand<T, R> {}
-    record RawValue<T, R>(R rawValue) implements ControlCommand<T, R> {}
-    record Inapplicable<T, R>() implements ControlCommand<T, R> {}
-  }
+  /*
+   * Synchronization protocol:
+   *
+   * - Only compatible values are synchronized to controls via RawValue:
+   *   - RawValue.Valid
+   *   - RawValue.Invalid
+   *
+   * - RawValue.Incompatible is never echoed back to the originating control,
+   *   allowing it to continue displaying the user's incompatible input while
+   *   showing it as invalid.
+   *
+   * - Other controls attached to the same model do receive RawValue.Incompatible,
+   *   allowing them to clear their displayed value, as the model cannot represent
+   *   or propagate the original incompatible input.
+   *
+   * - Controls are responsible for adapting to domain changes through the
+   *   onDomainChanged callback. In particular, transitioning to the inapplicable
+   *   domain is handled there (for example by clearing items or ranges); the
+   *   linker does not issue any additional synchronization for this.
+   *
+   * - Scene attachment only controls whether synchronization is active.
+   *   Disconnecting from the scene leaves the control unchanged. Upon
+   *   reconnection, the current model state and domain are replayed immediately,
+   *   restoring synchronization.
+   *
+   * Synchronization notes:
+   *
+   * - Value synchronization only occurs while the model is applicable. When the
+   *   model becomes inapplicable, the linker no longer synchronizes values or
+   *   propagates validation state.
+   *
+   * - Domain changes are treated differently: the onDomainChanged callback is
+   *   always invoked (if connected to a scene), including transitions to the
+   *   inapplicable domain and the initial callback after reconnect. Controls are
+   *   expected to update any domain-derived state (for example items, ranges or
+   *   other restrictions) from this callback.
+   *
+   * - Consequently, reconnecting to an inapplicable model may still cause the
+   *   control to change via onDomainChanged, even though no value
+   *   synchronization takes place. This is intentional: structural adaptation is
+   *   driven by the domain, while value synchronization is suspended.
+   *
+   * - RawValue.Incompatible is not echoed back to the originating control,
+   *   allowing it to continue displaying the user's incompatible input. Other
+   *   controls attached to the same model do receive the incompatible state,
+   *   since the original incompatible input itself is not represented by the
+   *   model.
+   */
+
+  private enum Origin { NONE, MODEL, CONTROL }
 
   private final N node;
   private final WritableModel<T> model;
-  private final Supplier<R> getter;
-  private final Consumer<ControlCommand<T, R>> setter;
-  private final Function<R, T> converter;
+  private final Consumer<RawValue<T>> setter;
   private final List<Supplier<Subscription>> subscribers = new ArrayList<>();
   private final BroadcastHandler<WindowEvent> handler = e -> {
     if(e.type() == WindowEvent.SHOWING) {
@@ -109,36 +179,16 @@ final class ModelLinker<N extends Node, R, T> {
 
   private Subscription subscription = Subscription.EMPTY;
 
-  private R controlRawValue;
-  private boolean conversionFailed;
-  private boolean modelInitiatedChange;
-  private boolean controlInitiatedChange;
+  private T controlInput;
+  private Template incompatibleReason;  // if non-null it means controlInput was incompatible
+  private Origin changeOrigin = Origin.NONE;
+  private Consumer<Domain<T>> onDomainChanged;
+  private Domain<T> domain;
 
-  @SuppressWarnings("unchecked")
-  ModelLinker(N node, WritableModel<T> model, Property<T> property) {
-    this(
-      node,
-      model,
-      () -> (R)property.getValue(),
-      s -> toSynchronizer(property::setValue),
-      r -> (T)r,
-      r -> property.subscribe((ov, nv) -> r.run())
-    );
-  }
-
-  ModelLinker(
-    N node,
-    WritableModel<T> model,
-    Supplier<R> getter,
-    Consumer<ControlCommand<T, R>> setter,
-    Function<R, T> converter,
-    Function<Runnable, Subscription> trigger
-  ) {
+  private ModelLinker(N node, WritableModel<T> model, Consumer<RawValue<T>> setter) {
     this.node = Objects.requireNonNull(node, "node");
     this.model = Objects.requireNonNull(model, "model");
-    this.getter = Objects.requireNonNull(getter, "getter");
     this.setter = Objects.requireNonNull(setter, "setter");
-    this.converter = Objects.requireNonNull(converter, "converter");
 
     addSubscriber(() -> {
       node.visibleProperty().bind(model.applicable());
@@ -150,26 +200,27 @@ final class ModelLinker<N extends Node, R, T> {
       };
     });
 
-    addSubscriber(() -> Observe.values(model.domain(), model.rawValue())
-      .subscribe((d, rv) -> {
-        if(!controlInitiatedChange) {
-          if(!isDirty()) {  // should not propagate any model changes when control is dirty
-            doModelInitiatedChange(() -> syncControl(rv));
+    addSubscriber(() -> Observe.values(model.domain(), model.rawValue()).subscribe((d, rv) -> {
+      boolean domainChanged = !Objects.equals(d, domain);
+
+      this.domain = d;
+
+      if(domainChanged && onDomainChanged != null) {
+        doOriginatedChange(Origin.MODEL, () -> onDomainChanged.accept(d));
+      }
+
+      if(changeOrigin != Origin.CONTROL) {
+        // should not propagate any model changes when control is dirty or model is not applicable
+        if(model.isApplicable()) {
+          if(!isDirty()) {
+            doOriginatedChange(Origin.MODEL, () -> setter.accept(rv));
           }
 
-          refreshValidationState(rv);  // should still make control reflect validity of its value
+          refreshValidationState(rv);  // should still make control reflect validity of its value as domain may have changed
         }
-      })
-    );
-
-    addSubscriber(() -> trigger.apply(() -> {
-      if(!modelInitiatedChange) {
-        node.pseudoClassStateChanged(TOUCHED, true);
-        node.pseudoClassStateChanged(DIRTY, true);
-
-        doControlInitiatedChange(this::updateModel);
-
-        refreshValidationState(model.getRawValue());
+        else {
+          disconnect();
+        }
       }
     }));
 
@@ -213,7 +264,11 @@ final class ModelLinker<N extends Node, R, T> {
       }
     });
 
-    node.addEventHandler(CommitEvent.COMMIT, e -> updateModel());
+    node.addEventHandler(CommitEvent.COMMIT, e -> {
+      if(isConnected()) {
+        updateModel();
+      }
+    });
 
     if(RESPOND_TO_TEST_FOCUS_EVENT) {
       node.addEventHandler(TestFocusEvent.MODIFY, e -> {
@@ -224,31 +279,89 @@ final class ModelLinker<N extends Node, R, T> {
     }
   }
 
-  private void refreshValidationState(RawValue<T> rawValue) {
-    applyValidationState(isDirty() ? evaluateCurrentInput() : rawValue);
+  /**
+   * Sets a consumer that is called whenever the domain changes. This is the preferred
+   * way to monitor model domain changes, as the callback is called just before a control
+   * command will be sent, allowing controls to first set up their restrictions, and then
+   * receive the control command which sets the expected value.
+   *
+   * @param consumer a {@link Consumer}, can be {@code null}
+   */
+  public void onDomainChanged(Consumer<Domain<T>> consumer) {
+    this.onDomainChanged = consumer;
   }
 
-  private RawValue<T> evaluateCurrentInput() {
-    if(!model.isApplicable()) {
-      return getter.get() == null
-        ? RawValue.valid(null)
-        : RawValue.incompatible(INCOMPATIBLE_TEMPLATE);
-    }
-
-    try {
-      T value = converter.apply(getter.get());
-
-      return switch(model.getDomain().evaluate(value)) {
-        case Membership.Member() -> RawValue.valid(value);
-        case Membership.Excluded(Template reason) -> RawValue.invalid(value, reason);
-      };
-    }
-    catch(Exception e) {
-      return RawValue.incompatible(INCOMPATIBLE_TEMPLATE);
+  /**
+   * Pushes a value from the control to the model. The value is ignored if the model is
+   * not connected.
+   *
+   * @param newValue a new value, can be {@code null}
+   */
+  public void push(T newValue) {
+    if(isConnected()) {
+      acceptControlInput(newValue, null);
     }
   }
 
-  public Subscription addSubscriber(Supplier<Subscription> subscriber) {
+  /**
+   * Pushes an incompatible value from the control to the model. This will set a {@link RawValue}
+   * on the model to {@code Incompatible}, and a template {@code conversion.incompatible}. The
+   * template will contain the raw value as its first argument under the key {@code value}.
+   *
+   * @param raw a new raw value, can be {@code null}
+   */
+  public void pushIncompatible(Object raw) {
+    if(isConnected()) {
+      acceptControlInput(
+        null,
+        Template.of(
+          "conversion.incompatible",
+          Immutable.sequencedMap("value", raw)
+        )
+      );
+    }
+  }
+
+  private void acceptControlInput(T newValue, Template incompatibleReason) {
+
+    // if it is not model initiated, then the control becomes dirty:
+    if(changeOrigin != Origin.MODEL) {
+      node.pseudoClassStateChanged(TOUCHED, true);
+      node.pseudoClassStateChanged(DIRTY, true);
+    }
+
+    /*
+     * Only if the control is dirty (or just became dirty) accept any of its inputs, even if triggered by a model
+     * change; this can happen when the domain of the model changes to a more restrictive domain, and the control
+     * aggressively clamps its current value.
+     */
+
+    if(isDirty()) {
+      this.controlInput = newValue;
+      this.incompatibleReason = incompatibleReason;
+    }
+
+    // if the new input came from the control, forward to the model:
+    if(changeOrigin != Origin.MODEL) {
+      doOriginatedChange(Origin.CONTROL, this::updateModel);
+    }
+
+    /*
+     * A rare situation can occur:
+     *
+     * - Control is dirty
+     * - Domain changes (model initiated change)
+     * - Control is updated to reflect limits of new domain, which happens to exclude the current value
+     * - Some controls clamp the value (Slider) even if the control is dirty, altering user input
+     * - After clamping, the value must be valid, and since it is still dirty, this overrules model validity
+     *
+     * In that case, even for a model initiated change, the validation state must be refreshed here:
+     */
+
+    refreshValidationState(model.getRawValue());
+  }
+
+  private Subscription addSubscriber(Supplier<Subscription> subscriber) {
     subscribers.add(subscriber);
 
     return () -> subscribers.remove(subscriber);
@@ -257,15 +370,9 @@ final class ModelLinker<N extends Node, R, T> {
   private void activateAllSubscriptions() {
     if(!subscriptionsActive()) {
       // as subscribing may cause value changes, ensure they're not seen as user changes:
-      doModelInitiatedChange(() -> {
-        List<Subscription> subscriptions = new ArrayList<>();
-
-        for(Supplier<Subscription> supplier : subscribers) {
-          subscriptions.add(supplier.get());
-        }
-
-        subscription = Subscription.combine(subscriptions.toArray(Subscription[]::new));
-      });
+      doOriginatedChange(Origin.MODEL, () ->
+        subscription = Subscription.combine(subscribers.stream().map(Supplier::get).toArray(Subscription[]::new))
+      );
     }
   }
 
@@ -282,8 +389,11 @@ final class ModelLinker<N extends Node, R, T> {
        * Unsubscribe everything:
        */
 
-      subscription.unsubscribe();
-      subscription = Subscription.EMPTY;
+      Subscription s = subscription;
+
+      subscription = Subscription.EMPTY;  // empty it first, so subscriptionsActive will return false, as unsubscribes can trigger control updates that should be ignored immediately
+
+      s.unsubscribe();
 
       /*
        * When previously connected, and now disconnected, reset value, touched
@@ -291,13 +401,9 @@ final class ModelLinker<N extends Node, R, T> {
        * of these values are sensible to keep:
        */
 
-      doModelInitiatedChange(() -> setter.accept(new ControlCommand.Inapplicable<>()));
+      domain = null;  // ensures that on reconnect, a domain change is always triggered
 
-      controlRawValue = null;
-      conversionFailed = false;
-
-      node.pseudoClassStateChanged(TOUCHED, false);
-      node.pseudoClassStateChanged(INVALID, false);
+      disconnect();
     }
   }
 
@@ -305,85 +411,100 @@ final class ModelLinker<N extends Node, R, T> {
     if(!focused && isDirty()) {
 
       /*
-       * When focus is lost, and the control is dirty, update the model with
-       * the control's value. The control is now no longer dirty.
+       * Focus loss ends the editing session.
        *
-       * In the not dirty state, the control should always reflect the model.
-       * Afterwards, the control should be synced with the model still because:
+       * If the control is dirty, its current value is (once more) written to the model.
+       * The control is then synchronized from the model state and normalized (eg. 1 -> 1.0),
+       * if not incompatible, to match model representation rules.
        *
-       * 1. A valid model may have slightly different formatting due to a conversion (eg. 1 -> 1.0)
-       * 2. An invalid model must be reflected as empty or null in the control
+       * Transient editing state is cleared regardless of whether a model update occurred.
        */
 
       updateModel();
 
-      node.pseudoClassStateChanged(DIRTY, false);
-
       RawValue<T> rawValue = model.getRawValue();
 
-      doModelInitiatedChange(() -> syncControl(rawValue));
-      applyValidationState(rawValue);
+      if(rawValue.isPresent()) {
+        doOriginatedChange(Origin.MODEL, () -> setter.accept(rawValue));
+      }
+
+      refreshValidationState(rawValue);
+      resetEditingState();
     }
   }
 
-  private void syncControl(RawValue<T> rv) {
-    setter.accept(model.isApplicable()
-      ? switch(rv) {
-          case RawValue.Incompatible(Template _) when conversionFailed -> new ControlCommand.RawValue<>(controlRawValue);
-          default -> {
-            conversionFailed = false;
+  private void disconnect() {
+    resetEditingState();
 
-            yield new ControlCommand.ModelValue<>(rv.orElse(null));
-          }
-        }
-      : new ControlCommand.Inapplicable<>()
-    );
+    node.pseudoClassStateChanged(TOUCHED, false);
+    node.pseudoClassStateChanged(INVALID, false);
   }
 
-  private void applyValidationState(RawValue<T> value) {
-    boolean valid = model.isApplicable() ? value instanceof RawValue.Valid : true;
+  private void resetEditingState() {
+    node.pseudoClassStateChanged(DIRTY, false);
 
-    if(node.getPseudoClassStates().contains(INVALID) == valid) {
-      node.pseudoClassStateChanged(INVALID, !valid);
-    }
+    controlInput = null;
+    incompatibleReason = null;
+  }
 
+  private void refreshValidationState(RawValue<T> rawValue) {
+    RawValue<T> value = isDirty() ? evaluateCurrentInput() : rawValue;
+    boolean valid = !model.isApplicable() || value instanceof RawValue.Valid;
+
+    node.pseudoClassStateChanged(INVALID, !valid);
     node.fireEvent(switch(value) {
-      case RawValue.Valid(Object _) -> ValidationEvent.valid();
+      case RawValue.Valid(_) -> ValidationEvent.valid();
       case RawValue.Invalid(Object v, Template template) -> ValidationEvent.invalid(template, v, false);
       case RawValue.Incompatible(Template template) -> ValidationEvent.invalid(template, null, true);
     });
   }
 
-  private boolean subscriptionsActive() {
-    return subscription != Subscription.EMPTY;
+  private RawValue<T> evaluateCurrentInput() {
+    if(incompatibleReason != null) {
+      return RawValue.incompatible(incompatibleReason);
+    }
+
+    return switch(model.getDomain().evaluate(controlInput)) {
+      case Membership.Member() -> RawValue.valid(controlInput);
+      case Membership.Excluded(Template reason) -> RawValue.invalid(controlInput, reason);
+    };
   }
 
   private void updateModel() {  // only ever called when applicable, as no subscriptions are present otherwise
-    assert subscriptionsActive();
+    assert isConnected();
 
-    this.controlRawValue = getter.get();
-
-    model.trySet(controlRawValue, converter, INCOMPATIBLE_TEMPLATE);
-
-    this.conversionFailed = model.getRawValue() instanceof RawValue.Incompatible;
+    if(incompatibleReason != null) {
+      model.trySet(
+        null,
+        x -> { throw new RuntimeException(); },  // TODO ugly, to be resolved when trySet is replaced
+        incompatibleReason
+      );
+    }
+    else {
+      model.setValue(controlInput);
+    }
   }
 
   /**
-   * Runs the given {@link Runnable} as a model initiated change. This means that any
-   * change made, and any changes that may trigger won't be interpreted as a user interaction.
+   * Runs the given {@link Runnable} as a change with a specific origin. This means that any
+   * change made by the given {@link Runnable}, and any changes that may trigger, won't be interpreted
+   * as a change of a different origin.
    *
    * @param runnable a {@link Runnable} to run, cannot be {@code null}
    */
-  protected void doModelInitiatedChange(Runnable runnable) {
-    boolean previousState = modelInitiatedChange;
+  private void doOriginatedChange(Origin origin, Runnable runnable) {
+    Origin previous = changeOrigin;
 
-    modelInitiatedChange = true;
+    assert origin != Origin.NONE;
+    assert previous == Origin.NONE || previous == origin;
+
+    this.changeOrigin = origin;
 
     try {
       runnable.run();
     }
     finally {
-      modelInitiatedChange = previousState;
+      this.changeOrigin = previous;
     }
   }
 
@@ -393,20 +514,15 @@ final class ModelLinker<N extends Node, R, T> {
    *
    * @return {@code true} if the control is in a dirty state, otherwise {@code false}
    */
-  protected boolean isDirty() {
+  private boolean isDirty() {
     return node.getPseudoClassStates().contains(DIRTY);
   }
 
-  private void doControlInitiatedChange(Runnable runnable) {
-    boolean previousState = controlInitiatedChange;
+  private boolean isConnected() {
+    return subscriptionsActive() && model.isApplicable();
+  }
 
-    controlInitiatedChange = true;
-
-    try {
-      runnable.run();
-    }
-    finally {
-      controlInitiatedChange = previousState;
-    }
+  private boolean subscriptionsActive() {
+    return subscription != Subscription.EMPTY;
   }
 }

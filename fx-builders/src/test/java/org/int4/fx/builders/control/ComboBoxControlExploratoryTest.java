@@ -39,6 +39,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     private static final Domain<String> INITIAL_DOMAIN = Domain.of("A", "B", "C", "D", "E");
     private static final Domain<String> ALTERNATE_DOMAIN = Domain.of("B", "C", "Z");
     private static final Domain<String> EMPTY_DOMAIN = Domain.of();
+    private static final Domain<String> NO_VIEWS_DOMAIN = Domain.where(x -> true);
     private static final Domain<String> INAPPLICABLE_DOMAIN = Domain.inapplicable();
 
     private final Scene scene = new Scene(new Region());
@@ -52,51 +53,27 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     private boolean dirty;
     private boolean touched;
 
-    public record State(RawValue<String> modelRawValue, String controlValue, boolean dirty, boolean touched, boolean connectedToScene, Domain<String> domain) {}
+    public record State(String controlValue, boolean dirty, boolean touched, boolean connectedToScene, RawValue<String> modelRawValue, Domain<String> domain) {}
 
     @Override
     public Object snapshot() {
       return new State(
-        expectedModelRawValue,
-        expectedDomain.equals(Domain.inapplicable()) ? null : expectedControlValue,
+        expectedControlValue,
         dirty,
         touched,
         connectedToScene,
+        expectedModelRawValue,
         expectedDomain
       );
     }
 
     @Assertion
-    public void assertState() {
+    public void assertModelState() {
       boolean inapplicable = expectedDomain.equals(Domain.inapplicable());
-      boolean domainContainsRawValue = expectedModelRawValue.isPresent() ? expectedDomain.contains(expectedModelRawValue.orElseThrow()) : false;
-      boolean modelValid = inapplicable || domainContainsRawValue;
-      String expectedModelValue = (domainContainsRawValue && !inapplicable) ? expectedModelRawValue.orElseThrow() : null;
-      Set<PseudoClass> expectedControlStates = new HashSet<>();
-
-      boolean controlValid = dirty
-        ? (inapplicable ? true : expectedDomain.contains(expectedControlValue))
-        : modelValid;
-
-      if(connectedToScene && !controlValid) {
-        expectedControlStates.add(INVALID);
-      }
-
-      if(dirty) {
-        expectedControlStates.add(DIRTY);
-      }
-
-      if(touched) {
-        expectedControlStates.add(TOUCHED);
-      }
-
-      List<String> expectedControlItems = (connectedToScene && !inapplicable) ? expectedDomain.<IndexedView<String>>requireView(IndexedView.class).asList() : Collections.emptyList();
-      int expectedControlIndex = expectedControlItems.indexOf(expectedControlValue);
+      boolean modelValid = inapplicable || expectedModelRawValue instanceof RawValue.Valid;
+      String expectedModelValue = modelValid && !inapplicable ? expectedModelRawValue.orElseThrow() : null;
 
       assertAll(
-        () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates),
-        () -> assertThat(control.getSelectionModel().getSelectedIndex()).describedAs("control.selectionModel.selectedIndex").isEqualTo(expectedControlIndex),
-        () -> assertThat(control.getItems()).describedAs("control.items").containsExactlyElementsOf(expectedControlItems),
         () -> assertThat(model.getValue()).describedAs("model.value").isEqualTo(expectedModelValue),
         () -> assertThat(model.getRawValue()).describedAs("model.rawValue").isEqualTo(expectedModelRawValue),
         () -> assertThat(model.getDomain()).describedAs("model.domain").isEqualTo(expectedDomain),
@@ -105,9 +82,36 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     }
 
     @Assertion
-    public void assertControlValue() {
-      if(!expectedDomain.equals(Domain.inapplicable())) {
-        assertThat(control.getValue()).describedAs("control.value").isEqualTo(expectedControlValue);
+    public void assertControlState() {
+      if(connectedToScene) {
+        boolean inapplicable = expectedDomain.equals(Domain.inapplicable());
+        boolean modelValid = expectedModelRawValue instanceof RawValue.Valid;
+        List<String> expectedControlItems = inapplicable
+          ? Collections.emptyList()
+          : expectedDomain.view(IndexedView.class) instanceof IndexedView<String> iv ? iv.asList() : Collections.emptyList();
+        int expectedControlIndex = expectedControlItems.indexOf(expectedControlValue);
+        Set<PseudoClass> expectedControlStates = new HashSet<>();
+
+        boolean controlValid = inapplicable || (dirty ? expectedDomain.contains(expectedControlValue) : modelValid);
+
+        if(!controlValid) {
+          expectedControlStates.add(INVALID);
+        }
+
+        if(dirty) {
+          expectedControlStates.add(DIRTY);
+        }
+
+        if(touched) {
+          expectedControlStates.add(TOUCHED);
+        }
+
+        assertAll(
+          () -> assertThat(control.getValue()).describedAs("control.value").isEqualTo(expectedControlValue),
+          () -> assertThat(control.getSelectionModel().getSelectedIndex()).describedAs("control.selectionModel.selectedIndex").isEqualTo(expectedControlIndex),
+          () -> assertThat(control.getItems()).describedAs("control.items").containsExactlyElementsOf(expectedControlItems),
+          () -> assertThat(control.getPseudoClassStates()).describedAs("control.pseudoClassStates").containsExactlyInAnyOrderElementsOf(expectedControlStates)
+        );
       }
     }
 
@@ -121,6 +125,10 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
        */
 
       connectedToScene = true;
+
+      if(expectedDomain.equals(Domain.inapplicable())) {
+        expectedControlValue = null;
+      }
 
       syncControl();
 
@@ -176,6 +184,13 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     }
 
     @Action
+    public Runnable toNoViewsDomain() {
+      applyDomainChange(NO_VIEWS_DOMAIN);
+
+      return () -> model.setDomain(expectedDomain);
+    }
+
+    @Action
     public Runnable toInapplicableDomain() {
       applyDomainChange(INAPPLICABLE_DOMAIN);
 
@@ -224,6 +239,10 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
         default -> reevaluate(expectedModelRawValue.orElseThrow());
       };
 
+      if(expectedDomain.equals(Domain.inapplicable())) {
+        expectedControlValue = null;
+      }
+
       syncControl();
     }
 
@@ -235,8 +254,14 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
     }
 
     private void syncControl() {
-      if(connectedToScene && !dirty) {
-        expectedControlValue = expectedDomain.equals(Domain.inapplicable()) ? null : expectedModelRawValue.orElse(null);
+      if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
+        if(!dirty) {
+          expectedControlValue = expectedModelRawValue.orElse(null);
+        }
+      }
+      else {
+        dirty = false;
+        touched = false;
       }
     }
 
@@ -247,7 +272,7 @@ public class ComboBoxControlExploratoryTest extends ControlBuilderTest {
 
       expectedControlValue = value;
 
-      if(connectedToScene) {
+      if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
         dirty = true;
         touched = true;
         expectedModelRawValue = reevaluate(value);

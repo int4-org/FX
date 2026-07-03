@@ -10,8 +10,9 @@ import javafx.beans.property.StringProperty;
 import javafx.scene.control.TextInputControl;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.control.ModelLinker.ControlCommand;
 import org.int4.fx.builders.strategy.TextStrategy;
+import org.int4.fx.core.util.RawValue;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
@@ -143,44 +144,58 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
   }
 
   private <T> void link(C node, WritableModel<T> model, Function<T, String> printer, Function<String, T> parser) {
-    ModelLinker.sync(
+    ModelLinker<C, T> linker = ModelLinker.sync(
       node,
       model,
-      () -> node.getText(),
-      v -> node.setText(switch(v) {
-        case ControlCommand.ModelValue(T value) -> value == null ? "" : printer.apply(value);
-        case ControlCommand.RawValue(Object value) -> Objects.toString(value);
-        case ControlCommand.Inapplicable() -> null;
-      }),
-      r -> {
-
-        /*
-         * The suppplied parser will:
-         * - Return a parsed value if it was parseable
-         * - Return null if it was unparseable but input was blank
-         * - Throw an exception if it was unparseable and input was not blank
-         */
-
-        T modelValue = parser.apply(r);  // if parsing throws exception, model is marked invalid via trySet
-
-        /*
-         * Special exception for blank strings. If the domain does NOT accept the current blank string,
-         * but it does accept null, then it is coerced to null:
-         */
-
-        if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
-          @SuppressWarnings("unchecked")
-          T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
-
-          if(!model.getDomain().contains(cast)) {
-            return null;
-          }
-        }
-
-        return modelValue;
-      },
-      r -> node.textProperty().subscribe((ov, nv) -> r.run())
+      rv -> node.setText(switch(rv) {
+        case RawValue.Valid(T value) -> value == null ? "" : printer.apply(value);
+        case RawValue.Invalid(T value, _) -> value == null ? "" : printer.apply(value);
+        case RawValue.Incompatible(_) -> "";
+      })
     );
+
+    linker.onDomainChanged(d -> {
+      if(d.equals(Domain.inapplicable())) {
+        node.setText(null);
+      }
+    });
+
+    node.textProperty().subscribe((ov, nv) -> {
+      try {
+        linker.push(convert(model, parser, nv));
+      }
+      catch(Exception e) {
+        linker.pushIncompatible(nv);
+      }
+    });
+  }
+
+  private static <T> T convert(WritableModel<T> model, Function<String, T> parser, String raw) {
+
+    /*
+     * The supplied parser will:
+     * - Return a parsed value if it was parseable
+     * - Return null if it was unparseable but input was blank
+     * - Throw an exception if it was unparseable and input was not blank
+     */
+
+    T modelValue = parser.apply(raw);  // could throw exception, which we should push to linker as incompatible
+
+    /*
+     * Special exception for blank strings. If the domain does NOT accept the current blank string,
+     * but it does accept null, then it is coerced to null:
+     */
+
+    if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
+      @SuppressWarnings("unchecked")
+      T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
+
+      if(!model.getDomain().contains(cast)) {
+        return null;
+      }
+    }
+
+    return modelValue;
   }
 
   /*

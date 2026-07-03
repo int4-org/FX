@@ -5,10 +5,10 @@ import java.util.function.Function;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.control.Slider;
-import javafx.util.Subscription;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.values.domain.ContinuousView;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
@@ -123,9 +123,6 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
   /**
    * Binds the slider to a {@link DoubleModel}, interpreting the model domain
    * through supported {@link ContinuousView} or {@link IndexedView} instances.
-   * <p>
-   * The slider itself operates on a normalized {@code [0,1]} range, while
-   * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -134,15 +131,12 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @see IndexedView
    */
   public SliderBuilder model(DoubleModel model) {
-    return model(model, Function.identity());
+    return model(model, Function.identity(), Function.identity());
   }
 
   /**
    * Binds the slider to a {@link IntegerModel}, interpreting the model domain
    * through supported {@link ContinuousView} or {@link IndexedView} instances.
-   * <p>
-   * The slider itself operates on a normalized {@code [0,1]} range, while
-   * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -151,15 +145,12 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @see IndexedView
    */
   public SliderBuilder model(IntegerModel model) {
-    return model(model, Double::intValue);
+    return model(model, Double::intValue, Number::doubleValue);
   }
 
   /**
    * Binds the slider to a {@link LongModel}, interpreting the model domain
    * through supported {@link ContinuousView} or {@link IndexedView} instances.
-   * <p>
-   * The slider itself operates on a normalized {@code [0,1]} range, while
-   * tick marks, labels, and value conversions are derived from the domain views.
    *
    * @param model the model to bind to, cannot be {@code null}
    * @return the fluent builder, never {@code null}
@@ -168,62 +159,126 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
    * @see IndexedView
    */
   public SliderBuilder model(LongModel model) {
-    return model(model, Double::longValue);
+    return model(model, Double::longValue, Number::doubleValue);
   }
 
-  private <T extends Number> SliderBuilder model(WritableModel<T> model, Function<Double, T> toModel) {
+  /**
+   * Binds the slider to any {@link WritableModel}, interpreting the model domain
+   * through supported {@link ContinuousView} or {@link IndexedView} instances.
+   * <p>
+   * The provided model is assumed to not be numeric, and therfore the slider
+   * operates on a normalized {@code [0,1]} range.
+   *
+   * @param <T> the model type
+   * @param model the model to bind to, cannot be {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if {@code model} is {@code null}
+   * @see ContinuousView
+   * @see IndexedView
+   */
+  public <T> SliderBuilder model(WritableModel<T> model) {
+    return model(model, null, null);
+  }
+
+  private <T> SliderBuilder model(WritableModel<T> model, Function<Double, T> toModel, Function<T, Double> toPosition) {
     Objects.requireNonNull(model, "model");
 
-    return apply(node -> {
-      ModelLinker<Slider, T, T> linker = link(model, node, toModel);
+    if((toModel == null && toPosition != null) || (toModel != null && toPosition == null)) {
+      throw new IllegalArgumentException("toModel and toPosition must either both be provided or not be provided");
+    }
 
-      linker.addSubscriber(() -> model.domain().subscribe(d -> linker.doModelInitiatedChange(() -> {
-        switch(d.view(ContinuousView.class, IndexedView.class)) {
-          case ContinuousView<T> cv -> {
-            node.setMin(cv.get(0).doubleValue());
-            node.setMax(cv.get(1).doubleValue());
-          }
-          case IndexedView<T> iv -> {
-            node.setMin(0);
-            node.setMax(iv.size() - 1);
-          }
+    return apply(node -> {
+      ModelLinker<Slider, T> linker = link(model, node, toPosition);
+
+      // start with clean slate:
+      node.setMin(0);
+      node.setMax(0);
+
+      node.valueProperty().subscribe((ov, nv) -> {
+        double value = nv.doubleValue();
+
+        switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+          case ContinuousView<T> cv when toModel != null -> linker.push(cv.snap(toModel.apply(value)));
+          case ContinuousView<T> cv -> linker.push(cv.get(value));
+          case IndexedView<T> iv -> linker.push(iv.get(Math.round(value)));
           default -> {}
         }
-      })));
+      });
+
+      node.valueChangingProperty().subscribe((ov, nv) -> {
+        if(!nv) {  // when dragging stops, normalize value via model
+          updateSlider(model, node, toPosition);
+        }
+      });
+
+      linker.onDomainChanged(d -> applyLimits(node, d, toPosition));
     });
   }
 
-  private static <T extends Number> ModelLinker<Slider, T, T> link(WritableModel<T> model, Slider node, Function<Double, T> toModel) {
+  private static <T> ModelLinker<Slider, T> link(WritableModel<T> model, Slider node, Function<T, Double> toPosition) {
     return ModelLinker.link(
       node,
       model,
-      () -> switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-        case ContinuousView<T> cv -> toModel.apply(node.getValue());
-        case IndexedView<T> iv -> iv.get(Math.round(node.getValue()));
-        default -> null;
-      },
-      v -> node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-        case ContinuousView<T> cv -> cv.project(v).doubleValue();
-        case IndexedView<T> iv -> Math.max(0, iv.indexOf(v));
-        default -> v.doubleValue();
-      }),
-      v -> v,
-      r -> Subscription.combine(
-        node.valueProperty().subscribe((ov, nv) -> r.run()),
-        node.valueChangingProperty().subscribe((ov, nv) -> {
-          if(!nv) {  // when dragging stops, normalize value via model
-            updateSlider(model, node);
-          }
-        })
-      )
+      v -> {
+        if(v == null) {  // value was inapplicable
+
+          /*
+           * Sliders when not connected will have some initial range (defaults to 0-100) or after
+           * being connected they will have whatever the last range was from the last set domain.
+           * This leaves model remnants behind, which the subscriber below cleans up:
+           */
+
+          node.setMin(0);
+          node.setMax(0);
+
+          return;
+        }
+
+        double value = switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+          case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
+          case ContinuousView<T> cv -> cv.fractionOf(v);
+          case IndexedView<T> iv -> Math.max(0, iv.indexOf(v));
+          default -> node.getValue();
+        };
+
+        applyLimits(node, model.getDomain(), toPosition);  // ensure that value to be set won't be auto-corrected if domain was changed
+
+        node.setValue(value);
+      }
     );
   }
 
-  private static <T extends Number> void updateSlider(WritableModel<T> model, Slider node) {
-    node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-      case ContinuousView<T> cv -> model.getValue().doubleValue();
-      case IndexedView<T> iv -> iv.indexOf(model.getValue());
-      default -> model.getValue().doubleValue();
-    });
+  private static <T> void applyLimits(Slider node, Domain<T> domain, Function<T, Double> toPosition) {
+    switch(domain.view(ContinuousView.class, IndexedView.class)) {
+      case ContinuousView<T> cv when toPosition != null -> {
+        node.setMin(toPosition.apply(cv.get(0)));
+        node.setMax(toPosition.apply(cv.get(1)));
+      }
+      case ContinuousView<T> _ -> {
+        node.setMin(0);
+        node.setMax(1);
+      }
+      case IndexedView<T> iv -> {
+        node.setMin(0);
+        node.setMax(iv.size() - 1);
+      }
+      default -> {
+        // when no suitable view is present, best reset min/max (instead of leaving remnants)
+        // bonus: this hides the slider knob (although you can still drag it invisibly, bug?)
+        node.setMin(0);
+        node.setMax(0);
+      }
+    }
+  }
+
+  private static <T> void updateSlider(WritableModel<T> model, Slider node, Function<T, Double> toPosition) {
+    model.getRawValue().ifPresent(v ->
+      node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+        case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
+        case ContinuousView<T> cv -> cv.fractionOf(v);
+        case IndexedView<T> iv -> iv.indexOf(v);
+        default -> 0.0;
+      }
+    ));
   }
 }

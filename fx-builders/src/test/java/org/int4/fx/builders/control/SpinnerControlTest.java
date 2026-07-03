@@ -3,7 +3,9 @@ package org.int4.fx.builders.control;
 import javafx.scene.Scene;
 import javafx.scene.control.Spinner;
 
+import org.int4.common.collection.Immutable;
 import org.int4.fx.core.util.RawValue;
+import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.DomainTemplates;
 import org.int4.fx.values.model.IntegerModel;
@@ -61,7 +63,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
       @Test
       void modelShouldBecomeInvalid() {
         assertThat(model.isValid()).isFalse();
-        assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(ModelLinker.INCOMPATIBLE_TEMPLATE));
+        assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(Template.of("conversion.incompatible", Immutable.sequencedMap("value", "illegal"))));
         assertThat(model.getValue()).isNull();
       }
 
@@ -85,7 +87,7 @@ public class SpinnerControlTest extends ControlBuilderTest {
         @Test
         void modelShouldReflectBadInput() {
           assertThat(model.isValid()).isFalse();
-          assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(ModelLinker.INCOMPATIBLE_TEMPLATE));
+          assertThat(model.getRawValue()).isEqualTo(RawValue.incompatible(Template.of("conversion.incompatible", Immutable.sequencedMap("value", "illegal"))));
           assertThat(model.getValue()).isNull();
         }
 

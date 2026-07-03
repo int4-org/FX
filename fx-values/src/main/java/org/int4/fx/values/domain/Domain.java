@@ -344,6 +344,11 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
         public double fractionOf(Integer value) {
           return value == null ? 0.0 : (double)(normalizer.apply(value) - min) / (max - min);
         }
+
+        @Override
+        public Integer snap(Integer value) {
+          return value == null ? min : normalizer.apply(value);
+        }
       },
       new StepperView<Integer>() {
         @Override
@@ -450,6 +455,11 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
         public double fractionOf(Long value) {
           return value == null ? 0.0 : (double)(normalizer.apply(value) - min) / (max - min);
         }
+
+        @Override
+        public Long snap(Long value) {
+          return value == null ? min : normalizer.apply(value);
+        }
       },
       new StepperView<Long>() {
         @Override
@@ -533,6 +543,11 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
         public double fractionOf(Double value) {
           return value == null ? 0.0 : (normalizer.apply(value) - min) / (max - min);
         }
+
+        @Override
+        public Double snap(Double value) {
+          return value == null ? min : normalizer.apply(value);
+        }
       },
       new StepperView<Double>() {
         @Override
@@ -608,6 +623,9 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * {@link ContinuousView} which maps normalized fractions in [0,1] to
    * domain values and vice versa.
    * <p>
+   * The returned domain supports a {@link NormalizedView} that can
+   * optionally snap values into the allowed range.
+   * <p>
    * If a value is outside the range, the failure reason is provided by
    * {@link DomainTemplates#outOfRange(Object, Object)}.
    *
@@ -636,6 +654,11 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
         @Override
         public double fractionOf(Double value) {
           return value == null ? 0.0 : (normalizer.apply(value) - min) / (max - min);
+        }
+
+        @Override
+        public Double snap(Double value) {
+          return value == null ? min : normalizer.apply(value);
         }
       }
     );

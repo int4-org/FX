@@ -16,10 +16,7 @@ import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
-import org.int4.fx.builders.control.ModelLinker.ControlCommand;
 import org.int4.fx.core.util.RawValue;
-import org.int4.fx.core.util.Template;
-import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
 import org.int4.fx.values.model.DoubleModel;
@@ -336,48 +333,26 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
         }
       });
 
-      ModelLinker<Spinner<T>, String, T> linker = ModelLinker.sync(
+      ModelLinker<Spinner<T>, T> linker = ModelLinker.sync(
         node,
         model,
-        () -> node.getEditor().getText(),
-        v -> node.getEditor().setText(
-          switch(v) {
-            case ControlCommand.ModelValue(T value) -> value == null ? "" : printer.apply(value);
-            case ControlCommand.RawValue(String value) -> value;
-            case ControlCommand.Inapplicable() -> null;
-          }
-        ),
-        r -> {
-
-          /*
-           * The suppplied parser will:
-           * - Return a parsed value if it was parseable
-           * - Return null if it was unparseable but input was blank
-           * - Throw an exception if it was unparseable and input was not blank
-           */
-
-          T modelValue = parser.apply(r);  // if parsing throws exception, model is marked invalid via trySet
-
-          /*
-           * Special exception for blank strings. If the domain does NOT accept the current blank string,
-           * but it does accept null, then it is coerced to null:
-           */
-
-          if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
-            @SuppressWarnings("unchecked")
-            T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
-
-            if(!model.getDomain().contains(cast)) {
-              return null;
-            }
-          }
-
-          return modelValue;
-        },
-        r -> node.getEditor().textProperty().subscribe((ov, nv) -> r.run())
+        rv -> node.getEditor().setText(switch(rv) {
+          case RawValue.Valid(T value) -> value == null ? "" : printer.apply(value);
+          case RawValue.Invalid(T value, _) -> value == null ? "" : printer.apply(value);
+          case RawValue.Incompatible(_) -> "";
+        })
       );
 
-      linker.addSubscriber(() -> model.domain().subscribe(d -> linker.doModelInitiatedChange(() -> {
+      node.getEditor().textProperty().subscribe((ov, nv) -> {
+        try {
+          linker.push(convert(model, parser, nv));
+        }
+        catch(Exception e) {
+          linker.pushIncompatible(nv);
+        }
+      });
+
+      linker.onDomainChanged(d -> {
         String oldRawValue = node.getEditor().getText();
 
         SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
@@ -413,31 +388,56 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
           default -> null;
         };
 
+        if(vf == null && node.getValueFactory() != null) {
+          node.getValueFactory().setValue(null);  // only opportunity to set Spinner value to null is when there is a VF
+        }
+
         node.setValueFactory(vf);
 
         /*
-         * Domain change is handled. Because changing the value factory can have other effects on
-         * Spinner, restore the current value if it was dirty (as a domain change should not
-         * interfere with user input) or ensure the Spinner still reflects the current model value:
+         * After a new value factory has been installed, its value will not be set based on the
+         * editor automatically. The code below manually syncs up with the model to ensure both the
+         * editor and value factory value are set correctly. If the model was inapplicable (which
+         * means there is no value factory) then the editor is set to null.
          */
 
-        if(linker.isDirty()) {
-          node.getEditor().setText(oldRawValue);
+        if(vf == null) {
+          node.getEditor().setText(null);
         }
         else {
-          if(d.equals(Domain.inapplicable())) {
-            node.getEditor().setText(null);
-          }
-          else if(vf != null) {
-            switch(model.getRawValue()) {
-              case RawValue.Valid<T>(T value) -> vf.setValue(value);
-              case RawValue.Invalid<T>(T value, Template _) -> vf.setValue(value);
-              case RawValue.Incompatible(Template _) -> vf.setValue(null);
-            }
-          }
+          node.getEditor().setText(null);  // value factory has changed, force the Spinner to fill it in correctly
+          node.getEditor().setText(oldRawValue);
         }
-      })));
+      });
     });
+  }
+
+  private static <T> T convert(WritableModel<T> model, Function<String, T> parser, String raw) {
+
+    /*
+     * The supplied parser will:
+     * - Return a parsed value if it was parseable
+     * - Return null if it was unparseable but input was blank
+     * - Throw an exception if it was unparseable and input was not blank
+     */
+
+    T modelValue = parser.apply(raw);  // could throw exception, which we should push to linker as incompatible
+
+    /*
+     * Special exception for blank strings. If the domain does NOT accept the current blank string,
+     * but it does accept null, then it is coerced to null:
+     */
+
+    if(modelValue instanceof String s && s.isBlank() && model.getDomain().allowsNull()) {
+      @SuppressWarnings("unchecked")
+      T cast = (T)s;  // safe cast, model value was a string after parsing, so domain must be for strings
+
+      if(!model.getDomain().contains(cast)) {
+        return null;
+      }
+    }
+
+    return modelValue;
   }
 
   /*
