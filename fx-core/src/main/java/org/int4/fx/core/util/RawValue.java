@@ -18,10 +18,42 @@ import java.util.function.Consumer;
  *   <li>{@link Invalid} – a successfully parsed value that violates domain constraints.</li>
  *   <li>{@link Incompatible} – a failure to parse or convert an input value.</li>
  * </ul>
+ * <p>
+ * Only {@code Valid} and {@code Invalid} contain a value. {@code Incompatible}
+ * represents the absence of a convertible value.
+ * <p>
+ * The nested {@link Converted} type groups all states that contain a converted value,
+ * regardless of whether that value is valid or invalid. It is primarily intended
+ * for shared handling logic and pattern matching.
  *
  * @param <T> the type of the contained value
  */
 public sealed interface RawValue<T> {
+
+  /**
+   * Represents a {@code RawValue} that contains a successfully converted value.
+   * <p>
+   * This includes both {@link Valid} and {@link Invalid} states. Both represent
+   * values that were successfully parsed or converted from an input source.
+   * <p>
+   * The contained value may or may not satisfy domain constraints:
+   * {@link Valid} indicates the value is acceptable, while {@link Invalid}
+   * indicates a validation failure.
+   *
+   * @param <T> the type of the contained value
+   */
+  sealed interface Converted<T> extends RawValue<T> permits Valid, Invalid {
+
+    /**
+     * Returns the converted value associated with this state.
+     * <p>
+     * This value is always present for {@link Valid} and {@link Invalid} states.
+     * It represents the result of a successful conversion from the original input.
+     *
+     * @return the converted value, which may be {@code null}
+     */
+    T value();
+  }
 
   /**
    * Creates a {@code RawValue} representing a valid state.
@@ -100,10 +132,8 @@ public sealed interface RawValue<T> {
   default void ifPresent(Consumer<? super T> action) {
     Objects.requireNonNull(action, "action");
 
-    switch(this) {
-      case RawValue.Valid(T value) -> action.accept(value);
-      case RawValue.Invalid(T value, Template _) -> action.accept(value);
-      case RawValue.Incompatible(Template _) -> {}
+    if(this instanceof RawValue.Converted<T> c) {
+      action.accept(c.value());
     }
   }
 
@@ -113,7 +143,7 @@ public sealed interface RawValue<T> {
    * @param <T> the value type
    * @param value the valid value, may be {@code null}
    */
-  record Valid<T>(T value) implements RawValue<T> {
+  record Valid<T>(T value) implements Converted<T> {
     @Override
     public boolean isNull() {
       return value == null;
@@ -142,7 +172,7 @@ public sealed interface RawValue<T> {
    * @param value the invalid value, may be {@code null}
    * @param reason the reason for the validation failure, never {@code null}
    */
-  record Invalid<T>(T value, Template reason) implements RawValue<T> {
+  record Invalid<T>(T value, Template reason) implements Converted<T> {
     public Invalid {
       Objects.requireNonNull(reason, "reason");
     }
