@@ -148,8 +148,7 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
       node,
       model,
       rv -> node.setText(switch(rv) {
-        case RawValue.Valid(T value) -> value == null ? "" : printer.apply(value);
-        case RawValue.Invalid(T value, _) -> value == null ? "" : printer.apply(value);
+        case RawValue.Converted<T> c -> c.value() == null ? "" : printer.apply(c.value());
         case RawValue.Incompatible(_) -> "";
       })
     );

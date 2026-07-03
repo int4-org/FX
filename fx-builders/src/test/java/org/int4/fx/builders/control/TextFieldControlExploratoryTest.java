@@ -264,8 +264,7 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
       if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
         if(!dirty) {
           expectedControlValue = switch(expectedModelRawValue) {
-            case RawValue.Valid(Double v) -> v == null ? "" : formatter.format(v);
-            case RawValue.Invalid(Double v, _) -> v == null ? "" : formatter.format(v);
+            case RawValue.Converted<Double> c -> c.value() == null ? "" : formatter.format(c.value());
             default -> "";
           };
         }

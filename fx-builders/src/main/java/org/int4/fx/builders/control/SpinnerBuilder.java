@@ -337,8 +337,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
         node,
         model,
         rv -> node.getEditor().setText(switch(rv) {
-          case RawValue.Valid(T value) -> value == null ? "" : printer.apply(value);
-          case RawValue.Invalid(T value, _) -> value == null ? "" : printer.apply(value);
+          case RawValue.Converted<T> c -> c.value() == null ? "" : printer.apply(c.value());
           case RawValue.Incompatible(_) -> "";
         })
       );

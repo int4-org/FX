@@ -64,8 +64,7 @@ class SimpleMultiChoiceModel<T> extends WritableModelBase<List<T>> implements Mu
   @Override
   public void add(T item) {
     List<T> newItems = switch(getRawValue()) {
-      case RawValue.Valid(List<T> v) -> v == null ? new ArrayList<>() : new ArrayList<>(v);
-      case RawValue.Invalid(List<T> v, Template _) -> v == null ? new ArrayList<>() : new ArrayList<>(v);
+      case RawValue.Converted<List<T>> c -> c.value() == null ? new ArrayList<>() : new ArrayList<>(c.value());
       case RawValue.Incompatible(Template _) -> new ArrayList<>();
     };
 
@@ -77,8 +76,7 @@ class SimpleMultiChoiceModel<T> extends WritableModelBase<List<T>> implements Mu
   @Override
   public void remove(T item) {
     List<T> newItems = switch(getRawValue()) {
-      case RawValue.Valid(List<T> v) -> v == null ? null : new ArrayList<>(v);
-      case RawValue.Invalid(List<T> v, Template _) -> v == null ? null : new ArrayList<>(v);
+      case RawValue.Converted<List<T>> c -> c.value() == null ? null : new ArrayList<>(c.value());
       case RawValue.Incompatible(Template _) -> null;
     };
 

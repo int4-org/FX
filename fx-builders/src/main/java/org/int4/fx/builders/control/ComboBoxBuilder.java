@@ -304,8 +304,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
         node,
         model,
         rv -> node.setValue(switch(rv) {
-          case RawValue.Valid(T value) -> value;
-          case RawValue.Invalid(T value, _) -> value;
+          case RawValue.Converted<T> c -> c.value();
           case RawValue.Incompatible(_) -> null;
         })
       );

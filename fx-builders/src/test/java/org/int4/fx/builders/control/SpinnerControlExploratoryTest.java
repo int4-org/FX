@@ -314,7 +314,7 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
 
           expectedEditorControlValue = switch(expectedModelRawValue) {
             case RawValue.Valid(Integer v) -> Integer.toString(v);
-            case RawValue.Invalid(Integer v, @SuppressWarnings("unused") Template reason) -> v == null ? "" : Integer.toString(v);
+            case RawValue.Invalid(Integer v, _) -> v == null ? "" : Integer.toString(v);
             default -> "";
           };
 

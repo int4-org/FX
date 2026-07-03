@@ -225,20 +225,24 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
   }
 
   private static <T> ModelLinker<Slider, T> link(WritableModel<T> model, Slider node, Function<T, Double> toPosition) {
-    return ModelLinker.link(
+    return ModelLinker.sync(
       node,
       model,
-      v -> {
-        double value = switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-          case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
-          case ContinuousView<T> cv -> cv.fractionOf(v);
-          case IndexedView<T> iv -> Math.max(0, iv.indexOf(v));
-          default -> node.getValue();
-        };
+      rv -> {
+        if(rv instanceof RawValue.Converted<T> c) {
+          T v = c.value();
 
-        applyLimits(node, model.getDomain(), toPosition);  // ensure that value to be set won't be auto-corrected if domain was changed
+          double value = switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+            case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
+            case ContinuousView<T> cv -> cv.fractionOf(v);
+            case IndexedView<T> iv -> Math.max(0, iv.indexOf(v));
+            default -> node.getValue();
+          };
 
-        node.setValue(value);
+          applyLimits(node, model.getDomain(), toPosition);  // ensure that value to be set won't be auto-corrected if domain was changed
+
+          node.setValue(value);
+        }
       }
     );
   }

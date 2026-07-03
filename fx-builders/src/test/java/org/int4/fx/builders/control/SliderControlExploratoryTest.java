@@ -282,7 +282,7 @@ public class SliderControlExploratoryTest extends ControlBuilderTest {
 
           expectedControlValue = switch(expectedModelRawValue) {
             case RawValue.Valid(Double v) -> v;
-            case RawValue.Invalid(Double v, @SuppressWarnings("unused") Template reason) -> normalizeValue(v);
+            case RawValue.Invalid(Double v, _) -> normalizeValue(v);
             default -> null;
           };
         }

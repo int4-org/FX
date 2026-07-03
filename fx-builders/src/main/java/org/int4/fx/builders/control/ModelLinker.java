@@ -95,8 +95,7 @@ final class ModelLinker<N extends Node, T> {
 
   private static <T> Consumer<RawValue<T>> toSynchronizer(Consumer<T> setter) {
     return rv -> setter.accept(switch(rv) {
-      case RawValue.Valid(T value) -> value;
-      case RawValue.Invalid(T value, _) -> value;
+      case RawValue.Converted<T> c -> c.value();
       case RawValue.Incompatible(_) -> null;
     });
   }
