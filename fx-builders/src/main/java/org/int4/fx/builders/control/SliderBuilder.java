@@ -7,6 +7,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.scene.control.Slider;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
+import org.int4.fx.core.util.RawValue;
 import org.int4.fx.values.domain.ContinuousView;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
@@ -197,17 +198,25 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
       node.valueProperty().subscribe((ov, nv) -> {
         double value = nv.doubleValue();
 
-        switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
-          case ContinuousView<T> cv when toModel != null -> linker.push(cv.snap(toModel.apply(value)));
-          case ContinuousView<T> cv -> linker.push(cv.get(value));
-          case IndexedView<T> iv -> linker.push(iv.get(Math.round(value)));
-          default -> {}
+        T modelValue = switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+          case ContinuousView<T> cv when toModel != null -> cv.snap(toModel.apply(value));
+          case ContinuousView<T> cv -> cv.get(value);
+          case IndexedView<T> iv -> iv.get(Math.round(value));
+          default -> null;
+        };
+
+        if(modelValue != null) {
+          linker.push(modelValue);
+        }
+
+        if(!node.isValueChanging() && modelValue != null) {  // ensures direct clicks on the track are aligned immediately
+          updateSlider(RawValue.valid(modelValue), model.getDomain(), node, toPosition);  // use calculated value here, not the one from model
         }
       });
 
       node.valueChangingProperty().subscribe((ov, nv) -> {
         if(!nv) {  // when dragging stops, normalize value via model
-          updateSlider(model, node, toPosition);
+          updateSlider(model.getRawValue(), model.getDomain(), node, toPosition);
         }
       });
 
@@ -220,20 +229,6 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
       node,
       model,
       v -> {
-        if(v == null) {  // value was inapplicable
-
-          /*
-           * Sliders when not connected will have some initial range (defaults to 0-100) or after
-           * being connected they will have whatever the last range was from the last set domain.
-           * This leaves model remnants behind, which the subscriber below cleans up:
-           */
-
-          node.setMin(0);
-          node.setMax(0);
-
-          return;
-        }
-
         double value = switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
           case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
           case ContinuousView<T> cv -> cv.fractionOf(v);
@@ -271,9 +266,9 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
     }
   }
 
-  private static <T> void updateSlider(WritableModel<T> model, Slider node, Function<T, Double> toPosition) {
-    model.getRawValue().ifPresent(v ->
-      node.setValue(switch(model.getDomain().view(ContinuousView.class, IndexedView.class)) {
+  private static <T> void updateSlider(RawValue<T> rv, Domain<T> domain, Slider node, Function<T, Double> toPosition) {
+    rv.ifPresent(v ->
+      node.setValue(switch(domain.view(ContinuousView.class, IndexedView.class)) {
         case ContinuousView<T> cv when toPosition != null -> toPosition.apply(cv.snap(v));
         case ContinuousView<T> cv -> cv.fractionOf(v);
         case IndexedView<T> iv -> iv.indexOf(v);
