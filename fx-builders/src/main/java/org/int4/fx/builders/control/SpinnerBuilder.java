@@ -20,6 +20,7 @@ import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
 import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
+import org.int4.fx.values.model.LongModel;
 import org.int4.fx.values.model.WritableModel;
 
 /**
@@ -195,6 +196,22 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
       NumberFormat formatter = NumberFormat.getIntegerInstance();  // TODO should support locales
 
       return create(toTyped(), model, formatter::format, s -> Parsers.parseInt(formatter, s));
+    }
+
+    /**
+     * Binds a long spinner to a {@link LongModel}.
+     * <p>
+     * This method establishes the concrete type of the builder.
+     *
+     * @param model the model to bind to, cannot be {@code null}
+     * @return the fluent builder, typed to {@code Integer}, never {@code null}
+     * @throws NullPointerException if {@code model} is {@code null}
+     * @see Spinner#valueFactoryProperty()
+     */
+    public Typed<Long> model(LongModel model) {
+      NumberFormat formatter = NumberFormat.getIntegerInstance();  // TODO should support locales
+
+      return create(toTyped(), model, formatter::format, s -> Parsers.parseLong(formatter, s));
     }
 
     /**
