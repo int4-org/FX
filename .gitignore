@@ -4,3 +4,9 @@
 .settings
 .vscode
 target
+
+# exclude any path that includes experimental
+**/experimental/
+
+# exclude experimental module
+/fx-experimental/
