@@ -47,19 +47,17 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
 
     private RawValue<Double> expectedModelRawValue = RawValue.valid(5.0);
     private String expectedControlValue = "";  // only relevant for applicable domains
-    private String lastControlValue;
     private boolean connectedToScene;
     private Domain<Double> expectedDomain = INITIAL_DOMAIN;
     private boolean dirty;
     private boolean touched;
 
-    public record State(String controlValue, String lastControlValue, boolean dirty, boolean touched, boolean connectedToScene, RawValue<Double> modelRawValue, Domain<Double> domain) {}
+    public record State(String controlValue, boolean dirty, boolean touched, boolean connectedToScene, RawValue<Double> modelRawValue, Domain<Double> domain) {}
 
     @Override
     public Object snapshot() {
       return new State(
         expectedControlValue,
-        lastControlValue,
         dirty,
         touched,
         connectedToScene,
@@ -231,7 +229,6 @@ public class TextFieldControlExploratoryTest extends ControlBuilderTest {
       expectedControlValue = text;
 
       if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
-        lastControlValue = text;  // Only update this when connected to model, because changes done while unconnected are to be discarded
         dirty = true;
         touched = true;
 

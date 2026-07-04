@@ -81,14 +81,26 @@ final class ModelLinker<N extends Node, T> {
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
-  public static <N extends Node, T> ModelLinker<N, T> link(N node, WritableModel<T> model, Consumer<T> setter) {
-    return new ModelLinker<>(node, model, toSynchronizer(setter));
+  /*
+   * All in one; no linker is returned on purpose, as it is fully configured here. If not statisfactory,
+   * use sync.
+   */
+  public static <N extends Node, T> void link(N node, WritableModel<T> model, Property<T> property) {
+    ModelLinker<N, T> linker = new ModelLinker<>(node, model, toSynchronizer(property::setValue));
+
+    property.subscribe(linker::push);
+
+    linker.onDomainChanged(d -> {
+      if(d.equals(Domain.inapplicable())) {
+        property.setValue(null);
+      }
+    });
   }
 
-  public static <N extends Node, T> ModelLinker<N, T> link(N node, WritableModel<T> model, Property<T> property) {
-    return new ModelLinker<>(node, model, toSynchronizer(property::setValue));
-  }
-
+  /*
+   * When using sync, must use push/pushIncompatible, and probably register a domain listener via onDomainChanged
+   * to reset the control when its model domain becomes inapplicable.
+   */
   public static <N extends Node, T> ModelLinker<N, T> sync(N node, WritableModel<T> model, Consumer<RawValue<T>> setter) {
     return new ModelLinker<>(node, model, setter);
   }
