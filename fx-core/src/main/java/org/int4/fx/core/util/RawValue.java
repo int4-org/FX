@@ -173,6 +173,10 @@ public sealed interface RawValue<T> {
    * @param reason the reason for the validation failure, never {@code null}
    */
   record Invalid<T>(T value, Template reason) implements Converted<T> {
+
+    /**
+     * Constructs a new instance.
+     */
     public Invalid {
       Objects.requireNonNull(reason, "reason");
     }
@@ -205,6 +209,10 @@ public sealed interface RawValue<T> {
    * @param reason the reason for the conversion failure, never {@code null}
    */
   record Incompatible<T>(Template reason) implements RawValue<T> {
+
+    /**
+     * Constructs a new instance.
+     */
     public Incompatible {
       Objects.requireNonNull(reason, "reason");
     }

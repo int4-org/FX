@@ -43,6 +43,9 @@ public sealed interface Membership {
    */
   record Excluded(Template reason) implements Membership {
 
+    /**
+     * Constructs a new instance.
+     */
     public Excluded {
       Objects.requireNonNull(reason, "reason");
     }

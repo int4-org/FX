@@ -22,9 +22,9 @@ public class ValidationEvent extends Event {
    */
   public static final EventType<ValidationEvent> VALIDATION_CHANGED = new EventType<>(Event.ANY, "VALIDATION_CHANGED");
 
-  private final Template template;
-  private final Object invalidValue;
-  private final boolean invalidValueTypeIncompatible;
+  private final transient Template template;
+  private final transient Object invalidValue;
+  private final transient boolean invalidValueTypeIncompatible;
 
   private ValidationEvent(Template template, Object invalidValue, boolean invalidValueTypeIncompatible) {
     super(VALIDATION_CHANGED);
