@@ -40,6 +40,7 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
     private static final Domain<Integer> INITIAL_DOMAIN = Domain.bounded(0, 10);
     private static final Domain<Integer> ALTERNATE_DOMAIN = Domain.bounded(5, 15);
     private static final Domain<Integer> EMPTY_DOMAIN = Domain.of();
+    private static final Domain<Integer> ANY_DOMAIN = Domain.any();
     private static final Domain<Integer> INAPPLICABLE_DOMAIN = Domain.inapplicable();
 
     private final Scene scene = new Scene(new Region());
@@ -89,8 +90,10 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
       if(connectedToScene) {
         Set<PseudoClass> expectedControlStates = new HashSet<>();
         boolean modelValid = expectedModelRawValue instanceof RawValue.Valid;
+        Integer integer = parseInteger(expectedEditorControlValue);
+        boolean incompatible = integer != null && integer == Integer.MIN_VALUE;
         boolean controlValid = expectedDomain.equals(Domain.inapplicable())
-          || (dirty ? expectedDomain.contains(parseInteger(expectedEditorControlValue)) : modelValid);
+          || (dirty ? !incompatible && expectedDomain.contains(integer) : modelValid);
 
         if(!controlValid) {
           expectedControlStates.add(INVALID);
@@ -170,6 +173,13 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
     }
 
     @Action
+    public Runnable toAnyDomain() {
+      applyDomainChange(ANY_DOMAIN);
+
+      return () -> model.setDomain(expectedDomain);
+    }
+
+    @Action
     public Runnable toInapplicableDomain() {
       applyDomainChange(INAPPLICABLE_DOMAIN);
 
@@ -199,6 +209,7 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
     public Runnable spinUp() {
       Assumptions.assumeTrue(connectedToScene);
       Assumptions.assumeFalse(expectedDomain.equals(Domain.inapplicable()));
+      Assumptions.assumeFalse(expectedDomain.equals(ANY_DOMAIN));
 
       Integer parsed = parseInteger(expectedEditorControlValue);
 
@@ -216,6 +227,7 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
     public Runnable spinDown() {
       Assumptions.assumeTrue(connectedToScene);
       Assumptions.assumeFalse(expectedDomain.equals(Domain.inapplicable()));
+      Assumptions.assumeFalse(expectedDomain.equals(ANY_DOMAIN));
 
       Integer parsed = parseInteger(expectedEditorControlValue);
 
@@ -255,7 +267,6 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
 
       if(expectedDomain.equals(Domain.inapplicable())) {
         expectedEditorControlValue = null;
-        expectedControlValue = null;
       }
 
       syncControl();
@@ -269,12 +280,10 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
       expectedEditorControlValue = text;
 
       if(connectedToScene && !expectedDomain.equals(Domain.inapplicable())) {
-        Integer parsed = parseInteger(text);
-        boolean parsable = parsed != null && parsed != Integer.MIN_VALUE;
-
-        expectedControlValue = parsable ? parsed : null;
         dirty = true;
         touched = true;
+
+        syncControl();
 
         applyModelChange(text);
       }
@@ -312,16 +321,21 @@ public class SpinnerControlExploratoryTest extends ControlBuilderTest {
            */
 
           expectedEditorControlValue = switch(expectedModelRawValue) {
-            case RawValue.Valid(Integer v) -> Integer.toString(v);
-            case RawValue.Invalid(Integer v, _) -> v == null ? "" : Integer.toString(v);
+            case RawValue.Converted<Integer> c -> c.value() == null ? "" : Integer.toString(c.value());
             default -> "";
           };
-
-          Integer parsed = parseInteger(expectedEditorControlValue);
-          boolean parsable = parsed != null && parsed != Integer.MIN_VALUE;
-
-          expectedControlValue = parsable ? parsed : null;
         }
+      }
+
+      // expectedControlValue is **always** derived from the editor, unless there were no (supported) views
+      if(expectedDomain.equals(ANY_DOMAIN) || expectedDomain.equals(Domain.inapplicable())) {
+        expectedControlValue = null;
+      }
+      else {
+        Integer parsed = parseInteger(expectedEditorControlValue);
+        boolean parsable = parsed != null && parsed != Integer.MIN_VALUE;
+
+        expectedControlValue = parsable ? parsed : null;
       }
 
       if(expectedDomain.equals(Domain.inapplicable())) {

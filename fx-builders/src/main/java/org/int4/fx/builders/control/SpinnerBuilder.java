@@ -16,6 +16,7 @@ import javafx.scene.control.SpinnerValueFactory.ListSpinnerValueFactory;
 
 import org.int4.fx.builders.common.AbstractControlBuilder;
 import org.int4.fx.core.util.RawValue;
+import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.domain.StepperView;
 import org.int4.fx.values.model.DoubleModel;
@@ -418,7 +419,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
          * means there is no value factory) then the editor is set to null.
          */
 
-        if(vf == null) {
+        if(d.equals(Domain.inapplicable())) {
           node.getEditor().setText(null);
         }
         else {
