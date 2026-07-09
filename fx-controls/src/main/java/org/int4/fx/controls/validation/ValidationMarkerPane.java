@@ -54,6 +54,69 @@ import org.int4.fx.core.util.StyleSheets;
  * }</pre>
  */
 public class ValidationMarkerPane extends AbstractMarkerPane {
+  private static final String STYLESHEET = StyleSheets.inline(
+    """
+    .validation-marker-pane {
+      -fx-padding: 0;
+      -fx-margin: 0;
+    }
+
+    // the container for all markers:
+    .validation-marker-pane .overlay {}
+
+    // individual markers:
+    .validation-marker-pane .marker {
+      -fx-opacity: 0.8;
+
+      // Move marker (from top right position) slightly more into the control area:
+      -fx-translate-x: -0.75em;
+      -fx-translate-y: -0.25em;
+    }
+
+    // marker foreground graphic:
+    .validation-marker-pane .marker .foreground {
+      -fx-min-width: 0.7em;
+      -fx-min-height: 0.7em;
+      -fx-max-width: 0.7em;
+      -fx-max-height: 0.7em;
+      -fx-background-color: white;
+
+      // a thick cross:
+      -fx-shape: "
+        M -0.35,-0.5
+        L -0.5,-0.35
+        L -0.15,0
+        L -0.5,0.35
+        L -0.35,0.5
+        L 0,0.15
+        L 0.35,0.5
+        L 0.5,0.35
+        L 0.15,0
+        L 0.5,-0.35
+        L 0.35,-0.5
+        L 0,-0.15
+        Z
+      ";
+    }
+
+    // marker background graphic:
+    .validation-marker-pane .marker .background {
+      -fx-min-width: 1em;
+      -fx-min-height: 1em;
+      -fx-background-color: red;
+
+      // a circle:
+      -fx-shape: "
+        M 0,0
+        m -0.5,0
+        a 0.5,0.5 0 1,0 1,0
+        a 0.5,0.5 0 1,0 -1,0
+      ";
+
+      -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 1.0), 0.5em, 0.2, 0, 0);
+    }
+    """
+  );
 
   /**
    * Creates a builder for a {@link ValidationMarkerPane}, initialising
@@ -133,69 +196,7 @@ public class ValidationMarkerPane extends AbstractMarkerPane {
 
   @Override
   public String getUserAgentStylesheet() {
-    return StyleSheets.inline(
-      """
-      .validation-marker-pane {
-        -fx-padding: 0;
-        -fx-margin: 0;
-      }
-
-      // the container for all markers:
-      .validation-marker-pane .overlay {}
-
-      // individual markers:
-      .validation-marker-pane .marker {
-        -fx-opacity: 0.8;
-
-        // Move marker (from top right position) slightly more into the control area:
-        -fx-translate-x: -0.75em;
-        -fx-translate-y: -0.25em;
-      }
-
-      // marker foreground graphic:
-      .validation-marker-pane .marker .foreground {
-        -fx-min-width: 0.7em;
-        -fx-min-height: 0.7em;
-        -fx-max-width: 0.7em;
-        -fx-max-height: 0.7em;
-        -fx-background-color: white;
-
-        // a thick cross:
-        -fx-shape: "
-          M -0.35,-0.5
-          L -0.5,-0.35
-          L -0.15,0
-          L -0.5,0.35
-          L -0.35,0.5
-          L 0,0.15
-          L 0.35,0.5
-          L 0.5,0.35
-          L 0.15,0
-          L 0.5,-0.35
-          L 0.35,-0.5
-          L 0,-0.15
-          Z
-        ";
-      }
-
-      // marker background graphic:
-      .validation-marker-pane .marker .background {
-        -fx-min-width: 1em;
-        -fx-min-height: 1em;
-        -fx-background-color: red;
-
-        // a circle:
-        -fx-shape: "
-          M 0,0
-          m -0.5,0
-          a 0.5,0.5 0 1,0 1,0
-          a 0.5,0.5 0 1,0 -1,0
-        ";
-
-        -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 1.0), 0.5em, 0.2, 0, 0);
-      }
-      """
-    );
+    return STYLESHEET;
   }
 
   @Override
