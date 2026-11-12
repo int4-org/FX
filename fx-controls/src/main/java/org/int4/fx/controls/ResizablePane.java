@@ -162,22 +162,22 @@ public class ResizablePane extends Region {
 
   @Override
   protected double computeMinWidth(double height) {
-    return snapSizeX((content != null ? content.minWidth(height) : 0) + getInsets().getLeft() + getInsets().getRight());
+    return snapSpaceX((content != null ? snapSizeX(content.minWidth(height)) : 0) + snappedLeftInset() + snappedRightInset());
   }
 
   @Override
   protected double computeMinHeight(double width) {
-    return snapSizeY((content != null ? content.minHeight(width) : 0) + getInsets().getTop() + getInsets().getBottom());
+    return snapSpaceY((content != null ? snapSizeY(content.minHeight(width)) : 0) + snappedTopInset() + snappedBottomInset());
   }
 
   @Override
   protected double computePrefWidth(double height) {
-    return snapSizeX((content != null ? content.prefWidth(height) : 0) + getInsets().getLeft() + getInsets().getRight());
+    return snapSpaceX((content != null ? snapSizeX(content.prefWidth(height)) : 0) + snappedLeftInset() + snappedRightInset());
   }
 
   @Override
   protected double computePrefHeight(double width) {
-    return snapSizeY((content != null ? content.prefHeight(width) : 0) + getInsets().getTop() + getInsets().getBottom());
+    return snapSpaceY((content != null ? snapSizeY(content.prefHeight(width)) : 0) + snappedTopInset() + snappedBottomInset());
   }
 
   @Override
