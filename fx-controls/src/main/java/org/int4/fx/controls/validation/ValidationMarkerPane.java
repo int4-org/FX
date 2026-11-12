@@ -11,10 +11,11 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.text.Font;
 
-import org.int4.fx.builders.Panes;
 import org.int4.fx.controls.marker.AbstractMarkerPane;
 import org.int4.fx.core.event.ValidationEvent;
 import org.int4.fx.core.util.StyleSheets;
+
+import static org.int4.fx.builders.CoreFX.FX;
 
 /**
  * A specialized marker overlay pane that displays validation markers on nodes.
@@ -177,8 +178,8 @@ public class ValidationMarkerPane extends AbstractMarkerPane {
     marker.getStyleClass().add("marker");
 
     marker.getChildren().addAll(
-      Panes.pane("background").ignoreBounds().build(),
-      Panes.pane("foreground").ignoreBounds().build()
+      FX.pane("background").ignoreBounds().build(),
+      FX.pane("foreground").ignoreBounds().build()
     );
 
     putMarker(target, marker);

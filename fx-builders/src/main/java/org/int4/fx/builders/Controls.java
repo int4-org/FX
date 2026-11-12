@@ -25,28 +25,19 @@ import org.int4.fx.builders.custom.CustomNodeBuilder;
 import org.int4.fx.builders.custom.CustomRegionBuilder;
 
 /**
- * Entry point for creating JavaFX control builders.
+ * Builder group for standard JavaFX controls.
  * <p>
- * Builders produced by this class are typically used to declaratively construct
- * JavaFX scene graphs. When builders are passed as children to other builders,
- * there is no need to explicitly call {@code build()}:
- * builders are finalized automatically where required.
- * <p>
- * Child values are interpreted as follows:
- * <ul>
- *   <li>A builder is built and converted into a {@link javafx.scene.Node}.</li>
- *   <li>A {@link javafx.scene.Node} is accepted directly.</li>
- *   <li>A {@link String} is converted into a {@link javafx.scene.control.Label}.</li>
- *   <li>Any other object results in a placeholder node indicating an unsupported type.</li>
- * </ul>
- * <p>
- * Builder methods are named to match the JavaFX properties they manipulate.
- * For boolean properties, builders typically provide both positive and negative
- * convenience methods without parameters, in addition to the standard setter-style
- * method. Builders may also offer higher-level convenience methods that configure
- * multiple commonly used properties together.
+ * This is a mixin interface used to compose custom FX entry points. The
+ * standard all-in-one factory is {@link CoreFX#FX}, and the controls-only
+ * instance is {@link #CONTROLS}. See {@link CoreFX} for shared builder
+ * conventions and build-context behavior.
  */
-public class FX {
+public interface Controls {
+
+  /**
+   * The controls-only builder factory instance.
+   */
+  Controls CONTROLS = new Controls() {};
 
   /**
    * Creates a builder for a {@link javafx.scene.control.Label}, initialising
@@ -57,7 +48,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.Label
    */
-  public static LabelBuilder label(String... styleClasses) {
+  default LabelBuilder label(String... styleClasses) {
     return new LabelBuilder(styleClasses);
   }
 
@@ -70,7 +61,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.Button
    */
-  public static ButtonBuilder button(String... styleClasses) {
+  default ButtonBuilder button(String... styleClasses) {
     return new ButtonBuilder(styleClasses);
   }
 
@@ -83,7 +74,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TextField
    */
-  public static TextFieldBuilder textField(String... styleClasses) {
+  default TextFieldBuilder textField(String... styleClasses) {
     return new TextFieldBuilder(styleClasses);
   }
 
@@ -96,7 +87,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TextArea
    */
-  public static TextAreaBuilder textArea(String... styleClasses) {
+  default TextAreaBuilder textArea(String... styleClasses) {
     return new TextAreaBuilder(styleClasses);
   }
 
@@ -109,7 +100,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.ComboBox
    */
-  public static ComboBoxBuilder.Raw comboBox(String... styleClasses) {
+  default ComboBoxBuilder.Raw comboBox(String... styleClasses) {
     return new ComboBoxBuilder.Raw(styleClasses);
   }
 
@@ -122,7 +113,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.CheckBox
    */
-  public static CheckBoxBuilder checkBox(String... styleClasses) {
+  default CheckBoxBuilder checkBox(String... styleClasses) {
     return new CheckBoxBuilder(styleClasses);
   }
 
@@ -135,7 +126,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.Slider
    */
-  public static SliderBuilder slider(String... styleClasses) {
+  default SliderBuilder slider(String... styleClasses) {
     return new SliderBuilder(styleClasses);
   }
 
@@ -148,7 +139,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.Spinner
    */
-  public static SpinnerBuilder.Raw spinner(String... styleClasses) {
+  default SpinnerBuilder.Raw spinner(String... styleClasses) {
     return new SpinnerBuilder.Raw(styleClasses);
   }
 
@@ -161,7 +152,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.ToggleButton
    */
-  public static ToggleButtonBuilder toggleButton(String... styleClasses) {
+  default ToggleButtonBuilder toggleButton(String... styleClasses) {
     return new ToggleButtonBuilder(styleClasses);
   }
 
@@ -174,7 +165,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.ColorPicker
    */
-  public static ColorPickerBuilder colorPicker(String... styleClasses) {
+  default ColorPickerBuilder colorPicker(String... styleClasses) {
     return new ColorPickerBuilder(styleClasses);
   }
 
@@ -187,7 +178,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.DatePicker
    */
-  public static DatePickerBuilder datePicker(String... styleClasses) {
+  default DatePickerBuilder datePicker(String... styleClasses) {
     return new DatePickerBuilder(styleClasses);
   }
 
@@ -200,7 +191,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.MenuButton
    */
-  public static MenuButtonBuilder menuButton(String... styleClasses) {
+  default MenuButtonBuilder menuButton(String... styleClasses) {
     return new MenuButtonBuilder(styleClasses);
   }
 
@@ -213,7 +204,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.SplitPane
    */
-  public static SplitPaneBuilder splitPane(String... styleClasses) {
+  default SplitPaneBuilder splitPane(String... styleClasses) {
     return new SplitPaneBuilder(styleClasses);
   }
 
@@ -226,7 +217,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.ScrollPane
    */
-  public static ScrollPaneBuilder scrollPane(String... styleClasses) {
+  default ScrollPaneBuilder scrollPane(String... styleClasses) {
     return new ScrollPaneBuilder(styleClasses);
   }
 
@@ -239,7 +230,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TabPane
    */
-  public static TabPaneBuilder tabPane(String... styleClasses) {
+  default TabPaneBuilder tabPane(String... styleClasses) {
     return new TabPaneBuilder(styleClasses);
   }
 
@@ -252,7 +243,7 @@ public class FX {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.control.TitledPane
    */
-  public static TitledPaneBuilder titledPane(String... styleClasses) {
+  default TitledPaneBuilder titledPane(String... styleClasses) {
     return new TitledPaneBuilder(styleClasses);
   }
 
@@ -266,7 +257,7 @@ public class FX {
    * @return a fluent builder, never {@code null}
    * @throws NullPointerException if any argument is {@code null}
    */
-  public static <R extends Region> CustomRegionBuilder<R> customRegion(Supplier<R> regionSupplier, String... styleClasses) {
+  default <R extends Region> CustomRegionBuilder<R> customRegion(Supplier<R> regionSupplier, String... styleClasses) {
     return new CustomRegionBuilder<>(regionSupplier, styleClasses);
   }
 
@@ -280,9 +271,7 @@ public class FX {
    * @return a fluent builder, never {@code null}
    * @throws NullPointerException if any argument is {@code null}
    */
-  public static <N extends Node> CustomNodeBuilder<N> customNode(Supplier<N> nodeSupplier, String... styleClasses) {
+  default <N extends Node> CustomNodeBuilder<N> customNode(Supplier<N> nodeSupplier, String... styleClasses) {
     return new CustomNodeBuilder<>(nodeSupplier, styleClasses);
   }
-
-  private FX() {}
 }

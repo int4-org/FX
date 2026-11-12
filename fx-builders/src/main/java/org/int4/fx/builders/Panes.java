@@ -9,9 +9,19 @@ import org.int4.fx.builders.pane.StackPaneBuilder;
 import org.int4.fx.builders.pane.VBoxBuilder;
 
 /**
- * Entry point for creating builders for JavaFX common layout panes.
+ * Builder group for common JavaFX layout panes.
+ * <p>
+ * This is a mixin interface used to compose custom FX entry points. The
+ * standard all-in-one factory is {@link CoreFX#FX}, and the panes-only
+ * instance is {@link #PANES}. See {@link CoreFX} for shared builder
+ * conventions and build-context behavior.
  */
-public class Panes {
+public interface Panes {
+
+  /**
+   * The panes-only builder factory instance.
+   */
+  Panes PANES = new Panes() {};
 
   /**
    * Creates a builder for a {@link javafx.scene.layout.StackPane}, initialising
@@ -22,7 +32,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.StackPane
    */
-  public static StackPaneBuilder stack(String... styleClasses) {
+  default StackPaneBuilder stack(String... styleClasses) {
     return new StackPaneBuilder(styleClasses);
   }
 
@@ -35,7 +45,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.HBox
    */
-  public static HBoxBuilder hbox(String... styleClasses) {
+  default HBoxBuilder hbox(String... styleClasses) {
     return new HBoxBuilder(styleClasses);
   }
 
@@ -48,7 +58,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.VBox
    */
-  public static VBoxBuilder vbox(String... styleClasses) {
+  default VBoxBuilder vbox(String... styleClasses) {
     return new VBoxBuilder(styleClasses);
   }
 
@@ -61,7 +71,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.GridPane
    */
-  public static GridPaneBuilder grid(String... styleClasses) {
+  default GridPaneBuilder grid(String... styleClasses) {
     return new GridPaneBuilder(styleClasses);
   }
 
@@ -74,7 +84,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.BorderPane
    */
-  public static BorderPaneBuilder border(String... styleClasses) {
+  default BorderPaneBuilder border(String... styleClasses) {
     return new BorderPaneBuilder(styleClasses);
   }
 
@@ -87,7 +97,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.layout.Pane
    */
-  public static PaneBuilder pane(String... styleClasses) {
+  default PaneBuilder pane(String... styleClasses) {
     return new PaneBuilder(styleClasses);
   }
 
@@ -100,9 +110,7 @@ public class Panes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.Group
    */
-  public static GroupBuilder group(String... styleClasses) {
+  default GroupBuilder group(String... styleClasses) {
     return new GroupBuilder(styleClasses);
   }
-
-  private Panes() {}
 }

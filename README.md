@@ -18,11 +18,19 @@ The project is intended for JavaFX developers who value clarity, type safety, an
 
 The library offers builder-style utilities for constructing nodes, panes, scenes, and controls in a concise and readable way.
 
+The standard builder factory is `CoreFX.FX`; import it statically:
+
+```java
+import static org.int4.fx.builders.CoreFX.FX;
+```
+
+The examples below assume this import. Applications can extend `CoreFX` with additional default builder methods and expose their own `FX` field; import that field instead to use the extended builder vocabulary. For narrower imports, use `Controls.CONTROLS`, `Panes.PANES`, or `Shapes.SHAPES` instead.
+
 Example:
 
 ```java
 Scene scene = Scenes.create(
-    Panes.vbox("form").nodes(
+    FX.vbox("form").nodes(
         "Name",
         FX.textField().text(nameProperty),
         FX.button().text("Submit").onAction(e -> submit())
@@ -303,8 +311,8 @@ ObservableValue<Boolean> phoneNumberValid = Observe.booleans(
  * Create the user interface:
  */
 
-Scene scene = Scenes.create(Panes.vbox("root").nodes(
-    Panes.grid("form")
+Scene scene = Scenes.create(FX.vbox("root").nodes(
+    FX.grid("form")
         .row(
             "Trip Type",
             FX.comboBox().model(tripType)
@@ -327,7 +335,7 @@ Scene scene = Scenes.create(Panes.vbox("root").nodes(
         )
         .row(
             "SMS alerts",
-            Panes.hbox().nodes(
+            FX.hbox().nodes(
                 FX.checkBox().model(smsAlerts),
                 FX.textField().enable(smsAlerts).promptText("Phone number").model(phoneNumber)
             )
@@ -351,7 +359,7 @@ Scene scene = Scenes.create(Panes.vbox("root").nodes(
 Key characteristics:
 * Models (`BooleanModel`, `StringModel`, etc.) encapsulate valid value domains and validation rules.
 * `Observe` allows combining multiple observables with `values()`, `booleans()`, and `compute()` to derive reactive values.
-* Fluent builders (`FX`, `Panes`) allow concise creation of controls and layouts.
+* Fluent builders (`FX`, or the grouped `CONTROLS`/`PANES`/`SHAPES` instances) allow concise creation of controls and layouts.
 * Reactive UI: all dependent controls and button enablement update automatically when model values change.
 * Supports conditional visibility, dynamic domains, and cross-field validation.
 

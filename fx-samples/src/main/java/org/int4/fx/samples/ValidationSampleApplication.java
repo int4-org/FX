@@ -7,8 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.stage.Stage;
 
-import org.int4.fx.builders.FX;
-import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
 import org.int4.fx.controls.validation.Marker;
 import org.int4.fx.controls.validation.ValidationIssue;
@@ -19,6 +17,8 @@ import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.StringModel;
+
+import static org.int4.fx.builders.CoreFX.FX;
 
 /**
  * A sample application demonstrating model-driven validation with visual markers.
@@ -56,8 +56,8 @@ public class ValidationSampleApplication extends Application {
 
     Scene scene = Scenes.create(
       ValidationMarkerPane.of().onMarkerCreated(this::installTooltip).content(
-        Panes.vbox("form").nodes(
-          Panes.grid("grid")
+        FX.vbox("form").nodes(
+          FX.grid("grid")
             .row("Name", FX.textField().promptText("Name (e.g. John)").model(name))
             .row("Age", FX.textField().promptText("Age (18-120)").model(age)),
           FX.button().text("Submit")

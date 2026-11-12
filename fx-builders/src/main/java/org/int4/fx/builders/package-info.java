@@ -26,7 +26,7 @@
  *       <li>{@code with(...)} is primarily used by pane builders to add child nodes and
  *           finalize that branch of the scene graph.</li>
  *       <li>{@code of(...)} is a convenience for shape builders to supply mandatory
- *           construction parameters (for example {@code Shapes.circle().of(5.0, Color.WHITE)}),
+ *           construction parameters (for example {@code FX.circle().of(5.0, Color.WHITE)}),
  *           but the same shapes can also be configured using modifier methods followed
  *           by {@code build()}.</li>
  *     </ul>
@@ -65,22 +65,32 @@
  * <p>
  * <b>Typical usage:</b>
  * <pre>{@code
+ * import static org.int4.fx.builders.CoreFX.FX;
+ *
  * FX.textField("from-field")
  *   .promptText("Name")
  *   .model(myModel);
  *
- * Panes.hbox(
+ * FX.hbox(
  *   "Name:",
  *   FX.textField().model(nameModel)
  * );
  * }</pre>
  * <p>
- * The main entry classes in this package are:
+ * The main entry points in this package are:
  * <ul>
- *   <li>{@link org.int4.fx.builders.FX} – factory methods for standard JavaFX controls.</li>
- *   <li>{@link org.int4.fx.builders.Panes} – factory methods for common layout panes.</li>
- *   <li>{@link org.int4.fx.builders.Shapes} – factory methods for JavaFX shapes.</li>
- *   <li>{@link org.int4.fx.builders.Scenes} – utilities for creating scenes.</li>
+ *   <li>{@link org.int4.fx.builders.CoreFX} -- the composite builder interface;
+ *       the standard factory instance is available as {@link org.int4.fx.builders.CoreFX#FX}.</li>
+ *   <li>{@link org.int4.fx.builders.Controls} -- the controls group; also available
+ *       as {@link org.int4.fx.builders.Controls#CONTROLS}.</li>
+ *   <li>{@link org.int4.fx.builders.Panes} -- the layout pane group; also available
+ *       as {@link org.int4.fx.builders.Panes#PANES}.</li>
+ *   <li>{@link org.int4.fx.builders.Shapes} -- the shape group; also available
+ *       as {@link org.int4.fx.builders.Shapes#SHAPES}.</li>
+ *   <li>{@link org.int4.fx.builders.Scenes} -- utilities for creating scenes.</li>
  * </ul>
+ * Applications can extend {@code CoreFX} with additional default builder methods
+ * and expose their own {@code FX} field; import that field instead to use the
+ * extended builder vocabulary.
  */
 package org.int4.fx.builders;

@@ -9,8 +9,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 
-import org.int4.fx.builders.FX;
-import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
 import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.StyleSheets;
@@ -20,6 +18,8 @@ import org.int4.fx.values.model.ChoiceModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.ObjectModel;
 import org.int4.fx.values.model.StringModel;
+
+import static org.int4.fx.builders.CoreFX.FX;
 
 /**
  * Demonstration application showcasing the integration of the {@code fx-builders}
@@ -32,7 +32,7 @@ import org.int4.fx.values.model.StringModel;
  * <p>
  * Key aspects demonstrated by this sample include:
  * <ul>
- *   <li>Declarative UI construction using {@code FX}, {@code Panes}, and {@code Scenes}</li>
+ *   <li>Declarative UI construction using {@code FX} and {@code Scenes}</li>
  *   <li>Domain-driven validation (ranges, regular expressions, applicability)</li>
  *   <li>Dynamic domain updates based on other model values</li>
  *   <li>Automatic enablement and validation feedback for controls</li>
@@ -115,8 +115,8 @@ public class ModelSampleApplication extends Application {
      * Create the user interface:
      */
 
-    Scene scene = Scenes.create(Panes.vbox("root").nodes(
-      Panes.grid("form")
+    Scene scene = Scenes.create(FX.vbox("root").nodes(
+      FX.grid("form")
         .row(
           "Trip Type",
           FX.comboBox().model(tripType)
@@ -139,7 +139,7 @@ public class ModelSampleApplication extends Application {
         )
         .row(
           "SMS alerts",
-          Panes.hbox().nodes(
+          FX.hbox().nodes(
             FX.checkBox().model(smsAlerts),
             FX.textField().enable(smsAlerts).promptText("Phone number").model(phoneNumber)
           )

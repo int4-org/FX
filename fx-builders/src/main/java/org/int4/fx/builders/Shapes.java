@@ -14,28 +14,19 @@ import org.int4.fx.builders.shape.SVGPathBuilder;
 import org.int4.fx.builders.shape.TextBuilder;
 
 /**
- * Entry point for creating JavaFX shape builders.
+ * Builder group for JavaFX shapes.
  * <p>
- * Builders produced by this class are typically used to declaratively construct
- * JavaFX scene graphs. When builders are passed as children to other builders,
- * there is no need to explicitly call {@code build()}:
- * builders are finalized automatically where required.
- * <p>
- * Child values are interpreted as follows:
- * <ul>
- *   <li>A builder is built and converted into a {@link javafx.scene.Node}.</li>
- *   <li>A {@link javafx.scene.Node} is accepted directly.</li>
- *   <li>A {@link String} is converted into a {@link javafx.scene.control.Label}.</li>
- *   <li>Any other object results in a placeholder node indicating an unsupported type.</li>
- * </ul>
- * <p>
- * Builder methods are named to match the JavaFX properties they manipulate.
- * For boolean properties, builders typically provide both positive and negative
- * convenience methods without parameters, in addition to the standard setter-style
- * method. Builders may also offer higher-level convenience methods that configure
- * multiple commonly used properties together.
+ * This is a mixin interface used to compose custom FX entry points. The
+ * standard all-in-one factory is {@link CoreFX#FX}, and the shapes-only
+ * instance is {@link #SHAPES}. See {@link CoreFX} for shared builder
+ * conventions and build-context behavior.
  */
-public class Shapes {
+public interface Shapes {
+
+  /**
+   * The shapes-only builder factory instance.
+   */
+  Shapes SHAPES = new Shapes() {};
 
   /**
    * Creates a builder for an {@link javafx.scene.shape.Arc}, initialising
@@ -46,7 +37,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Arc
    */
-  public static ArcBuilder arc(String... styleClasses) {
+  default ArcBuilder arc(String... styleClasses) {
     return new ArcBuilder(styleClasses);
   }
 
@@ -59,7 +50,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Circle
    */
-  public static CircleBuilder circle(String... styleClasses) {
+  default CircleBuilder circle(String... styleClasses) {
     return new CircleBuilder(styleClasses);
   }
 
@@ -72,7 +63,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.CubicCurve
    */
-  public static CubicCurveBuilder cubicCurve(String... styleClasses) {
+  default CubicCurveBuilder cubicCurve(String... styleClasses) {
     return new CubicCurveBuilder(styleClasses);
   }
 
@@ -85,7 +76,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Ellipse
    */
-  public static EllipseBuilder ellipse(String... styleClasses) {
+  default EllipseBuilder ellipse(String... styleClasses) {
     return new EllipseBuilder(styleClasses);
   }
 
@@ -98,7 +89,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Line
    */
-  public static LineBuilder line(String... styleClasses) {
+  default LineBuilder line(String... styleClasses) {
     return new LineBuilder(styleClasses);
   }
 
@@ -111,7 +102,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Path
    */
-  public static PathBuilder path(String... styleClasses) {
+  default PathBuilder path(String... styleClasses) {
     return new PathBuilder(styleClasses);
   }
 
@@ -124,7 +115,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Polygon
    */
-  public static PolygonBuilder polygon(String... styleClasses) {
+  default PolygonBuilder polygon(String... styleClasses) {
     return new PolygonBuilder(styleClasses);
   }
 
@@ -137,7 +128,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Polyline
    */
-  public static PolylineBuilder polyline(String... styleClasses) {
+  default PolylineBuilder polyline(String... styleClasses) {
     return new PolylineBuilder(styleClasses);
   }
 
@@ -150,7 +141,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.QuadCurve
    */
-  public static QuadCurveBuilder quadCurve(String... styleClasses) {
+  default QuadCurveBuilder quadCurve(String... styleClasses) {
     return new QuadCurveBuilder(styleClasses);
   }
 
@@ -163,7 +154,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.Rectangle
    */
-  public static RectangleBuilder rectangle(String... styleClasses) {
+  default RectangleBuilder rectangle(String... styleClasses) {
     return new RectangleBuilder(styleClasses);
   }
 
@@ -176,7 +167,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.shape.SVGPath
    */
-  public static SVGPathBuilder svgPath(String... styleClasses) {
+  default SVGPathBuilder svgPath(String... styleClasses) {
     return new SVGPathBuilder(styleClasses);
   }
 
@@ -189,9 +180,7 @@ public class Shapes {
    * @throws NullPointerException if any argument is {@code null}
    * @see javafx.scene.text.Text
    */
-  public static TextBuilder text(String... styleClasses) {
+  default TextBuilder text(String... styleClasses) {
     return new TextBuilder(styleClasses);
   }
-
-  private Shapes() {}
 }

@@ -16,11 +16,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.stage.Stage;
 
-import org.int4.fx.builders.FX;
-import org.int4.fx.builders.Panes;
 import org.int4.fx.builders.Scenes;
 import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.StyleSheets;
+
+import static org.int4.fx.builders.CoreFX.FX;
 
 /**
  * Sample application demonstrating the use of the {@code org.int4.fx.builders}
@@ -105,8 +105,8 @@ public class SampleApplication extends Application {
      * Create the user interface:
      */
 
-    Scene scene = Scenes.create(Panes.vbox("root").nodes(
-      Panes.grid("form")
+    Scene scene = Scenes.create(FX.vbox("root").nodes(
+      FX.grid("form")
         .row(
           "Trip Type",
           FX.comboBox().items(List.of("One way", "Return")).value(tripType)
@@ -136,7 +136,7 @@ public class SampleApplication extends Application {
         )
         .row(
           "SMS alerts",
-          Panes.hbox().nodes(
+          FX.hbox().nodes(
             FX.checkBox().value(smsAlerts),
             FX.textField().enable(smsAlerts).promptText("Phone number")
               .styleProvider(phoneNumberValid.map(v -> v ? null : "invalid"))
