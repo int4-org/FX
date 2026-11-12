@@ -15,6 +15,7 @@ import org.int4.fx.values.model.DoubleModel;
 import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Builder for {@link Slider} instances.

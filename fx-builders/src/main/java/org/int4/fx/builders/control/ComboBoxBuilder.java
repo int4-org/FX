@@ -15,6 +15,7 @@ import javafx.scene.control.ListCell;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Abstract base builder for {@link ComboBox} instances.

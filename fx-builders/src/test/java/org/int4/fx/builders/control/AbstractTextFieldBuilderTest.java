@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import org.int4.fx.builders.internal.ModelLinker;
 
 public abstract class AbstractTextFieldBuilderTest<D, M extends Model<D>> extends ControlBuilderTest {
   record Values<T>(T initialValid, T valid, T invalid) {}

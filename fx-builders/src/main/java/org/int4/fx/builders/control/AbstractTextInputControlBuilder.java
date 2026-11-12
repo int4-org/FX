@@ -17,6 +17,7 @@ import org.int4.fx.values.model.IntegerModel;
 import org.int4.fx.values.model.LongModel;
 import org.int4.fx.values.model.StringModel;
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Base builder for {@link TextInputControl} instances.

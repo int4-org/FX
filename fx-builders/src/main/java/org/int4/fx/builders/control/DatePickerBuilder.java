@@ -7,6 +7,7 @@ import javafx.beans.property.Property;
 import javafx.scene.control.DatePicker;
 
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Builder for {@link DatePicker} instances.

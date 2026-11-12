@@ -6,6 +6,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.scene.control.CheckBox;
 
 import org.int4.fx.values.model.BooleanModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Builder for {@link CheckBox} instances.

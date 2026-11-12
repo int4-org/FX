@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.int4.fx.builders.internal.ModelLinker;
 
 public class SliderControlTest extends ControlBuilderTest {
   private IntegerModel model = IntegerModel.of(50, Domain.bounded(0, 100));

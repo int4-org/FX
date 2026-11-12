@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.int4.fx.builders.internal.ModelLinker;
 
 public class ComboBoxControlTest extends ControlBuilderTest {
   private ChoiceModel<String> model = ChoiceModel.withInitial("C", "A", "B", "C", "D", "E");

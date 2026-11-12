@@ -1,4 +1,4 @@
-package org.int4.fx.builders.control;
+package org.int4.fx.builders.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,6 @@ import javafx.util.Subscription;
 
 import org.int4.common.collection.Immutable;
 import org.int4.fx.builders.event.WindowEvent;
-import org.int4.fx.builders.internal.CommitEvent;
-import org.int4.fx.builders.internal.ShowingStateListener;
 import org.int4.fx.core.event.BroadcastHandler;
 import org.int4.fx.core.event.ValidationEvent;
 import org.int4.fx.core.util.Observe;
@@ -74,7 +72,7 @@ import org.int4.fx.values.model.WritableModel;
  * @param <N> the node type
  * @param <T> the model's value type
  */
-final class ModelLinker<N extends Node, T> {
+public final class ModelLinker<N extends Node, T> {
   public static boolean RESPOND_TO_TEST_FOCUS_EVENT;
 
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
@@ -112,7 +110,7 @@ final class ModelLinker<N extends Node, T> {
     });
   }
 
-  static class TestFocusEvent extends Event {
+  public static class TestFocusEvent extends Event {
     public static final EventType<TestFocusEvent> MODIFY = new EventType<>(EventType.ROOT, "modify");
 
     final boolean focused;

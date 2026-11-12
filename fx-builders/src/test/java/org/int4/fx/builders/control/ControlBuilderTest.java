@@ -3,6 +3,7 @@ package org.int4.fx.builders.control;
 import java.util.Set;
 
 import javafx.css.PseudoClass;
+import org.int4.fx.builders.internal.ModelLinker;
 
 public class ControlBuilderTest extends FXTest {
   protected static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");

@@ -7,6 +7,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.ModelLinker;
 
 /**
  * Builder for {@link ColorPicker} instances.
