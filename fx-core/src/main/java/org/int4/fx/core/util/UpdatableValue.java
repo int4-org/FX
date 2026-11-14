@@ -26,10 +26,16 @@ import javafx.beans.value.ObservableValueBase;
  * change notifications are dispatched, ensuring observers always observe a
  * consistent final state.
  * <p>
+ * Updates that do not change the value are ignored. For {@link String} and
+ * boxed primitive values, equality is determined by {@link Object#equals(Object)};
+ * for other values, identity is used.
+ * <p>
  * By default, each update operation triggers notifications immediately after
  * completion. When {@link #batch(Runnable)} is active on the current thread,
  * notifications from multiple update operations are accumulated and delivered
  * as a single consolidated notification phase after the batch completes.
+ * Values restored to their previously notified value during a batch do not
+ * trigger a notification.
  * <p>
  * Batching is thread-local and supports nested batch scopes. Nested batches
  * do not create additional scopes but participate in the existing one.
@@ -114,7 +120,8 @@ public final class UpdatableValue<T> {
   }
 
   /**
-   * Updates the given {@code UpdatableValue} and notifies its observers.
+   * Updates the given {@code UpdatableValue} and notifies its observers if the
+   * value changed.
    *
    * @param <A> the value type
    * @param uva the value to update, must not be {@code null}
@@ -132,7 +139,8 @@ public final class UpdatableValue<T> {
    * <p>
    * All values are updated before any observers are notified, ensuring that
    * observers never observe intermediate or partially updated state across the
-   * affected values.
+   * affected values. Each value only notifies its observers if its final value
+   * differs from its last notified value.
    *
    * @param <A> first value type
    * @param <B> second value type
@@ -158,7 +166,8 @@ public final class UpdatableValue<T> {
    * <p>
    * All values are updated before any observers are notified, ensuring that
    * observers never observe intermediate or partially updated state across the
-   * affected values.
+   * affected values. Each value only notifies its observers if its final value
+   * differs from its last notified value.
    *
    * @param <A> first value type
    * @param <B> second value type
@@ -190,7 +199,8 @@ public final class UpdatableValue<T> {
    * <p>
    * All values are updated before any observers are notified, ensuring that
    * observers never observe intermediate or partially updated state across the
-   * affected values.
+   * affected values. Each value only notifies its observers if its final value
+   * differs from its last notified value.
    *
    * @param <A> first value type
    * @param <B> second value type
@@ -223,10 +233,10 @@ public final class UpdatableValue<T> {
     uvd.fire();
   }
 
-  private final ManualObservableValue<T> observableValue = new ManualObservableValue<>();
+  private final ManualObservableValue<T> observableValue;
 
   UpdatableValue(T initialValue) {
-    set(initialValue);
+    observableValue = new ManualObservableValue<>(initialValue);
   }
 
   /**
@@ -250,7 +260,7 @@ public final class UpdatableValue<T> {
   }
 
   void set(T value) {
-    observableValue.value = value;
+    observableValue.set(value);
   }
 
   void fire() {
@@ -265,10 +275,26 @@ public final class UpdatableValue<T> {
   }
 
   private static final class ManualObservableValue<T> extends ObservableValueBase<T> {
-    T value;
+    private T value;
+    private T lastNotifiedValue;
+
+    ManualObservableValue(T initialValue) {
+      value = initialValue;
+      lastNotifiedValue = initialValue;
+    }
 
     void fire() {
+      if(sameValue(value, lastNotifiedValue)) {
+        return;
+      }
+
+      lastNotifiedValue = value;
+
       fireValueChangedEvent();
+    }
+
+    void set(T value) {
+      this.value = value;
     }
 
     @Override
@@ -279,6 +305,34 @@ public final class UpdatableValue<T> {
     @Override
     public String toString() {
       return "ObservableValue(value=" + value + ")";
+    }
+
+    private static boolean sameValue(Object a, Object b) {
+      if(a == b) {
+        return true;
+      }
+
+      if(a == null || b == null) {
+        return false;
+      }
+
+      if(a.getClass() != b.getClass()) {
+        return false;
+      }
+
+      return isValueType(a) && a.equals(b);
+    }
+
+    private static boolean isValueType(Object value) {
+      return value instanceof String
+        || value instanceof Boolean
+        || value instanceof Byte
+        || value instanceof Short
+        || value instanceof Integer
+        || value instanceof Long
+        || value instanceof Float
+        || value instanceof Double
+        || value instanceof Character;
     }
   }
 }

@@ -2,6 +2,7 @@ package org.int4.fx.core.util;
 
 import java.util.function.BiConsumer;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -49,6 +50,55 @@ class UpdatableValueTest {
       this.count = count;
       this.setter = setter;
     }
+  }
+
+  @ParameterizedTest
+  @EnumSource(Case.class)
+  void shouldNotInvalidateWhenValueIsUnchanged(Case testCase) {
+    @SuppressWarnings("unchecked")
+    UpdatableValue<String>[] values = new UpdatableValue[testCase.count];
+    String[] unchanged = new String[testCase.count];
+    int[] invalidationCount = new int[testCase.count];
+
+    for(int i = 0; i < testCase.count; i++) {
+      final int index = i;
+
+      unchanged[i] = "V" + i;
+      values[i] = UpdatableValue.of(unchanged[i]);
+      values[i].asObservableValue().addListener(obs -> invalidationCount[index]++);
+    }
+
+    testCase.setter.accept(values, unchanged);
+
+    assertThat(invalidationCount).containsOnly(0);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = Case.class, names = {"VALUES_2", "VALUES_3", "VALUES_4"})
+  void shouldOnlyInvalidateChangedValue(Case testCase) {
+    @SuppressWarnings("unchecked")
+    UpdatableValue<String>[] values = new UpdatableValue[testCase.count];
+    String[] initial = new String[testCase.count];
+    String[] updated = new String[testCase.count];
+    int[] invalidationCount = new int[testCase.count];
+
+    for(int i = 0; i < testCase.count; i++) {
+      final int index = i;
+
+      initial[i] = "V" + i;
+      updated[i] = initial[i];
+      values[i] = UpdatableValue.of(initial[i]);
+      values[i].asObservableValue().addListener(obs -> invalidationCount[index]++);
+    }
+
+    updated[1] = "changed";
+    testCase.setter.accept(values, updated);
+
+    int[] expected = new int[testCase.count];
+
+    expected[1] = 1;
+
+    assertThat(invalidationCount).containsExactly(expected);
   }
 
   @ParameterizedTest
@@ -166,5 +216,94 @@ class UpdatableValueTest {
     assertThat(observedConsistencyViolation[0])
       .as("listeners should never observe partially updated state")
       .isFalse();
+  }
+
+  @Test
+  void shouldNotInvalidateWhenStringIsEqualButNotSame() {
+    UpdatableValue<String> value = UpdatableValue.of("V");
+    int[] invalidationCount = {0};
+
+    value.asObservableValue().addListener(obs -> invalidationCount[0]++);
+
+    UpdatableValue.set(value, new String("V"));
+
+    assertThat(invalidationCount[0]).isZero();
+  }
+
+  @Test
+  void shouldUseIdentitySemanticsForNonValueTypes() {
+    record Wrapper(String text) {
+    }
+
+    UpdatableValue<Wrapper> value = UpdatableValue.of(new Wrapper("V"));
+    int[] invalidationCount = {0};
+
+    value.asObservableValue().addListener(obs -> invalidationCount[0]++);
+
+    UpdatableValue.set(value, new Wrapper("V"));
+
+    assertThat(invalidationCount[0]).isOne();
+
+    UpdatableValue.set(value, value.getValue());
+
+    assertThat(invalidationCount[0]).isOne();
+  }
+
+  @Test
+  void shouldNotInvalidateWhenSameValueIsSetInBatch() {
+    UpdatableValue<String> value = UpdatableValue.of("V");
+    int[] invalidationCount = {0};
+
+    value.asObservableValue().addListener(obs -> invalidationCount[0]++);
+
+    UpdatableValue.batch(() -> UpdatableValue.set(value, "V"));
+
+    assertThat(invalidationCount[0]).isZero();
+  }
+
+  @Test
+  void shouldOnlyInvalidateChangedValueInBatch() {
+    UpdatableValue<String> first = UpdatableValue.of("V0");
+    UpdatableValue<String> second = UpdatableValue.of("V1");
+    UpdatableValue<String> third = UpdatableValue.of("V2");
+    int[] invalidationCount = new int[3];
+
+    first.asObservableValue().addListener(obs -> invalidationCount[0]++);
+    second.asObservableValue().addListener(obs -> invalidationCount[1]++);
+    third.asObservableValue().addListener(obs -> invalidationCount[2]++);
+
+    UpdatableValue.batch(() -> UpdatableValue.set(first, "V0", second, "changed", third, "V2"));
+
+    assertThat(invalidationCount).containsExactly(0, 1, 0);
+  }
+
+  @Test
+  void shouldNotInvalidateWhenValueChangesAndRevertsInBatch() {
+    UpdatableValue<String> value = UpdatableValue.of("A");
+    int[] invalidationCount = {0};
+
+    value.asObservableValue().addListener(obs -> invalidationCount[0]++);
+
+    UpdatableValue.batch(() -> {
+      UpdatableValue.set(value, "B");
+      UpdatableValue.set(value, "A");
+    });
+
+    assertThat(invalidationCount[0]).isZero();
+  }
+
+  @Test
+  void shouldNotInvalidateWhenValueChangesAndRevertsToEqualValueInBatch() {
+    UpdatableValue<String> value = UpdatableValue.of("A");
+    int[] invalidationCount = {0};
+
+    value.asObservableValue().addListener(obs -> invalidationCount[0]++);
+
+    UpdatableValue.batch(() -> {
+      UpdatableValue.set(value, "B");
+      UpdatableValue.set(value, new String("A"));
+    });
+
+    assertThat(invalidationCount[0]).isZero();
   }
 }
