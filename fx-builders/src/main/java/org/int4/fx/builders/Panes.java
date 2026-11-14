@@ -1,6 +1,7 @@
 package org.int4.fx.builders;
 
 import org.int4.fx.builders.pane.BorderPaneBuilder;
+import org.int4.fx.builders.pane.FlowPaneBuilder;
 import org.int4.fx.builders.pane.GridPaneBuilder;
 import org.int4.fx.builders.pane.GroupBuilder;
 import org.int4.fx.builders.pane.HBoxBuilder;
@@ -60,6 +61,19 @@ public interface Panes {
    */
   default VBoxBuilder vbox(String... styleClasses) {
     return new VBoxBuilder(styleClasses);
+  }
+
+  /**
+   * Creates a builder for a {@link javafx.scene.layout.FlowPane}, initialising
+   * it with the given style classes.
+   *
+   * @param styleClasses optional style classes, cannot be {@code null} but may be empty
+   * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.layout.FlowPane
+   */
+  default FlowPaneBuilder flow(String... styleClasses) {
+    return new FlowPaneBuilder(styleClasses);
   }
 
   /**
