@@ -9,7 +9,6 @@ import javafx.stage.Window;
 
 import org.mockito.Mockito;
 
-import org.int4.fx.builders.Scenes;
 import org.int4.fx.builders.common.SceneBuilder;
 import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.scene.event.Broadcasts;
