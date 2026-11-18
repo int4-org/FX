@@ -7,8 +7,11 @@
  *   <li>Declarative scene graph construction without manually managing node variables.</li>
  *   <li>Automatic integration with {@link org.int4.fx.values.model.WritableModel} instances for
  *       reactive model-binding.</li>
- *   <li>Binding of common node properties (visibility, enablement, styles) to
- *       {@link javafx.beans.value.ObservableValue} instances.</li>
+ *   <li>Binding of common node properties (enablement, styles) and opt-in
+ *       visibility to {@link javafx.beans.value.ObservableValue} instances.</li>
+ *   <li>Visibility support is provided by
+ *       {@link org.int4.fx.builders.common.Visibility}; builders that do not
+ *       implement it do not expose independent visibility configuration.</li>
  *   <li>Nested builders, where child builders are automatically finalized when added
  *       to a parent builder.</li>
  *   <li>Support for custom nodes and regions via {@code customNode} and {@code customRegion}.</li>

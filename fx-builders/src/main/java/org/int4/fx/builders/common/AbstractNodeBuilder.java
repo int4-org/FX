@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javafx.beans.value.ObservableValue;
@@ -25,16 +26,24 @@ import org.int4.fx.builders.strategy.TextStrategy;
  * Base class for fluent builders that configure JavaFX {@link Node} instances.
  * <p>
  * This builder exposes common node-related configuration options such as
- * visibility, enablement, styling, mouse handling, and event handlers.
+ * enablement, styling, mouse handling, and event handlers.
  * It also integrates with {@link BuildContext} and {@link BuildStrategy} to
  * apply content or children strategies to the constructed nodes.
+ * <p>
+ * Visibility is not part of this base class. Builders that allow their node to
+ * be shown or hidden implement {@link Visibility}; builders that decorate other
+ * content deliberately do not, so their presence can follow the content they
+ * wrap.
  * <p>
  * All methods are fluent and return the concrete builder type.
  *
  * @param <N> the type of {@link Node} being built
  * @param <B> the concrete builder type
  */
-public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNodeBuilder<N, B>> extends AbstractOptionBuilder<N, B> implements NodeBuilder<N> {
+public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNodeBuilder<N, B>>
+  extends AbstractOptionBuilder<N, B>
+  implements NodeBuilder<N>
+{
   private BuildContext context;
 
   /**
@@ -262,44 +271,6 @@ public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNode
   }
 
   /**
-   * Binds the visibility and managed state of the node to the negation of the given condition.
-   * <p>
-   * This is a convenience method equivalent to
-   * {@code visible(when.map(b -> !b))}.
-   *
-   * @param when an observable condition controlling invisibility, cannot be {@code null}
-   * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code when} is {@code null}
-   * @see Node#visibleProperty()
-   * @see Node#managedProperty()
-   */
-  public final B invisible(ObservableValue<Boolean> when) {
-    return visible(when.map(b -> !b));
-  }
-
-  /**
-   * Binds both {@link Node#visibleProperty()} and
-   * {@link Node#managedProperty()} to the given condition.
-   * <p>
-   * When the condition is {@code false}, the node will be hidden and
-   * excluded from layout calculations.
-   *
-   * @param when an observable condition controlling visibility
-   * @return the fluent builder, never {@code null}
-   * @throws NullPointerException if {@code when} is {@code null}
-   * @see Node#visibleProperty()
-   * @see Node#managedProperty()
-   */
-  public final B visible(ObservableValue<Boolean> when) {
-    Objects.requireNonNull(when, "when");
-
-    return apply(n -> {
-      n.managedProperty().bind(when);
-      n.visibleProperty().bind(when);
-    });
-  }
-
-  /**
    * Disables the resulting node.
    *
    * @return the fluent builder, never {@code null}
@@ -445,6 +416,26 @@ public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNode
   }
 
   /**
+   * Wraps this builder in the node created by the given decorator.
+   * <p>
+   * The decorator receives this builder as its content and returns a builder
+   * for the wrapping node. The returned builder is the concrete decorator
+   * builder, so its specific configuration methods remain available.
+   * <p>
+   * The inner builder is resolved when the returned builder is built, using
+   * that builder's {@link BuildContext}.
+   *
+   * @param <M> the type of node created by the decorator
+   * @param <C> the concrete decorator builder type
+   * @param decorator the decorator to apply, cannot be {@code null}
+   * @return the decorator builder, never {@code null}
+   * @throws NullPointerException if {@code decorator} is {@code null}
+   */
+  public final <M extends Node, C extends AbstractNodeBuilder<M, C>> C decorate(Decorator<M, C> decorator) {
+    return Objects.requireNonNull(decorator, "decorator").decorate(self());
+  }
+
+  /**
    * Applies all registered configuration options to the given node.
    * <p>
    * The node-level context (set via {@link #context(BuildContext)}) is merged
@@ -465,6 +456,31 @@ public abstract class AbstractNodeBuilder<N extends Node, B extends AbstractNode
     BuildContext mergedContext = context == null ? parent : parent.merge(context);
 
     return BuildContexts.with(mergedContext, () -> initialize(instance));
+  }
+
+  /**
+   * Creates a node with the given factory and applies all registered
+   * configuration options to it.
+   * <p>
+   * Use this variant when the node cannot be created before some of its input
+   * has been built, for example when content must be supplied to the node's
+   * constructor. The factory is invoked with the merged build context, so it
+   * can build that input under the same context. All registered options are
+   * then applied to the created node under that context.
+   *
+   * @param parentContext a {@link BuildContext}, can be {@code null}
+   * @param instanceFactory a factory that creates the node, cannot be {@code null}
+   * @return the now initialized node for fluent chaining, never {@code null}
+   * @throws NullPointerException if {@code instanceFactory} is {@code null}
+   *   or returns {@code null}
+   */
+  protected final N initialize(BuildContext parentContext, Function<? super BuildContext, ? extends N> instanceFactory) {
+    Objects.requireNonNull(instanceFactory, "instanceFactory");
+
+    BuildContext parent = parentContext == null ? BuildContexts.activeContext() : parentContext;
+    BuildContext mergedContext = context == null ? parent : parent.merge(context);
+
+    return BuildContexts.with(mergedContext, () -> initialize(Objects.requireNonNull(instanceFactory.apply(mergedContext), "instance")));
   }
 
   private static Object resolveBuilder(Object potentialNode) {

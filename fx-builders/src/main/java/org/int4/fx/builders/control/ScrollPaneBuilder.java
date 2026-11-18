@@ -9,7 +9,10 @@ import org.int4.fx.builders.common.AbstractControlBuilder;
 /**
  * Builder for {@link ScrollPane} instances.
  */
-public final class ScrollPaneBuilder extends AbstractControlBuilder<ScrollPane, ScrollPaneBuilder> {
+public final class ScrollPaneBuilder
+  extends AbstractControlBuilder<ScrollPane, ScrollPaneBuilder>
+  implements ScrollPaneOptions<ScrollPaneBuilder>
+{
 
   /**
    * Creates a new builder with optional style classes.
@@ -22,30 +25,10 @@ public final class ScrollPaneBuilder extends AbstractControlBuilder<ScrollPane, 
   }
 
   /**
-   * Configures the scroll pane to fit its content to the available width.
-   *
-   * @return the fluent builder, never {@code null}
-   * @see ScrollPane#fitToWidthProperty()
-   */
-  public ScrollPaneBuilder fitToWidth() {
-    return apply(c -> c.setFitToWidth(true));
-  }
-
-  /**
-   * Configures the scroll pane to fit its content to the available height.
-   *
-   * @return the fluent builder, never {@code null}
-   * @see ScrollPane#fitToHeightProperty()
-   */
-  public ScrollPaneBuilder fitToHeight() {
-    return apply(c -> c.setFitToHeight(true));
-  }
-
-  /**
    * Configures the scroll pane with the given content.
    *
    * @param content a content node or other supported object, cannot be {@code null}
-   * @return the created {@link ScrollPane}, never {@code null}
+   * @return the fluent builder, never {@code null}
    * @throws NullPointerException if {@code content} is {@code null}
    * @see ScrollPane#setContent(javafx.scene.Node)
    */

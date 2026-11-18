@@ -44,6 +44,7 @@ Key characteristics:
 * Style classes can be specified on builder construction.
 * Properties, bindings, and event handlers remain fully accessible.
 * Layout structure is readable top-to-bottom, reflecting the UI hierarchy.
+* Decorators (`decorate(...)`) wrap a builder in another node such as a `ScrollPane` or `ResizablePane`, retaining the wrapper builder's fluent API and following the wrapped content's visibility.
 * Fluent construction allows integration of custom nodes, and/or manipulation of properties not exposed directly.
 * Builders that support content or children accept any object convertible to nodes, such as:
   - Standard JavaFX nodes
@@ -64,6 +65,27 @@ root.getStyleClass().add("form");
 
 Scene scene = new Scene(root);
 ```
+
+### Decorators
+
+Decorators wrap an existing node in another node. Each `decorate` call returns the wrapper's builder, so wrapper-specific methods remain available and the node can be wrapped again:
+
+```java
+import org.int4.fx.builders.control.ScrollPaneDecorator;
+import org.int4.fx.controls.ResizablePaneDecorator;
+
+ResizablePane form = FX.vbox("form")
+    .nodes(
+        FX.label().text("Name"),
+        FX.textField().promptText("Name")
+    )
+    .decorate(ScrollPaneDecorator.INSTANCE)
+    .fitToWidth()
+    .decorate(ResizablePaneDecorator.INSTANCE)
+    .build();
+```
+
+Here the `VBox` is wrapped in a scroll pane, which is then wrapped in a resizable pane. The final `build()` returns the outermost node. Decorator builders derive their visibility and managed state from the wrapped content, so the wrapper disappears when its content does. They do not expose content or visibility configuration; style and wrapper-specific options are set on the returned builder.
 
 ## Value Models and Domains
 

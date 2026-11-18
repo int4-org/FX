@@ -5,12 +5,13 @@ import java.util.Objects;
 import javafx.scene.Group;
 
 import org.int4.fx.builders.common.AbstractNodeBuilder;
+import org.int4.fx.builders.common.Visibility;
 import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Builder for {@link Group} instances.
  */
-public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder> {
+public final class GroupBuilder extends AbstractNodeBuilder<Group, GroupBuilder> implements Visibility<Group, GroupBuilder> {
 
   /**
    * Creates a new builder with optional style classes.

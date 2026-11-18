@@ -13,11 +13,17 @@ import org.int4.fx.builders.context.BuildContext;
 
 /**
  * Base class for builders that create JavaFX {@link Shape} instances.
+ * <p>
+ * Shapes support visibility configuration through {@link Visibility}, allowing
+ * them to be shown or hidden based on an observable condition.
  *
  * @param <T> the concrete {@link Shape} type being built
  * @param <B> the concrete builder type (self type)
  */
-public abstract class AbstractShapeBuilder<T extends Shape, B extends AbstractShapeBuilder<T, B>> extends AbstractNodeBuilder<T, B> {
+public abstract class AbstractShapeBuilder<T extends Shape, B extends AbstractShapeBuilder<T, B>>
+  extends AbstractNodeBuilder<T, B>
+  implements Visibility<T, B>
+{
   private final Supplier<T> instantiator;
 
   /**
