@@ -8,7 +8,7 @@ import javafx.scene.layout.Pane;
  * @param <T> the concrete {@link Pane} type being built
  * @param <B> the concrete builder type (self type)
  */
-public abstract class AbstractPaneBuilder<T extends Pane, B extends AbstractPaneBuilder<T, B>> extends AbstractNodeBuilder<T, B> {
+public abstract class AbstractPaneBuilder<T extends Pane, B extends AbstractPaneBuilder<T, B>> extends AbstractRegionBuilder<T, B> {
 
   /**
    * Creates a new region builder, initializing the resulting region with
