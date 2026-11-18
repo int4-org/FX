@@ -87,6 +87,12 @@ ResizablePane form = FX.vbox("form")
 
 Here the `VBox` is wrapped in a scroll pane, which is then wrapped in a resizable pane. The final `build()` returns the outermost node. Decorator builders derive their visibility and managed state from the wrapped content, so the wrapper disappears when its content does. They do not expose content or visibility configuration; style and wrapper-specific options are set on the returned builder.
 
+## Flex Layout
+
+The `fx-layout` module provides `Flex`, a row/column container whose orientation can be changed at runtime. It supports `Priority.ALWAYS` growth, spacing, alignment, and an aligned mode in which nested rows and columns coordinate their cells like a grid.
+
+See [fx-layout/README.md](fx-layout/README.md) for the full Flex guide and examples.
+
 ## Value Models and Domains
 
 Beyond raw JavaFX properties, the library contains *models* that represent user-editable state together with validation and applicability.

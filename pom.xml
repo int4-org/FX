@@ -16,6 +16,7 @@
     <module>fx-builders</module>
     <module>fx-core</module>
     <module>fx-controls</module>
+    <module>fx-layout</module>
     <module>fx-samples</module>
     <module>fx-scene</module>
     <module>fx-values</module>
