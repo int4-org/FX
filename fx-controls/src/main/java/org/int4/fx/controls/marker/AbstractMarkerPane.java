@@ -103,8 +103,8 @@ public abstract class AbstractMarkerPane extends Region {
      */
 
     Subscription subscription = Subscription.combine(
-      target.localToSceneTransformProperty().subscribe((ov, nv) -> requestLayout()),
-      target.boundsInLocalProperty().subscribe((ov, nv) -> requestLayout()),
+      target.localToSceneTransformProperty().subscribe((ov, nv) -> setNeedsLayout(true)),
+      target.boundsInLocalProperty().subscribe((ov, nv) -> setNeedsLayout(true)),
       target.sceneProperty().subscribe(v -> {
         if(v == null) {
           removeMarker(target);
@@ -121,6 +121,8 @@ public abstract class AbstractMarkerPane extends Region {
 
     markers.put(target, new Marker(marker, subscription));
     overlay.getChildren().add(marker);
+
+    setNeedsLayout(true);
   }
 
   /**
