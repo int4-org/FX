@@ -1,8 +1,13 @@
 package org.int4.fx.values.model;
 
+import java.util.Objects;
+import java.util.function.Function;
+
 import javafx.beans.value.ObservableValue;
 
+import org.int4.common.collection.Immutable;
 import org.int4.fx.core.util.RawValue;
+import org.int4.fx.core.util.Template;
 
 /**
  * A stateful, observable model that exposes a current value and its applicability.
@@ -75,4 +80,39 @@ public interface ObservableModel<T> extends ObservableValue<T> {
    */
   ObservableValue<RawValue<T>> rawValue();
 
+  @Override
+  default ObservableModel<T> orElse(T constant) {
+    return new ObservableModelBase<>(
+      applicable(),
+      rawValue().map(rv -> switch(rv) {
+        case RawValue.Valid(T v) when v == null -> RawValue.valid(constant);
+        case RawValue.Invalid(T v, Template reason) when v == null -> RawValue.invalid(constant, reason);
+        default -> rv;
+      })
+    );
+  }
+
+  @Override
+  default <U> ObservableModel<U> map(Function<? super T, ? extends U> mapper) {
+    Objects.requireNonNull(mapper, "mapper");
+
+    return new ObservableModelBase<>(
+      applicable(),
+      rawValue().map(rv -> {
+        try {
+          return switch(rv) {
+            case RawValue.Valid(T v) -> RawValue.valid(v == null ? null : mapper.apply(v));
+            case RawValue.Invalid(T v, Template reason) -> RawValue.invalid(v == null ? null : mapper.apply(v), reason);
+            case RawValue.Incompatible(Template reason) -> RawValue.incompatible(reason);
+          };
+        }
+        catch(Exception e) {
+          return RawValue.incompatible(Template.of(
+            "conversion.mapperException",
+            Immutable.sequencedMap("exception", e)
+          ));
+        }
+      })
+    );
+  }
 }
