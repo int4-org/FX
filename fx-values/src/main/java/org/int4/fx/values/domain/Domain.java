@@ -259,7 +259,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * Creates a new integer domain with the given minimum and maximum values.
    * <p>
    * The returned domain exposes an {@link IndexedView} enumerating the
-   * allowed integers (including both ends) and a {@link StepperView}
+   * allowed integers (including both ends), a {@link ContinuousView} and a {@link StepperView}
    * implementing logical stepping semantics.
    * <p>
    * If a value is outside the range, the failure reason is provided by
@@ -278,7 +278,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * Creates a new stepped integer domain with the given minimum and maximum values.
    * <p>
    * The returned domain exposes an {@link IndexedView} enumerating the
-   * allowed integers (including both ends) and a {@link StepperView}
+   * allowed integers (including both ends), a {@link ContinuousView} and a {@link StepperView}
    * implementing logical stepping semantics. The supplied {@code step}
    * value must be positive and align with the range boundaries.
    * <p>
@@ -370,7 +370,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * Creates a new long domain with the given minimum and maximum values.
    * <p>
    * The returned domain exposes an {@link IndexedView} enumerating the
-   * allowed longs (including both ends) and a {@link StepperView}
+   * allowed longs (including both ends), a {@link ContinuousView} and a {@link StepperView}
    * implementing logical stepping semantics.
    * <p>
    * If a value is outside the range, the failure reason is provided by
@@ -389,7 +389,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * Creates a new stepped long domain with the given minimum and maximum values.
    * <p>
    * The returned domain exposes an {@link IndexedView} enumerating the
-   * allowed longs (including both ends) and a {@link StepperView}
+   * allowed longs (including both ends), a {@link ContinuousView} and a {@link StepperView}
    * implementing logical stepping semantics. The supplied {@code step}
    * value must be positive and align with the range boundaries.
    * <p>
@@ -480,7 +480,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
   /**
    * Creates a new stepped double domain with the given minimum and maximum values.
    * <p>
-   * The returned domain exposes an {@link IndexedView} and a {@link StepperView}.
+   * The returned domain exposes an {@link IndexedView}, {@link ContinuousView} and a {@link StepperView}.
    * The supplied {@code step} value must be positive.
    * <p>
    * If a value is outside the range, the failure reason is provided by
