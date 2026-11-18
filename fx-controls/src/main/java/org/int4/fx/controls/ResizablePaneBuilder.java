@@ -1,7 +1,5 @@
 package org.int4.fx.controls;
 
-import javafx.scene.control.ScrollPane;
-
 import org.int4.fx.builders.common.AbstractRegionBuilder;
 import org.int4.fx.builders.context.BuildContext;
 
@@ -24,8 +22,8 @@ public final class ResizablePaneBuilder extends AbstractRegionBuilder<ResizableP
    * Creates the resizable pane with the given content.
    *
    * @param content a content node or ResizablePane supported object, cannot be {@code null}
-   * @return the created {@link ScrollPane}, never {@code null}
-   * @throws IllegalArgumentException if {@code content} is {@code null}
+   * @return the fluent builder, never {@code null}
+   * @throws NullPointerException if {@code content} is {@code null}
    * @see ResizablePane#setContent(javafx.scene.Node)
    */
   public ResizablePaneBuilder content(Object content) {
