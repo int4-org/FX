@@ -4,6 +4,13 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 
 // TODO not quite "transparent" for CSS descendant selector for now
+/**
+ * A {@link Parent} that wraps a node and combines its own visibility and
+ * managed state with that of the wrapped node.
+ * <p>
+ * This allows a control to be hidden or excluded from layout without changing
+ * the control's own properties, which may be bound to a model.
+ */
 public class VisibilityProxy extends Parent {
   private final Node delegate;
 
@@ -13,6 +20,11 @@ public class VisibilityProxy extends Parent {
   private boolean wrapperVisible;
   private boolean wrapperManaged;
 
+  /**
+   * Constructs a new instance wrapping the supplied node.
+   *
+   * @param delegate the node to wrap, cannot be {@code null}
+   */
   public VisibilityProxy(Node delegate) {
     this.delegate = delegate;
 
@@ -22,12 +34,24 @@ public class VisibilityProxy extends Parent {
     delegate.managedProperty().subscribe(this::updateEffectiveManaged);
   }
 
+  /**
+   * Sets whether the wrapper itself wants to be visible. The effective
+   * visibility is the wrapper's and the delegate's visibility combined.
+   *
+   * @param visible whether the wrapper is visible
+   */
   public void setWrapperVisible(boolean visible) {
     this.wrapperVisible = visible;
 
     updateEffectiveVisibility(delegate.isVisible());
   }
 
+  /**
+   * Sets whether the wrapper itself wants to participate in layout. The
+   * effective managed state is the wrapper's and the delegate's combined.
+   *
+   * @param managed whether the wrapper is managed
+   */
   public void setWrapperManaged(boolean managed) {
     this.wrapperManaged = managed;
 

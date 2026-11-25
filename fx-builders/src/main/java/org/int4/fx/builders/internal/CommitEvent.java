@@ -8,6 +8,10 @@ import javafx.event.EventType;
  * models, despite having the focus.
  */
 public class CommitEvent extends Event {
+
+  /**
+   * The event type for commit requests.
+   */
   public static final EventType<CommitEvent> COMMIT = new EventType<>(Event.ANY, "COMMIT");
 
   /**
