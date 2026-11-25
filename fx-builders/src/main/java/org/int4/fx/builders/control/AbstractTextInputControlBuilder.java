@@ -184,8 +184,8 @@ public abstract class AbstractTextInputControlBuilder<C extends TextInputControl
       })
     );
 
-    linker.onDomainChanged(d -> {
-      if(d.equals(Domain.inapplicable())) {
+    linker.onTransition(t -> {
+      if(t.successor().equals(Domain.inapplicable())) {
         node.setText(null);
       }
     });

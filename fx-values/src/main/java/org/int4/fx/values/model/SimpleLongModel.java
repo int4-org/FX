@@ -1,11 +1,11 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 class SimpleLongModel extends ModelBase<Long> implements LongModel {
 
-  SimpleLongModel(Long initialValue, Domain<Long> domain) {
-    super(initialValue, domain);
+  SimpleLongModel(Long initialValue, DomainSource<Long> source) {
+    super(initialValue, source);
   }
 
   @Override

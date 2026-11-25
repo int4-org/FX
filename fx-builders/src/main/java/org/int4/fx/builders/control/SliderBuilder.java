@@ -221,7 +221,7 @@ public final class SliderBuilder extends AbstractControlBuilder<Slider, SliderBu
         }
       });
 
-      linker.onDomainChanged(d -> applyLimits(node, d, toPosition));
+      linker.onTransition(t -> applyLimits(node, t.successor(), toPosition));
     });
   }
 

@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 import javafx.beans.property.Property;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.scene.control.ComboBox;
@@ -13,8 +14,8 @@ import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.ListCell;
 
 import org.int4.fx.core.util.RawValue;
-import org.int4.fx.values.domain.IndexedView;
 import org.int4.fx.values.model.WritableModel;
+import org.int4.fx.builders.internal.DomainListBridge;
 import org.int4.fx.builders.internal.ModelLinker;
 
 /**
@@ -77,11 +78,9 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
     Objects.requireNonNull(items, "items");
 
     return builder.apply(c -> {
-      if(builder.comparator != null) {
-        c.setItems(new SortedList<>(c.getItems(), builder.comparator));
-      }
+      ObservableList<T> list = FXCollections.observableArrayList(items);
 
-      c.getItems().setAll(items);
+      c.setItems(builder.comparator == null ? list : new SortedList<>(list, builder.comparator));
     });
   }
 
@@ -162,11 +161,11 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * Populates the items from the model's domain and keeps the control's selection
      * synchronized with the model value.
      * <p>
-     * The model is expected to expose an {@link IndexedView} via its domain; if no
+     * The model is expected to expose an {@link org.int4.fx.values.domain.IndexedView} via its domain; if no
      * such view is present, the control's items list will be empty.
      * <p>
      * In most cases this method is used with a {@link org.int4.fx.values.model.ChoiceModel}, but any
-     * {@link WritableModel} providing an {@link IndexedView} is supported.
+     * {@link WritableModel} providing an {@link org.int4.fx.values.domain.IndexedView} is supported.
      * <p>
      * This method establishes the concrete type of the builder.
      *
@@ -176,7 +175,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
      * @throws NullPointerException if {@code model} is {@code null}
      * @see org.int4.fx.values.model.ChoiceModel
      * @see WritableModel
-     * @see IndexedView
+     * @see org.int4.fx.values.domain.IndexedView
      */
     public final <T> Typed<T> model(WritableModel<T> model) {
       return model(toTyped(), model);
@@ -230,22 +229,46 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
     }
 
     /**
+     * Sets the items from a fixed list.
+     *
+     * @param items the items to set, cannot be {@code null} but can be empty
+     * @return the fluent builder, never {@code null}
+     * @throws NullPointerException if {@code items} is {@code null}
+     */
+    public Typed<T> items(List<T> items) {
+      return items(this, items);
+    }
+
+    /**
+     * Sets the items from an observable list.
+     * <p>
+     * The list is used directly, so changes to it are reflected in the control.
+     *
+     * @param items the observable items list, cannot be {@code null} but can be empty
+     * @return the fluent builder, never {@code null}
+     * @throws NullPointerException if {@code items} is {@code null}
+     */
+    public Typed<T> items(ObservableList<T> items) {
+      return items(this, items);
+    }
+
+    /**
      * Populates the items from the model's domain and keeps the control's selection
      * synchronized with the model value.
      * <p>
-     * The model is expected to expose an {@link IndexedView} via its domain; if no
+     * The model is expected to expose an {@link org.int4.fx.values.domain.IndexedView} via its domain; if no
      * such view is present, the control's items list will be empty.
      * <p>
      * In most cases this method is used with a
      * {@link org.int4.fx.values.model.ChoiceModel}, but any
-     * {@link WritableModel} providing an {@link IndexedView} is supported.
+     * {@link WritableModel} providing an {@link org.int4.fx.values.domain.IndexedView} is supported.
      *
      * @param model the value model backing this control; cannot be {@code null}
      * @return the fluent builder, never {@code null}
      * @throws NullPointerException if {@code model} is {@code null}
      * @see org.int4.fx.values.model.ChoiceModel
      * @see WritableModel
-     * @see IndexedView
+     * @see org.int4.fx.values.domain.IndexedView
      */
     public Typed<T> model(WritableModel<T> model) {
       return model(this, model);
@@ -294,12 +317,9 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
     Objects.requireNonNull(model, "model");
 
     return builder.apply(node -> {
-      ObservableList<T> items = node.getItems();
+      DomainListBridge<T> items = DomainListBridge.of(model.getDomain());
 
-      if(builder.comparator != null) {
-        // hard replace the list with our own sorted list:
-        node.setItems(new SortedList<>(items, builder.comparator));
-      }
+      node.setItems(builder.comparator == null ? items : new SortedList<>(items, builder.comparator));
 
       ModelLinker<ComboBox<T>, T> linker = ModelLinker.sync(
         node,
@@ -312,17 +332,13 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
 
       node.valueProperty().subscribe((ov, nv) -> linker.push(nv));
 
-      // React to domain changes:
-      linker.onDomainChanged(d -> {
+      linker.onTransition(t -> {
 
         /*
-         * Note: setAll may trigger a change in selected item and/or index, so this must be
-         * wrapped in a doModelInitiatedChange as otherwise these indirect changes would be
-         * interpreted as a user interaction (which would make the field dirty).
-         *
-         * Note: ComboBox is somewhat unpredictable (it internally has some odd state tracking that
-         * looks like a bug as it only happens when the control is still fresh). Explicitely
-         * putting it in a known state before changing its items makes this a lot more predictable:
+         * Item changes can clear the selection when the selected value is no longer
+         * present. Clearing it explicitly first keeps the selected index predictable,
+         * and restoring the value afterwards keeps an out-of-domain input visible when
+         * the control is dirty; the model value is applied afterwards when it is not.
          */
 
         T value = node.getValue();
@@ -330,10 +346,7 @@ public abstract class ComboBoxBuilder<C extends ComboBox<?>, B extends ComboBoxB
         node.getSelectionModel().clearSelection();
         node.setValue(null);
 
-        items.setAll(switch(d.view(IndexedView.class)) {
-          case IndexedView<T> iv -> iv.asList();
-          default -> List.of();
-        });
+        items.apply(t);
 
         // Restore correct state:
         node.setValue(model.isApplicable() ? value : null);

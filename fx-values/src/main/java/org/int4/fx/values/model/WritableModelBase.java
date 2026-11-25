@@ -4,20 +4,31 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import javafx.beans.value.ObservableValue;
+import javafx.util.Subscription;
 
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.core.util.UpdatableValue;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSource.DomainTransition;
+import org.int4.fx.values.domain.Edit;
 import org.int4.fx.values.domain.Membership;
 
 abstract class WritableModelBase<T> extends ObservableModelBase<T> implements WritableModel<T> {
-  private final UpdatableValue<Domain<T>> domain = UpdatableValue.of();
+  private final UpdatableValue<DomainTransition<T>> transition = UpdatableValue.of();
   private final UpdatableValue<Boolean> valid = UpdatableValue.of();
   private final UpdatableValue<Boolean> applicable;
   private final UpdatableValue<RawValue<T>> rawValue;
 
-  WritableModelBase(T initialValue, Domain<T> initialDomain) {
+  private DomainSource<T> source;
+  private Subscription sourceSubscription = Subscription.EMPTY;
+
+  WritableModelBase(T initialValue, DomainSource<T> source) {
+    Objects.requireNonNull(source, "source");
+
+    this.source = source;
+
     UpdatableValue<Boolean> applicable = UpdatableValue.of();
     UpdatableValue<RawValue<T>> rawValue = UpdatableValue.of();
 
@@ -26,14 +37,17 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
     this.applicable = applicable;
     this.rawValue = rawValue;
 
+    Domain<T> initialDomain = source.get();
     RawValue<T> newRawValue = evaluateValue(initialDomain, initialValue);
 
     UpdatableValue.set(
-      domain, initialDomain,
+      transition, new DomainTransition<>(null, initialDomain, new Edit.Replaced<>()),
       applicable, !initialDomain.equals(Domain.inapplicable()),
       valid, determineValidity(initialDomain, newRawValue),
       rawValue, newRawValue
     );
+
+    sourceSubscription = source.transitions(this::onTransition);
   }
 
   @Override
@@ -42,25 +56,28 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
   }
 
   @Override
-  public final void setValue(T newValue) {
-    update(getDomain(), newValue);
+  public final ObservableValue<DomainTransition<T>> transitions() {
+    return transition.asObservableValue();
+  }
+
+  final void bindSource(DomainSource<T> source) {
+    Objects.requireNonNull(source, "source");
+
+    if(source == this.source) {
+      return;
+    }
+
+    sourceSubscription.unsubscribe();
+
+    this.source = source;
+    this.sourceSubscription = source.transitions(this::onTransition);
+
+    updateDomain(source.get());
   }
 
   @Override
-  public final ObservableValue<Domain<T>> domain() {
-    return domain.asObservableValue();
-  }
-
-  final void updateDomain(Domain<T> domain) {
-    Objects.requireNonNull(domain, "domain");
-
-    update(
-      domain,
-      switch(getRawValue()) {
-        case RawValue.Incompatible<T> i -> i;
-        case RawValue<T> rv -> evaluateValue(domain, rv.orElseThrow());
-      }
-    );
+  public final void setValue(T newValue) {
+    publish(evaluateValue(getDomain(), newValue));
   }
 
   @Override
@@ -71,12 +88,57 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
     RawValue<T> current = getRawValue();
 
     if(!Objects.equals(current, convertedValue)) {
-      update(getDomain(), convertedValue);
+      publish(convertedValue);
 
       return !(convertedValue instanceof RawValue.Incompatible);
     }
 
     return false;
+  }
+
+  final void updateDomain(Domain<T> domain) {
+    Objects.requireNonNull(domain, "domain");
+
+    Domain<T> previous = getDomain();
+
+    if(domain == previous) {
+      return;  // no change
+    }
+
+    RawValue<T> newRawValue = reevaluate(domain);
+
+    UpdatableValue.set(
+      transition, new DomainTransition<>(previous, domain, new Edit.Replaced<>()),
+      applicable, !domain.equals(Domain.inapplicable()),
+      valid, determineValidity(domain, newRawValue),
+      rawValue, newRawValue
+    );
+  }
+
+  private void onTransition(DomainTransition<T> transition) {
+    Domain<T> domain = transition.successor();
+    RawValue<T> newRawValue = reevaluate(domain);
+
+    UpdatableValue.set(
+      this.transition, transition,
+      applicable, !domain.equals(Domain.inapplicable()),
+      valid, determineValidity(domain, newRawValue),
+      rawValue, newRawValue
+    );
+  }
+
+  private void publish(RawValue<T> newRawValue) {
+    UpdatableValue.set(
+      valid, determineValidity(getDomain(), newRawValue),
+      rawValue, newRawValue
+    );
+  }
+
+  private RawValue<T> reevaluate(Domain<T> domain) {
+    return switch(getRawValue()) {
+      case RawValue.Incompatible<T> i -> i;
+      case RawValue<T> rv -> evaluateValue(domain, rv.orElseThrow());
+    };
   }
 
   private <U> RawValue<T> convert(U value, Function<U, T> converter, Template template) {
@@ -86,19 +148,6 @@ abstract class WritableModelBase<T> extends ObservableModelBase<T> implements Wr
     catch(Exception e) {
       return RawValue.incompatible(template);
     }
-  }
-
-  private void update(Domain<T> newDomain, T newValue) {
-    update(newDomain, evaluateValue(newDomain, newValue));
-  }
-
-  private void update(Domain<T> newDomain, RawValue<T> newRawValue) {
-    UpdatableValue.set(
-      domain, newDomain,
-      applicable, !newDomain.equals(Domain.inapplicable()),
-      valid, determineValidity(newDomain, newRawValue),
-      rawValue, newRawValue
-    );
   }
 
   private RawValue<T> evaluateValue(Domain<T> domain, T newValue) {

@@ -43,6 +43,11 @@ final class InapplicableDomain<T> implements Domain<T> {
   }
 
   @Override
+  public <E extends Editor<T>> E requireEditor(Class<?> editorClass) {
+    throw new IllegalStateException("Domain does not support editor: " + editorClass.getSimpleName());
+  }
+
+  @Override
   public String toString() {
     return "Domain[inapplicable]";
   }

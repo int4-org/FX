@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing a double-precision floating-point value with optional bounds.
@@ -65,7 +67,20 @@ public interface DoubleModel extends Model<Double> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static DoubleModel of(Double initialValue, Domain<Double> domain) {
-    return new SimpleDoubleModel(initialValue, domain);
+    return new SimpleDoubleModel(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates a double model with the specified initial value, backed by the
+   * supplied domain source.
+   *
+   * @param initialValue the initial value, may be {@code null} if the source's domain allows
+   * @param source the domain source, cannot be {@code null}
+   * @return a new double model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static DoubleModel of(Double initialValue, DomainSource<Double> source) {
+    return new SimpleDoubleModel(initialValue, source);
   }
 
   /**

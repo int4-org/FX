@@ -11,6 +11,7 @@ import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.core.util.UpdatableValue;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSources;
 import org.int4.fx.values.domain.Membership;
 import org.int4.fx.values.domain.Rule;
 
@@ -23,7 +24,7 @@ class SimpleMultiChoiceModel<T> extends WritableModelBase<List<T>> implements Mu
     Objects.requireNonNull(compositeDomain, "compositeDomain");
     Objects.requireNonNull(elementDomain, "elementDomain");
 
-    super(initialValue, createEffectiveDomain(compositeDomain, elementDomain));
+    super(initialValue, DomainSources.of(createEffectiveDomain(compositeDomain, elementDomain)));
 
     this.compositeDomain = UpdatableValue.of(compositeDomain);
     this.elementDomain = UpdatableValue.of(elementDomain);

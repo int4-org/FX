@@ -6,13 +6,15 @@ import javafx.beans.value.ObservableValue;
 
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 /**
  * A {@code WritableModel} extends {@link ObservableModel} with support for
  * validation and value mutation, while exposing a read-only view of its
  * associated {@link Domain}.
  * <p>
- * Use {@link Model} when the domain itself must also be writable.
+ * Use {@link Model} when the model must also be able to replace the domain
+ * source it follows.
  * <p>
  * <strong>Value semantics:</strong>
  * <ul>
@@ -33,17 +35,22 @@ public interface WritableModel<T> extends ObservableModel<T> {
    * @return the current domain, never {@code null}
    */
   default Domain<T> getDomain() {
-    return domain().getValue();
+    return transitions().getValue().successor();
   }
 
   /**
-   * The observable domain value of this model.
+   * The observable domain transitions of this model.
+   * <p>
+   * The value is published atomically with the model's value, validity and
+   * applicability, so observers always see a consistent snapshot. The initial
+   * value is a transition from {@code null} to the model's initial domain with
+   * an {@link org.int4.fx.values.domain.Edit.Replaced} edit.
    * <p>
    * Changes to the domain may affect the validity of the current value.
    *
-   * @return an observable value containing the current domain, never {@code null}
+   * @return an observable value containing the last domain transition, never {@code null}
    */
-  ObservableValue<Domain<T>> domain();
+  ObservableValue<DomainSource.DomainTransition<T>> transitions();
 
   /**
    * Returns {@code true} if this model is currently invalid.

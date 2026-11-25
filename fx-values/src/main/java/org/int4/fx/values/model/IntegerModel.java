@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing an integer value with optional bounds.
@@ -77,7 +79,20 @@ public interface IntegerModel extends Model<Integer> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static IntegerModel of(Integer initialValue, Domain<Integer> domain) {
-    return new SimpleIntegerModel(initialValue, domain);
+    return new SimpleIntegerModel(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates an integer model with the specified initial value, backed by the
+   * supplied domain source.
+   *
+   * @param initialValue the initial value, may be {@code null} if the source's domain allows
+   * @param source the domain source, cannot be {@code null}
+   * @return a new integer model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static IntegerModel of(Integer initialValue, DomainSource<Integer> source) {
+    return new SimpleIntegerModel(initialValue, source);
   }
 
   /**

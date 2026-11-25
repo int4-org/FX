@@ -1,11 +1,11 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 class SimpleBooleanModel extends ModelBase<Boolean> implements BooleanModel {
 
-  SimpleBooleanModel(Boolean initialValue, Domain<Boolean> domain) {
-    super(initialValue, domain);
+  SimpleBooleanModel(Boolean initialValue, DomainSource<Boolean> source) {
+    super(initialValue, source);
   }
 
   @Override

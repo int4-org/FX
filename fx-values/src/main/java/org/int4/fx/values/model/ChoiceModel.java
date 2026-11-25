@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing a value selected from a fixed set of allowed values.
@@ -74,6 +76,33 @@ public interface ChoiceModel<T> extends ObjectModel<T> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static <T> ChoiceModel<T> of(T initialValue, Domain<T> domain) {
-    return new SimpleChoiceModel<>(initialValue, domain);
+    return new SimpleChoiceModel<>(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates a choice model with the given initial value, backed by the supplied
+   * domain source.
+   *
+   * @param initialValue the initial selected value, may be {@code null} if the source's domain allows
+   * @param source the domain source, cannot be {@code null}
+   * @param <T> the value type
+   * @return a new choice model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static <T> ChoiceModel<T> of(T initialValue, DomainSource<T> source) {
+    return new SimpleChoiceModel<>(initialValue, source);
+  }
+
+  /**
+   * Creates a choice model backed by the given domain source, with an initial
+   * value of {@code null}.
+   *
+   * @param <T> the value type
+   * @param source the domain source, cannot be {@code null}
+   * @return a new choice model with {@code null} as the initial value
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static <T> ChoiceModel<T> of(DomainSource<T> source) {
+    return of(null, source);
   }
 }

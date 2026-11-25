@@ -371,10 +371,10 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
         }
       });
 
-      linker.onDomainChanged(d -> {
+      linker.onTransition(t -> {
         String oldRawValue = node.getEditor().getText();
 
-        SpinnerValueFactory<T> vf = switch(d.view(StepperView.class, IndexedView.class)) {
+        SpinnerValueFactory<T> vf = switch(t.successor().view(StepperView.class, IndexedView.class)) {
           case StepperView<T> sv -> new SimpleValueFactory<>() {
             @Override
             public void increment(int steps) {
@@ -420,7 +420,7 @@ public abstract class SpinnerBuilder<C extends Spinner<?>, B extends SpinnerBuil
          * means there is no value factory) then the editor is set to null.
          */
 
-        if(d.equals(Domain.inapplicable())) {
+        if(t.successor().equals(Domain.inapplicable())) {
           node.getEditor().setText(null);
         }
         else {

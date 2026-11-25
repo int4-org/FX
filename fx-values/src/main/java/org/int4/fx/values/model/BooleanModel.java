@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing a boolean value.
@@ -50,7 +52,20 @@ public interface BooleanModel extends Model<Boolean> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   public static BooleanModel of(boolean initialValue, Domain<Boolean> domain) {
-    return new SimpleBooleanModel(initialValue, domain);
+    return new SimpleBooleanModel(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates a boolean model with the specified initial value, backed by the
+   * supplied domain source.
+   *
+   * @param initialValue the initial value
+   * @param source the domain source, cannot be {@code null}
+   * @return a new boolean model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  public static BooleanModel of(boolean initialValue, DomainSource<Boolean> source) {
+    return new SimpleBooleanModel(initialValue, source);
   }
 
   /**

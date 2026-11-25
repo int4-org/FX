@@ -1,11 +1,11 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 class SimpleIntegerModel extends ModelBase<Integer> implements IntegerModel {
 
-  SimpleIntegerModel(Integer initialValue, Domain<Integer> domain) {
-    super(initialValue, domain);
+  SimpleIntegerModel(Integer initialValue, DomainSource<Integer> source) {
+    super(initialValue, source);
   }
 
   @Override

@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing a single object value of type {@code T}.
@@ -88,7 +90,34 @@ public interface ObjectModel<T> extends Model<T> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static <T> ObjectModel<T> of(T initialValue, Domain<T> domain) {
-    return new SimpleObjectModel<>(initialValue, domain);
+    return new SimpleObjectModel<>(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates an object model with the given initial value, backed by the
+   * supplied domain source.
+   *
+   * @param <T> the value type
+   * @param initialValue the initial value, may be {@code null}
+   * @param source the domain source, cannot be {@code null}
+   * @return a new object model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static <T> ObjectModel<T> of(T initialValue, DomainSource<T> source) {
+    return new SimpleObjectModel<>(initialValue, source);
+  }
+
+  /**
+   * Creates an object model backed by the given domain source, with an initial
+   * value of {@code null}.
+   *
+   * @param <T> the value type
+   * @param source the domain source, cannot be {@code null}
+   * @return a new object model with {@code null} as the initial value
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static <T> ObjectModel<T> of(DomainSource<T> source) {
+    return of(null, source);
   }
 
   /**

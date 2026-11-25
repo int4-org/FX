@@ -1,7 +1,6 @@
 package org.int4.fx.values.domain;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -27,7 +26,7 @@ import org.int4.fx.core.util.Template;
  *
  * @param <T> the value type governed by this domain
  */
-public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
+public sealed interface Domain<T> permits NormalDomain, InapplicableDomain, ListDomain {
 
   /**
    * Creates a {@link Domain} that validates strings against the supplied
@@ -160,8 +159,9 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
   }
 
   /**
-   * Creates an enumerated domain backed by the supplied list. The list should
-   * not be modified. Behavior is undefined if the list is modified.
+   * Creates an enumerated domain backed by the supplied list. The list is
+   * copied, so later modifications to the supplied list do not affect the
+   * returned domain.
    * <p>
    * If a value is not among the items, the failure reason is provided by
    * {@link DomainTemplates#notContained(List)}.
@@ -172,35 +172,7 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * @throws NullPointerException if {@code items} is {@code null}
    */
   static <T> Domain<T> from(List<T> items) {
-    List<T> readOnlyItems = Collections.unmodifiableList(Objects.requireNonNull(items, "items"));
-
-    return new NormalDomain<>(
-      Rule.of(readOnlyItems::contains, DomainTemplates.notContained(items)),
-      false,
-      new AbstractIndexedView<T>() {
-        @Override
-        public T get(long index) {
-          Objects.checkIndex(index, size());
-
-          return readOnlyItems.get((int)index);
-        }
-
-        @Override
-        public long indexOf(T value) {
-          return readOnlyItems.indexOf(value);
-        }
-
-        @Override
-        public long size() {
-          return readOnlyItems.size();
-        }
-
-        @Override
-        public List<T> asList() {
-          return readOnlyItems;
-        }
-      }
-    );
+    return ListDomain.of(items);
   }
 
   /**
@@ -741,4 +713,20 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain {
    * @throws NullPointerException if any argument is {@code null}
    */
   <V extends View<T>> V requireView(Class<?> viewClass);
+
+  /**
+   * Returns an editor for this domain if it supports the given editor type.
+   * <p>
+   * An editor edits the domain: each edit advances it to a new domain and
+   * publishes that change as a transition, so an editor is also a
+   * {@link DomainSource}.
+   *
+   * @param <E> the editor type
+   * @param editorClass the required editor class, cannot be {@code null}
+   * @return the matching editor, never {@code null}
+   * @throws IllegalStateException if the editor is not supported by this domain
+   * @throws NullPointerException if {@code editorClass} is {@code null}
+   */
+  <E extends Editor<T>> E requireEditor(Class<?> editorClass);
+
 }

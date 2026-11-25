@@ -17,7 +17,7 @@ import org.int4.fx.values.domain.Domain;
  *   <li><b>Element Domain</b>: Constrains the individual elements (e.g., ensuring
  *       each ID extracted from a list is a positive integer).</li>
  *   <li><b>Effective Domain</b>: A read-only, derived domain of type {@code T} (exposed
- *       via {@link #domain()}) that joins both the composite and element constraints.</li>
+ *       via {@link #getDomain()}) that joins both the composite and element constraints.</li>
  * </ul>
  * <p>
  * The effective domain is managed internally by the model and is automatically
@@ -53,7 +53,7 @@ public interface CompositeModel<T, E> extends WritableModel<T> {
    * An observable representing the domain that constrains the composite value.
    * <p>
    * Changes to this domain will trigger recomputation of the effective model
-   * {@link #domain()}.
+   * {@link #getDomain()}.
    *
    * @return an observable composite domain, never {@code null}
    */
@@ -83,7 +83,7 @@ public interface CompositeModel<T, E> extends WritableModel<T> {
    * An observable representing the domain that constrains individual elements.
    * <p>
    * Changes to this domain will trigger recomputation of the effective model
-   * {@link #domain()}.
+   * {@link #getDomain()}.
    *
    * @return an observable element domain, never {@code null}
    */

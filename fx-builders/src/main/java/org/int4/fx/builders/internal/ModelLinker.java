@@ -21,7 +21,9 @@ import org.int4.fx.core.util.Observe;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.scene.event.Broadcasts;
+import org.int4.fx.values.domain.DomainSource.DomainTransition;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.Edit;
 import org.int4.fx.values.domain.Membership;
 import org.int4.fx.values.model.WritableModel;
 
@@ -30,7 +32,7 @@ import org.int4.fx.values.model.WritableModel;
  * and a {@link WritableModel}, managing connection state, editing state,
  * validation, and value synchronization.
  *
- * <h3>Connection States</h3>
+ * <h2>Connection States</h2>
  * Synchronization is active only while the control is part of an active scene
  * and the model is applicable.
  * <ul>
@@ -47,7 +49,7 @@ import org.int4.fx.values.model.WritableModel;
  * the model's current state.</li>
  * </ul>
  *
- * <h3>Editing State & Domain Changes</h3>
+ * <h2>Editing State &amp; Domain Changes</h2>
  * A control enters an editing (dirty) state after accepting user input and
  * remains dirty until the editing session ends.
  * While dirty, model-driven value synchronization is suppressed and validation
@@ -73,31 +75,59 @@ import org.int4.fx.values.model.WritableModel;
  * @param <T> the model's value type
  */
 public final class ModelLinker<N extends Node, T> {
+
+  /**
+   * Enables handling of {@link TestFocusEvent}s. Intended for tests only, which
+   * use it to simulate focus changes without a real focus owner.
+   */
   public static boolean RESPOND_TO_TEST_FOCUS_EVENT;
 
   private static final PseudoClass INVALID = PseudoClass.getPseudoClass("invalid");
   private static final PseudoClass TOUCHED = PseudoClass.getPseudoClass("touched");
   private static final PseudoClass DIRTY = PseudoClass.getPseudoClass("dirty");
 
-  /*
-   * All in one; no linker is returned on purpose, as it is fully configured here. If not statisfactory,
-   * use sync.
+  /**
+   * Links a model to a property, synchronizing the value bidirectionally.
+   * <p>
+   * The control updates the property as usual, and the property updates the
+   * model through {@code push}. The property is cleared when the model becomes
+   * inapplicable.
+   *
+   * @param <N> the node type
+   * @param <T> the value type
+   * @param node the node to link, cannot be {@code null}
+   * @param model the model to link, cannot be {@code null}
+   * @param property the property to synchronize with, cannot be {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public static <N extends Node, T> void link(N node, WritableModel<T> model, Property<T> property) {
     ModelLinker<N, T> linker = new ModelLinker<>(node, model, toSynchronizer(property::setValue));
 
     property.subscribe(linker::push);
 
-    linker.onDomainChanged(d -> {
-      if(d.equals(Domain.inapplicable())) {
+    linker.onTransition(t -> {
+      if(t.successor().equals(Domain.inapplicable())) {
         property.setValue(null);
       }
     });
   }
 
-  /*
-   * When using sync, must use push/pushIncompatible, and probably register a domain listener via onDomainChanged
-   * to reset the control when its model domain becomes inapplicable.
+  /**
+   * Creates a linker that synchronizes a model with a control, using the supplied
+   * setter to update the control's value.
+   * <p>
+   * The returned linker must be driven by the control: call {@code push} or
+   * {@code pushIncompatible} when the control's input changes, and optionally
+   * register a transition listener with {@link #onTransition(Consumer)} to adapt
+   * the control when the model's domain changes.
+   *
+   * @param <N> the node type
+   * @param <T> the value type
+   * @param node the node to link, cannot be {@code null}
+   * @param model the model to link, cannot be {@code null}
+   * @param setter a setter receiving the model's raw value, cannot be {@code null}
+   * @return a linker for the supplied node and model, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
    */
   public static <N extends Node, T> ModelLinker<N, T> sync(N node, WritableModel<T> model, Consumer<RawValue<T>> setter) {
     return new ModelLinker<>(node, model, setter);
@@ -110,11 +140,23 @@ public final class ModelLinker<N extends Node, T> {
     });
   }
 
+  /**
+   * An event used by tests to simulate a focus change on a linked node.
+   */
   public static class TestFocusEvent extends Event {
+
+    /**
+     * The event type for simulated focus changes.
+     */
     public static final EventType<TestFocusEvent> MODIFY = new EventType<>(EventType.ROOT, "modify");
 
     final boolean focused;
 
+    /**
+     * Constructs a new instance.
+     *
+     * @param focused whether the node is considered focused
+     */
     public TestFocusEvent(boolean focused) {
       super(MODIFY);
 
@@ -138,7 +180,7 @@ public final class ModelLinker<N extends Node, T> {
    *   or propagate the original incompatible input.
    *
    * - Controls are responsible for adapting to domain changes through the
-   *   onDomainChanged callback. In particular, transitioning to the inapplicable
+   *   onTransition callback. In particular, transitioning to the inapplicable
    *   domain is handled there (for example by clearing items or ranges); the
    *   linker does not issue any additional synchronization for this.
    *
@@ -153,14 +195,14 @@ public final class ModelLinker<N extends Node, T> {
    *   model becomes inapplicable, the linker no longer synchronizes values or
    *   propagates validation state.
    *
-   * - Domain changes are treated differently: the onDomainChanged callback is
+   * - Domain changes are treated differently: the onTransition callback is
    *   always invoked (if connected to a scene), including transitions to the
    *   inapplicable domain and the initial callback after reconnect. Controls are
    *   expected to update any domain-derived state (for example items, ranges or
    *   other restrictions) from this callback.
    *
    * - Consequently, reconnecting to an inapplicable model may still cause the
-   *   control to change via onDomainChanged, even though no value
+   *   control to change via onTransition, even though no value
    *   synchronization takes place. This is intentional: structural adaptation is
    *   driven by the domain, while value synchronization is suspended.
    *
@@ -191,8 +233,8 @@ public final class ModelLinker<N extends Node, T> {
   private T controlInput;
   private Template incompatibleReason;  // if non-null it means controlInput was incompatible
   private Origin changeOrigin = Origin.NONE;
-  private Consumer<Domain<T>> onDomainChanged;
-  private Domain<T> domain;
+  private Consumer<DomainTransition<T>> onTransition;
+  private Domain<T> lastDomain;
 
   private ModelLinker(N node, WritableModel<T> model, Consumer<RawValue<T>> setter) {
     this.node = Objects.requireNonNull(node, "node");
@@ -209,13 +251,25 @@ public final class ModelLinker<N extends Node, T> {
       };
     });
 
-    addSubscriber(() -> Observe.values(model.domain(), model.rawValue()).subscribe((d, rv) -> {
-      boolean domainChanged = !Objects.equals(d, domain);
+    addSubscriber(() -> Observe.values(model.transitions(), model.rawValue()).subscribe((t, rv) -> {
+      if(t.successor() != lastDomain) {
+        boolean reset = lastDomain == null;  // initial connect or reconnect
 
-      this.domain = d;
+        lastDomain = t.successor();
 
-      if(domainChanged && onDomainChanged != null) {
-        doOriginatedChange(Origin.MODEL, () -> onDomainChanged.accept(d));
+        if(onTransition != null) {
+
+          /*
+           * On (re)connect the last delivered transition is unknown to the
+           * control, so a full replace is delivered instead of a stale edit:
+           */
+
+          DomainTransition<T> delivered = reset
+            ? new DomainTransition<>(null, t.successor(), new Edit.Replaced<>())
+            : t;
+
+          doOriginatedChange(Origin.MODEL, () -> onTransition.accept(delivered));
+        }
       }
 
       if(changeOrigin != Origin.CONTROL) {
@@ -296,8 +350,8 @@ public final class ModelLinker<N extends Node, T> {
    *
    * @param consumer a {@link Consumer}, can be {@code null}
    */
-  public void onDomainChanged(Consumer<Domain<T>> consumer) {
-    this.onDomainChanged = consumer;
+  public void onTransition(Consumer<DomainTransition<T>> consumer) {
+    this.onTransition = consumer;
   }
 
   /**
@@ -410,7 +464,7 @@ public final class ModelLinker<N extends Node, T> {
        * of these values are sensible to keep:
        */
 
-      domain = null;  // ensures that on reconnect, a domain change is always triggered
+      lastDomain = null;  // ensures that on reconnect, a transition is always triggered
 
       disconnect();
     }

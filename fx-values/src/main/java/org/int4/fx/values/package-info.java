@@ -27,6 +27,5 @@
  *
  * @see org.int4.fx.values.model
  * @see org.int4.fx.values.domain
- * @see org.int4.fx.values.util
  */
 package org.int4.fx.values;

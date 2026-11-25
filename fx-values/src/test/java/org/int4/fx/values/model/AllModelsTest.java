@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.int4.fx.core.util.RawValue;
 import org.int4.fx.core.util.Template;
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSources;
 import org.int4.fx.values.domain.DomainTemplates;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,7 +39,7 @@ public class AllModelsTest {
           true,
           false,
           null,
-          SimpleBooleanModel::new,
+          (value, domain) -> new SimpleBooleanModel(value, DomainSources.of(domain)),
           BooleanModel::get,
           BooleanModel::set,
           BooleanModel::isNull
@@ -51,7 +52,7 @@ public class AllModelsTest {
           true,
           false,
           null,
-          SimpleBooleanModel::new,
+          (value, domain) -> new SimpleBooleanModel(value, DomainSources.of(domain)),
           BooleanModel::get,
           BooleanModel::set,
           BooleanModel::isNull
@@ -64,7 +65,7 @@ public class AllModelsTest {
           2,
           10,
           100,
-          SimpleIntegerModel::new,
+          (value, domain) -> new SimpleIntegerModel(value, DomainSources.of(domain)),
           IntegerModel::get,
           IntegerModel::set,
           IntegerModel::isNull
@@ -77,7 +78,7 @@ public class AllModelsTest {
           2,
           10,
           100,
-          SimpleIntegerModel::new,
+          (value, domain) -> new SimpleIntegerModel(value, DomainSources.of(domain)),
           IntegerModel::get,
           IntegerModel::set,
           IntegerModel::isNull
@@ -90,7 +91,7 @@ public class AllModelsTest {
           2L,
           10L,
           100L,
-          SimpleLongModel::new,
+          (value, domain) -> new SimpleLongModel(value, DomainSources.of(domain)),
           LongModel::get,
           LongModel::set,
           LongModel::isNull
@@ -103,7 +104,7 @@ public class AllModelsTest {
           2L,
           10L,
           100L,
-          SimpleLongModel::new,
+          (value, domain) -> new SimpleLongModel(value, DomainSources.of(domain)),
           LongModel::get,
           LongModel::set,
           LongModel::isNull
@@ -116,7 +117,7 @@ public class AllModelsTest {
           2.5,
           10.5,
           100.5,
-          SimpleDoubleModel::new,
+          (value, domain) -> new SimpleDoubleModel(value, DomainSources.of(domain)),
           DoubleModel::get,
           DoubleModel::set,
           DoubleModel::isNull
@@ -129,7 +130,7 @@ public class AllModelsTest {
           2.5,
           10.5,
           100.5,
-          SimpleDoubleModel::new,
+          (value, domain) -> new SimpleDoubleModel(value, DomainSources.of(domain)),
           DoubleModel::get,
           DoubleModel::set,
           DoubleModel::isNull
@@ -142,7 +143,7 @@ public class AllModelsTest {
           "A",
           "C",
           "-",
-          SimpleObjectModel::new,
+          (value, domain) -> new SimpleObjectModel<>(value, DomainSources.of(domain)),
           ObjectModel::get,
           ObjectModel::set,
           m -> m.get() == null
@@ -155,7 +156,7 @@ public class AllModelsTest {
           "A",
           "C",
           "-",
-          SimpleObjectModel::new,
+          (value, domain) -> new SimpleObjectModel<>(value, DomainSources.of(domain)),
           ObjectModel::get,
           ObjectModel::set,
           m -> m.get() == null
@@ -168,7 +169,7 @@ public class AllModelsTest {
           "A",
           "C",
           "-",
-          SimpleChoiceModel::new,
+          (value, domain) -> new SimpleChoiceModel<>(value, DomainSources.of(domain)),
           ChoiceModel::get,
           ChoiceModel::set,
           m -> m.get() == null
@@ -181,7 +182,7 @@ public class AllModelsTest {
           "A",
           "C",
           "-",
-          SimpleChoiceModel::new,
+          (value, domain) -> new SimpleChoiceModel<>(value, DomainSources.of(domain)),
           ChoiceModel::get,
           ChoiceModel::set,
           m -> m.get() == null
@@ -194,7 +195,7 @@ public class AllModelsTest {
           "a",
           "n",
           "-",
-          SimpleStringModel::new,
+          (value, domain) -> new SimpleStringModel(value, DomainSources.of(domain)),
           StringModel::get,
           StringModel::set,
           m -> m.get() == null

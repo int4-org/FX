@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A model representing a long value with optional bounds.
@@ -56,7 +58,20 @@ public interface LongModel extends Model<Long> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static LongModel of(Long initialValue, Domain<Long> domain) {
-    return new SimpleLongModel(initialValue, domain);
+    return new SimpleLongModel(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates a long model with the specified initial value, backed by the
+   * supplied domain source.
+   *
+   * @param initialValue the initial value, may be {@code null} if the source's domain allows
+   * @param source the domain source, cannot be {@code null}
+   * @return a new long model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static LongModel of(Long initialValue, DomainSource<Long> source) {
+    return new SimpleLongModel(initialValue, source);
   }
 
   /**

@@ -1,6 +1,8 @@
 package org.int4.fx.values.model;
 
 import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
+import org.int4.fx.values.domain.DomainSources;
 
 /**
  * A {@link WritableModel} for {@link String} values.
@@ -98,6 +100,31 @@ public interface StringModel extends ObjectModel<String> {
    * @throws NullPointerException if {@code domain} is {@code null}
    */
   static StringModel of(String initialValue, Domain<String> domain) {
-    return new SimpleStringModel(initialValue, domain);
+    return new SimpleStringModel(initialValue, DomainSources.of(domain));
+  }
+
+  /**
+   * Creates a new {@code StringModel} with the given initial value, backed by
+   * the supplied domain source.
+   *
+   * @param initialValue the initial value, may be {@code null}
+   * @param source the domain source, cannot be {@code null}
+   * @return a new string model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static StringModel of(String initialValue, DomainSource<String> source) {
+    return new SimpleStringModel(initialValue, source);
+  }
+
+  /**
+   * Creates a new {@code StringModel} with no initial value, backed by the
+   * supplied domain source.
+   *
+   * @param source the domain source, cannot be {@code null}
+   * @return a new string model, never {@code null}
+   * @throws NullPointerException if {@code source} is {@code null}
+   */
+  static StringModel of(DomainSource<String> source) {
+    return of(null, source);
   }
 }

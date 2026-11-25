@@ -106,6 +106,11 @@ final class NormalDomain<T> implements Domain<T> {
     throw new IllegalStateException("Domain does not support view: " + viewClass.getSimpleName());
   }
 
+  @Override
+  public <E extends Editor<T>> E requireEditor(Class<?> editorClass) {
+    throw new IllegalStateException("Domain does not support editor: " + editorClass.getSimpleName());
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public Domain<T> nullable() {

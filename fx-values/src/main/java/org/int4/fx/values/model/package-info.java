@@ -8,13 +8,15 @@
  * <p>
  * The model hierarchy consists of three primary tiers:
  * <ul>
- *   <li>{@link org.int4.fx.values.model.ObservableModel ObservableModel} –
+ *   <li>{@link org.int4.fx.values.model.ObservableModel ObservableModel} -
  *       A read-only semantic projection of a model's state.</li>
- *   <li>{@link org.int4.fx.values.model.WritableModel WritableModel} –
+ *   <li>{@link org.int4.fx.values.model.WritableModel WritableModel} -
  *       Extends {@code ObservableModel} with validation state, mutation
- *       operations, and a read-only view of its domain.</li>
- *   <li>{@link org.int4.fx.values.model.Model Model} –
- *       A model where both value and domain are writable.</li>
+ *       operations, and the domain transitions published by its domain
+ *       source.</li>
+ *   <li>{@link org.int4.fx.values.model.Model Model} -
+ *       Extends {@code WritableModel} with the ability to replace the domain
+ *       source it follows, either directly or by supplying a plain domain.</li>
  * </ul>
  * <p>
  * Each model is associated with a {@link org.int4.fx.values.domain.Domain}

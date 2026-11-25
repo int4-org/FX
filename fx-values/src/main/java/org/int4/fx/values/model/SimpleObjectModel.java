@@ -1,11 +1,11 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 class SimpleObjectModel<T> extends ModelBase<T> implements ObjectModel<T> {
 
-  SimpleObjectModel(T initialValue, Domain<T> domain) {
-    super(initialValue, domain);
+  SimpleObjectModel(T initialValue, DomainSource<T> source) {
+    super(initialValue, source);
   }
 
   @Override

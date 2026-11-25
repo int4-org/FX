@@ -1,11 +1,11 @@
 package org.int4.fx.values.model;
 
-import org.int4.fx.values.domain.Domain;
+import org.int4.fx.values.domain.DomainSource;
 
 class SimpleStringModel extends ModelBase<String> implements StringModel {
 
-  SimpleStringModel(String initialValue, Domain<String> domain) {
-    super(initialValue, domain);
+  SimpleStringModel(String initialValue, DomainSource<String> source) {
+    super(initialValue, source);
   }
 
   @Override
