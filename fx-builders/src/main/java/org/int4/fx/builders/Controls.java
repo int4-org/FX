@@ -11,6 +11,7 @@ import org.int4.fx.builders.control.ColorPickerBuilder;
 import org.int4.fx.builders.control.ComboBoxBuilder;
 import org.int4.fx.builders.control.DatePickerBuilder;
 import org.int4.fx.builders.control.LabelBuilder;
+import org.int4.fx.builders.control.ListViewBuilder;
 import org.int4.fx.builders.control.MenuButtonBuilder;
 import org.int4.fx.builders.control.ScrollPaneBuilder;
 import org.int4.fx.builders.control.SliderBuilder;
@@ -102,6 +103,19 @@ public interface Controls {
    */
   default ComboBoxBuilder.Raw comboBox(String... styleClasses) {
     return new ComboBoxBuilder.Raw(styleClasses);
+  }
+
+  /**
+   * Creates a builder for a {@link javafx.scene.control.ListView}, initialising
+   * it with the given style classes.
+   *
+   * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if any argument is {@code null}
+   * @see javafx.scene.control.ListView
+   */
+  default ListViewBuilder.Raw listView(String... styleClasses) {
+    return new ListViewBuilder.Raw(styleClasses);
   }
 
   /**

@@ -132,6 +132,36 @@ Key characteristics:
 * Two-way binding: Changes in the spinner update the model, and vice versa.
 * Concise and readable: Minimal code to connect data and UI.
 
+### List-backed domains and editors
+
+Domains can also be backed by a list, which makes them editable. A list domain
+provides an `IndexedEditor` for adding and removing items; each edit produces a
+new domain and publishes the change as a transition. Models follow those
+transitions, and controls bound to a model update incrementally: items are not
+copied, and nothing is rebuilt on every change.
+
+```java
+IndexedEditor<String> employees = Domain.from(List.of("Alice", "Bob", "Charlie"))
+  .requireEditor(IndexedEditor.class);
+
+// A model that follows the editor's domain:
+ChoiceModel<String> selection = ChoiceModel.of(employees);
+
+Scene scene = Scenes.create(FX.vbox().nodes(
+  FX.listView().model(selection),      // items and single selection
+  FX.comboBox().model(selection)       // same model, same items
+));
+```
+
+Edits made through the editor -- `employees.add("Diana")`, `employees.remove(0)` --
+are reflected in both controls. A model's domain can also be replaced at runtime:
+`setDomain(...)` binds it to a fixed domain, while `setSource(...)` binds it to any
+`DomainSource`, such as a shared `DomainSources.mutable(...)` handle or an editor.
+That makes it straightforward to show, hide or swap a section of the UI as other
+state changes.
+
+> This example can be found in the fx-samples module as ListDomainSampleApplication.java.
+
 ## The `Observe` class
 
 Provides ways to observe multiple values in a more declarative way:
