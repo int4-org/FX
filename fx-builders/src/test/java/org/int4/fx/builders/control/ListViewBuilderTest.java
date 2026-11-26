@@ -19,7 +19,7 @@ import org.int4.fx.builders.event.WindowEvent;
 import org.int4.fx.scene.event.Broadcasts;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.DomainSources;
-import org.int4.fx.values.domain.IndexedEditor;
+import org.int4.fx.values.domain.ListEditor;
 import org.int4.fx.values.model.ChoiceModel;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -163,7 +163,7 @@ class ListViewBuilderTest extends FXTest {
 
   @Test
   void shouldKeepSelectionWhenItemsChange() {
-    IndexedEditor<String> editor = Domain.from(List.of("a", "b", "c")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = Domain.of("a", "b", "c").editor();
     ChoiceModel<String> model = ChoiceModel.of(editor);
     ListView<String> listView = new ListViewBuilder.Raw()
       .model(model)
@@ -183,7 +183,7 @@ class ListViewBuilderTest extends FXTest {
 
   @Test
   void shouldApplyIncrementalEditsFromEditorBackedModel() {
-    IndexedEditor<String> editor = Domain.from(List.of("a", "b")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = Domain.of("a", "b").editor();
     ChoiceModel<String> model = ChoiceModel.of(editor);
     ListView<String> listView = new ListViewBuilder.Raw()
       .model(model)

@@ -1,6 +1,7 @@
 package org.int4.fx.values.domain;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -13,14 +14,40 @@ import org.int4.fx.values.domain.Edit.IndexedChange;
 
 /**
  * A domain of values backed by an ordered, immutable list.
+ * <p>
+ * A list domain is editable: {@link #editor()} returns an editor through which
+ * items can be added, removed or replaced. Each edit produces a new domain and
+ * publishes the change as a transition.
  *
  * @param <T> the value type
  */
-final class ListDomain<T> implements Domain<T> {
+public final class ListDomain<T> implements Domain<T> {
   private static final Membership.Excluded MISSING_EXCLUSION = new Membership.Excluded(DomainTemplates.MISSING);
   private static final View<?> NOOP_VIEW = new View<>() {};
 
-  static <T> ListDomain<T> of(List<? extends T> items) {
+  /**
+   * Creates a list domain from the supplied items.
+   *
+   * @param <T> the value type
+   * @param items the items, cannot be {@code null} but can be empty
+   * @return a new list domain, never {@code null}
+   * @throws NullPointerException if {@code items} is {@code null}
+   */
+  @SafeVarargs
+  public static <T> ListDomain<T> of(T... items) {
+    return from(Arrays.asList(items));
+  }
+
+  /**
+   * Creates a list domain backed by the supplied list. The list is copied, so
+   * later modifications to the supplied list do not affect the returned domain.
+   *
+   * @param <T> the value type
+   * @param items the items, cannot be {@code null} but can be empty
+   * @return a new list domain, never {@code null}
+   * @throws NullPointerException if {@code items} is {@code null}
+   */
+  public static <T> ListDomain<T> from(List<? extends T> items) {
     return new ListDomain<>(new BTreeList<>(Objects.requireNonNull(items, "items")), false);
   }
 
@@ -93,14 +120,26 @@ final class ListDomain<T> implements Domain<T> {
 
   @Override
   public <E extends Editor<T>> E requireEditor(Class<?> editorClass) {
-    if(editorClass == IndexedEditor.class) {
+    if(editorClass == ListEditor.class) {
       @SuppressWarnings("unchecked")
-      E editor = (E)new ListIndexedEditor<>(this);
+      E editor = (E)editor();
 
       return editor;
     }
 
     throw new IllegalStateException("Domain does not support editor: " + editorClass.getSimpleName());
+  }
+
+  /**
+   * Creates a new editor for this domain.
+   * <p>
+   * Each call returns a new, independent editor. Editors never see each other's
+   * edits, although all of them start from this domain.
+   *
+   * @return a new list editor, never {@code null}
+   */
+  public ListEditor<T> editor() {
+    return new ListEditorImpl<>(this);
   }
 
   @Override
@@ -148,7 +187,7 @@ final class ListDomain<T> implements Domain<T> {
     }
   }
 
-  private static final class ListIndexedEditor<T> implements IndexedEditor<T> {
+  private static final class ListEditorImpl<T> implements ListEditor<T> {
     private final List<Consumer<DomainTransition<T>>> subscribers = new ArrayList<>();
 
     private BTreeList<T> items;
@@ -157,7 +196,7 @@ final class ListDomain<T> implements Domain<T> {
     private int batchDepth;
     private List<IndexedChange<T>> batchChanges;
 
-    ListIndexedEditor(ListDomain<T> domain) {
+    ListEditorImpl(ListDomain<T> domain) {
       this.domain = domain;
       this.items = domain.items.fork();
     }

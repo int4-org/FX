@@ -135,14 +135,13 @@ Key characteristics:
 ### List-backed domains and editors
 
 Domains can also be backed by a list, which makes them editable. A list domain
-provides an `IndexedEditor` for adding and removing items; each edit produces a
+provides a `ListEditor` for adding and removing items; each edit produces a
 new domain and publishes the change as a transition. Models follow those
 transitions, and controls bound to a model update incrementally: items are not
 copied, and nothing is rebuilt on every change.
 
 ```java
-IndexedEditor<String> employees = Domain.from(List.of("Alice", "Bob", "Charlie"))
-  .requireEditor(IndexedEditor.class);
+ListEditor<String> employees = Domain.of("Alice", "Bob", "Charlie").editor();
 
 // A model that follows the editor's domain:
 ChoiceModel<String> selection = ChoiceModel.of(employees);

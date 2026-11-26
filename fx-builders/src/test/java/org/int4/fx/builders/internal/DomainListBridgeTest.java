@@ -11,7 +11,7 @@ import org.int4.fx.values.domain.DomainSource;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.Edit;
 import org.int4.fx.values.domain.Edit.IndexedChange;
-import org.int4.fx.values.domain.IndexedEditor;
+import org.int4.fx.values.domain.ListEditor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,7 @@ class DomainListBridgeTest {
 
   @Test
   void shouldApplyIndexedEditsIncrementally() {
-    IndexedEditor<String> editor = editorOf("A", "B");
+    ListEditor<String> editor = editorOf("A", "B");
     DomainListBridge<String> bridge = DomainListBridge.link(editor);
     List<String> events = recordChanges(bridge);
 
@@ -58,7 +58,7 @@ class DomainListBridgeTest {
 
   @Test
   void shouldNotifyOnceForBatch() {
-    IndexedEditor<String> editor = editorOf("A", "B");
+    ListEditor<String> editor = editorOf("A", "B");
     DomainListBridge<String> bridge = DomainListBridge.link(editor);
     List<List<String>> snapshots = new ArrayList<>();
 
@@ -81,7 +81,7 @@ class DomainListBridgeTest {
 
   @Test
   void shouldReplayMultipleChangesExactly() {
-    IndexedEditor<String> editor = editorOf("A", "B");
+    ListEditor<String> editor = editorOf("A", "B");
     DomainListBridge<String> bridge = DomainListBridge.link(editor);
     List<String> events = recordChanges(bridge);
 
@@ -139,7 +139,7 @@ class DomainListBridgeTest {
 
   @Test
   void shouldStopFollowingAfterClose() {
-    IndexedEditor<String> editor = editorOf("A", "B");
+    ListEditor<String> editor = editorOf("A", "B");
     DomainListBridge<String> bridge = DomainListBridge.link(editor);
 
     bridge.close();
@@ -150,8 +150,8 @@ class DomainListBridgeTest {
     assertThat(bridge).containsExactly("A", "B");
   }
 
-  private static IndexedEditor<String> editorOf(String... items) {
-    return Domain.from(List.of(items)).requireEditor(IndexedEditor.class);
+  private static ListEditor<String> editorOf(String... items) {
+    return Domain.from(List.of(items)).editor();
   }
 
   private static List<String> recordChanges(DomainListBridge<String> bridge) {
@@ -178,7 +178,7 @@ class DomainListBridgeTest {
    * An editor that can produce edits the {@code ListDomain} editor does not
    * support yet.
    */
-  private static final class FakeEditor implements IndexedEditor<String> {
+  private static final class FakeEditor implements ListEditor<String> {
     private final List<String> items = new ArrayList<>();
     private final List<Consumer<DomainTransition<String>>> subscribers = new ArrayList<>();
 

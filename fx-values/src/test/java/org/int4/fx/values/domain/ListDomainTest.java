@@ -16,9 +16,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ListDomainTest {
 
   @Test
-  void ofShouldCopyTheInputList() {
+  void fromShouldCopyTheInputList() {
     List<String> input = new ArrayList<>(List.of("a", "b"));
-    ListDomain<String> domain = ListDomain.of(input);
+    ListDomain<String> domain = ListDomain.from(input);
 
     input.add("c");
 
@@ -32,14 +32,23 @@ class ListDomainTest {
   }
 
   @Test
-  void ofShouldRejectNullInput() {
-    assertThatThrownBy(() -> ListDomain.of(null))
+  void fromShouldRejectNullInput() {
+    assertThatThrownBy(() -> ListDomain.from(null))
       .isInstanceOf(NullPointerException.class);
   }
 
   @Test
+  void ofShouldAcceptVarargs() {
+    ListDomain<String> domain = ListDomain.of("a", "b");
+
+    assertThat(domain.contains("a")).isTrue();
+    assertThat(domain.contains("c")).isFalse();
+    assertThat(asList(domain.editor())).containsExactly("a", "b");
+  }
+
+  @Test
   void shouldEvaluateMembership() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
 
     assertThat(domain.contains("a")).isTrue();
     assertThat(domain.contains("c")).isFalse();
@@ -55,7 +64,7 @@ class ListDomainTest {
 
   @Test
   void nullableShouldAllowNullWithoutChangingItems() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
     Domain<String> nullable = domain.nullable();
 
     assertThat(nullable.contains(null)).isTrue();
@@ -69,7 +78,7 @@ class ListDomainTest {
 
   @Test
   void indexedViewShouldExposeItemsAndSupportDuplicatesAndNulls() {
-    ListDomain<String> domain = ListDomain.of(Arrays.asList("a", null, "a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", null, "a", "b");
     IndexedView<String> view = domain.requireView(IndexedView.class);
 
     assertThat(view.size()).isEqualTo(4);
@@ -84,7 +93,7 @@ class ListDomainTest {
 
   @Test
   void indexedViewShouldRejectOutOfBoundsAccess() {
-    IndexedView<String> view = ListDomain.of(List.of("a", "b")).requireView(IndexedView.class);
+    IndexedView<String> view = ListDomain.of("a", "b").requireView(IndexedView.class);
 
     assertThatThrownBy(() -> view.get(-1)).isInstanceOf(IndexOutOfBoundsException.class);
     assertThatThrownBy(() -> view.get(2)).isInstanceOf(IndexOutOfBoundsException.class);
@@ -92,7 +101,7 @@ class ListDomainTest {
 
   @Test
   void indexedViewAsListShouldBeStableAndUnmodifiable() {
-    IndexedView<String> view = ListDomain.of(List.of("a", "b")).requireView(IndexedView.class);
+    IndexedView<String> view = ListDomain.of("a", "b").requireView(IndexedView.class);
 
     assertThat(view.asList()).isSameAs(view.asList());
     assertThatThrownBy(() -> view.asList().add("c"))
@@ -101,7 +110,7 @@ class ListDomainTest {
 
   @Test
   void shouldExposeIndexedViewThroughViewAndRequireView() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
 
     assertThat(domain.view(IndexedView.class)).isInstanceOf(IndexedView.class);
     assertThat(domain.view(View.class)).isInstanceOf(IndexedView.class);
@@ -113,7 +122,7 @@ class ListDomainTest {
 
   @Test
   void shouldReturnNoopViewForUnsupportedViews() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
 
     assertThat(domain.view(ContinuousView.class)).isNotInstanceOf(IndexedView.class);
     assertThatThrownBy(() -> domain.requireView(ContinuousView.class))
@@ -121,10 +130,10 @@ class ListDomainTest {
   }
 
   @Test
-  void shouldProvideAnIndexedEditor() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+  void shouldProvideAnListEditor() {
+    ListDomain<String> domain = ListDomain.of("a", "b");
 
-    IndexedEditor<String> editor = domain.requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = domain.editor();
 
     assertThat(editor.size()).isEqualTo(2);
     assertThat(editor.get(0)).isEqualTo("a");
@@ -133,7 +142,7 @@ class ListDomainTest {
 
   @Test
   void shouldProvideEditorThroughDomainFactory() {
-    IndexedEditor<String> editor = Domain.from(List.of("a", "b")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = Domain.of("a", "b").editor();
 
     assertThat(editor.size()).isEqualTo(2);
 
@@ -144,7 +153,7 @@ class ListDomainTest {
 
   @Test
   void shouldRejectUnsupportedEditors() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
 
     assertThatThrownBy(() -> domain.requireEditor(Editor.class))
       .isInstanceOf(IllegalStateException.class);
@@ -152,7 +161,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldSupportAddAtIndexAndDefaults() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
 
     editor.add(0, "first");
     editor.add(2, "last");
@@ -168,8 +177,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldSupportRemoveAtIndexAndDefaults() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a", "b", "c", "d"))
-      .requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a", "b", "c", "d").editor();
 
     assertThat(editor.remove(1)).isEqualTo("b");
     assertThat(editor.removeFirst()).isEqualTo("a");
@@ -180,8 +188,8 @@ class ListDomainTest {
 
   @Test
   void editorShouldSupportNullElements() {
-    ListDomain<String> domain = ListDomain.of(Arrays.asList("a", null, "b")).nullable();
-    IndexedEditor<String> editor = domain.requireEditor(IndexedEditor.class);
+    ListDomain<String> domain = ListDomain.of("a", null, "b").nullable();
+    ListEditor<String> editor = domain.editor();
 
     assertThat(editor.get(1)).isNull();
 
@@ -196,7 +204,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldClearAndRemainUsable() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a", "b")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a", "b").editor();
 
     editor.clear();
 
@@ -209,7 +217,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldPublishTransitionsForEdits() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a", "b")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a", "b").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -272,7 +280,7 @@ class ListDomainTest {
 
   @Test
   void batchShouldPublishOneTransitionWithCombinedChanges() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a", "b", "c")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a", "b", "c").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -296,7 +304,7 @@ class ListDomainTest {
 
   @Test
   void batchShouldExposeTheWorkingStateAndDelayTheTransition() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -321,7 +329,7 @@ class ListDomainTest {
 
   @Test
   void batchShouldRollbackWhenTheActionThrows() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -342,7 +350,7 @@ class ListDomainTest {
 
   @Test
   void nestedBatchShouldPublishOneTransition() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -364,7 +372,7 @@ class ListDomainTest {
 
   @Test
   void emptyBatchShouldNotPublishATransition() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -377,8 +385,7 @@ class ListDomainTest {
 
   @Test
   void nullableBatchShouldPreserveNullability() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).nullable()
-      .requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").nullable().editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -395,7 +402,7 @@ class ListDomainTest {
 
   @Test
   void clearingAnEmptyEditorShouldNotPublishATransition() {
-    IndexedEditor<String> editor = ListDomain.<String>of(List.of()).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.<String>of().editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -406,7 +413,7 @@ class ListDomainTest {
 
   @Test
   void editorTransitionsShouldChain() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -420,7 +427,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldRejectNullTransitionConsumer() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
 
     assertThatThrownBy(() -> editor.transitions(null))
       .isInstanceOf(NullPointerException.class);
@@ -428,7 +435,7 @@ class ListDomainTest {
 
   @Test
   void transitionSubscriberShouldObserveUpdatedEditorState() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<Long> observedSizes = new ArrayList<>();
 
     editor.transitions(transition -> observedSizes.add(editor.size()));
@@ -440,7 +447,7 @@ class ListDomainTest {
 
   @Test
   void editorTransitionsShouldSupportMultipleSubscribersAndUnsubscribe() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
     List<DomainTransition<String>> firstEvents = new ArrayList<>();
     List<DomainTransition<String>> secondEvents = new ArrayList<>();
 
@@ -462,8 +469,7 @@ class ListDomainTest {
 
   @Test
   void nullableEditorShouldPublishNullableSuccessors() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).nullable()
-      .requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").nullable().editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -477,7 +483,7 @@ class ListDomainTest {
 
   @Test
   void editorShouldRejectOutOfBoundsOperations() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a").editor();
 
     assertThatThrownBy(() -> editor.get(-1)).isInstanceOf(IndexOutOfBoundsException.class);
     assertThatThrownBy(() -> editor.get(1)).isInstanceOf(IndexOutOfBoundsException.class);
@@ -489,7 +495,7 @@ class ListDomainTest {
 
   @Test
   void emittedSuccessorsShouldStayImmutableAndIndependent() {
-    IndexedEditor<String> editor = ListDomain.of(List.of("a", "b")).requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = ListDomain.of("a", "b").editor();
     List<DomainTransition<String>> transitions = new ArrayList<>();
 
     editor.transitions(transitions::add);
@@ -512,11 +518,33 @@ class ListDomainTest {
   }
 
   @Test
+  void editorShouldReturnIndependentEditors() {
+    ListDomain<String> domain = ListDomain.of("a", "b");
+    ListEditor<String> first = domain.editor();
+    ListEditor<String> second = domain.editor();
+
+    assertThat(first).isNotSameAs(second);
+
+    first.add("c");
+
+    assertThat(asList(first)).containsExactly("a", "b", "c");
+    assertThat(asList(second)).containsExactly("a", "b");
+  }
+
+  @Test
+  void fromShouldReturnAListDomain() {
+    ListDomain<String> domain = Domain.from(List.of("a", "b"));
+    IndexedView<String> view = domain.requireView(IndexedView.class);
+
+    assertThat(view.asList()).containsExactly("a", "b");
+  }
+
+  @Test
   void editorsShouldBeIndependentAndLeaveTheDomainUnchanged() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
     IndexedView<String> originalView = domain.requireView(IndexedView.class);
-    IndexedEditor<String> first = domain.requireEditor(IndexedEditor.class);
-    IndexedEditor<String> second = domain.requireEditor(IndexedEditor.class);
+    ListEditor<String> first = domain.editor();
+    ListEditor<String> second = domain.editor();
 
     first.add("c");
     first.addFirst("first");
@@ -533,9 +561,9 @@ class ListDomainTest {
 
   @Test
   void editorShouldNotAffectPreviouslyCreatedViews() {
-    ListDomain<String> domain = ListDomain.of(List.of("a", "b"));
+    ListDomain<String> domain = ListDomain.of("a", "b");
     IndexedView<String> view = domain.requireView(IndexedView.class);
-    IndexedEditor<String> editor = domain.requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = domain.editor();
 
     editor.clear();
     editor.add("x");
@@ -548,8 +576,8 @@ class ListDomainTest {
 
   @Test
   void nullableEditorShouldRemainUsableAfterAChange() {
-    Domain<String> nullable = ListDomain.of(List.of("a")).nullable();
-    IndexedEditor<String> editor = nullable.requireEditor(IndexedEditor.class);
+    ListDomain<String> nullable = ListDomain.of("a").nullable();
+    ListEditor<String> editor = nullable.editor();
 
     editor.add(null);
     editor.add("b");
@@ -559,13 +587,13 @@ class ListDomainTest {
 
   @Test
   void toStringShouldDescribeTheDomain() {
-    assertThat(ListDomain.of(List.of("a", "b")).toString())
+    assertThat(ListDomain.of("a", "b").toString())
       .isEqualTo("ListDomain[includesNull=false; size=2]");
-    assertThat(ListDomain.of(List.of("a", "b")).nullable().toString())
+    assertThat(ListDomain.of("a", "b").nullable().toString())
       .isEqualTo("ListDomain[includesNull=true; size=2]");
   }
 
-  private static <T> List<T> asList(IndexedEditor<T> editor) {
+  private static <T> List<T> asList(ListEditor<T> editor) {
     List<T> result = new ArrayList<>();
 
     for(long i = 0; i < editor.size(); i++) {

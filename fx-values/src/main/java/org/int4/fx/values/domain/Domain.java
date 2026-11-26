@@ -143,19 +143,19 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain, List
   /**
    * Creates an enumerated domain from the provided items. The returned
    * domain supports an {@link IndexedView} that exposes the items as an
-   * immutable list.
+   * immutable list, and can be edited through a {@link ListEditor}.
    * <p>
    * If a value is not among the items, the failure reason is provided by
    * {@link DomainTemplates#notContained(List)}.
    *
    * @param <T> the value type
    * @param items the allowed items, cannot be {@code null} but can be empty
-   * @return a domain enumerating the supplied items, never {@code null}
+   * @return a list domain enumerating the supplied items, never {@code null}
    * @throws NullPointerException if the items array is {@code null}
    */
   @SafeVarargs
-  static <T> Domain<T> of(T... items) {
-    return from(Arrays.asList(items));
+  static <T> ListDomain<T> of(T... items) {
+    return ListDomain.of(items);
   }
 
   /**
@@ -168,11 +168,11 @@ public sealed interface Domain<T> permits NormalDomain, InapplicableDomain, List
    *
    * @param <T> the value type
    * @param items a list of allowed items, cannot be {@code null} but can be empty
-   * @return a domain enumerating the supplied list, never {@code null}
+   * @return a list domain enumerating the supplied list, never {@code null}
    * @throws NullPointerException if {@code items} is {@code null}
    */
-  static <T> Domain<T> from(List<T> items) {
-    return ListDomain.of(items);
+  static <T> ListDomain<T> from(List<T> items) {
+    return ListDomain.from(items);
   }
 
   /**

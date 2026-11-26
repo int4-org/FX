@@ -46,7 +46,7 @@ import javafx.util.Subscription;
  * thread. Sharing a source between threads requires external synchronization.
  * <p>
  * See {@link DomainSources} for fixed and replaceable implementations, and
- * {@link IndexedEditor} for a source that edits its items.
+ * {@link ListEditor} for a source that edits its items.
  *
  * @param <T> the value type governed by the published domains
  */

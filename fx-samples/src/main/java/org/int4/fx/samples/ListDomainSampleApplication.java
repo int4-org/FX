@@ -14,7 +14,7 @@ import org.int4.fx.core.util.StyleSheets;
 import org.int4.fx.core.util.Trigger;
 import org.int4.fx.values.domain.Domain;
 import org.int4.fx.values.domain.DomainSource.DomainTransition;
-import org.int4.fx.values.domain.IndexedEditor;
+import org.int4.fx.values.domain.ListEditor;
 import org.int4.fx.values.model.ChoiceModel;
 import org.int4.fx.values.model.StringModel;
 
@@ -25,7 +25,7 @@ import static org.int4.fx.builders.CoreFX.FX;
  * <p>
  * A {@link ListView} and a {@link ComboBox} are both model driven: they show the
  * items of a {@link ChoiceModel} backed by the editor's domain source. Edits
- * performed through the {@link IndexedEditor} are reflected in both controls.
+ * performed through the {@link ListEditor} are reflected in both controls.
  */
 public class ListDomainSampleApplication extends Application {
 
@@ -46,8 +46,7 @@ public class ListDomainSampleApplication extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    IndexedEditor<String> editor = Domain.from(List.of("Alice", "Bob", "Charlie", "Diana"))
-      .requireEditor(IndexedEditor.class);
+    ListEditor<String> editor = Domain.from(List.of("Alice", "Bob", "Charlie", "Diana")).editor();
     ChoiceModel<String> model = ChoiceModel.of(editor);
     StringModel newEmployee = StringModel.nullable();
     StringModel status = StringModel.of("No transitions yet");
