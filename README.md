@@ -89,7 +89,25 @@ Here the `VBox` is wrapped in a scroll pane, which is then wrapped in a resizabl
 
 ## Flex Layout
 
-The `fx-layout` module provides `Flex`, a row/column container whose orientation can be changed at runtime. It supports `Priority.ALWAYS` growth, spacing, alignment, and an aligned mode in which nested rows and columns coordinate their cells like a grid.
+The `fx-layout` module provides `Flex`, a row/column container whose orientation can be changed at runtime. It supports `Priority.ALWAYS` growth, spacing, and alignment.
+
+Its aligned mode makes nested rows share a common grid, so a form's inputs line up even when its labels have different lengths:
+
+```java
+Flex form = Flex.vflex().aligned()
+    .with(
+        Flex.hflex().with(
+            FX.label().text("Name"),
+            FX.textField()
+        ),
+        Flex.hflex().with(
+            FX.label().text("Email address"),
+            FX.textField()
+        )
+    );
+```
+
+Both text fields start at the same offset, in a column sized by the widest label. And unlike `HBox` and `VBox`, a `Flex` can switch between horizontal and vertical at runtime.
 
 See [fx-layout/README.md](fx-layout/README.md) for the full Flex guide and examples.
 
@@ -107,7 +125,7 @@ Models:
 
 * Expose observable values compatible with JavaFX controls
 * Track validity and applicability explicitly
-* Can dynamically change their allowed domain
+* Can dynamically change their allowed domain, either by replacing it or by following a `DomainSource`
 
 This enables UI logic such as:
 
@@ -132,12 +150,18 @@ Key characteristics:
 * Two-way binding: Changes in the spinner update the model, and vice versa.
 * Concise and readable: Minimal code to connect data and UI.
 
+Domains are immutable values that define which values a model accepts. A
+`DomainSource` is a source that provides the current domain and publishes each
+successor along with the edit that produced it. Following one lets a model track
+evolving state -- such as an editable list -- without being rebuilt on every
+change, which is what makes large, frequently edited lists practical.
+
 ### List-backed domains and editors
 
-Domains can also be backed by a list, which makes them editable. A list domain
-provides a `ListEditor` for adding and removing items; each edit produces a
-new domain and publishes the change as a transition. Models follow those
-transitions, and controls bound to a model update incrementally: items are not
+A `ListDomain` -- returned by `Domain.of(...)` or `Domain.from(List)` -- provides
+an `editor()` that returns a `ListEditor`. The editor is a `DomainSource`, so each
+edit produces the next immutable domain and publishes it as a transition that
+models can follow. Controls bound to a model update incrementally: items are not
 copied, and nothing is rebuilt on every change.
 
 ```java
@@ -147,17 +171,19 @@ ListEditor<String> employees = Domain.of("Alice", "Bob", "Charlie").editor();
 ChoiceModel<String> selection = ChoiceModel.of(employees);
 
 Scene scene = Scenes.create(FX.vbox().nodes(
-  FX.listView().model(selection),      // items and single selection
-  FX.comboBox().model(selection)       // same model, same items
+    FX.listView().model(selection),      // items and single selection
+    FX.comboBox().model(selection)       // same model, same items
 ));
 ```
 
 Edits made through the editor -- `employees.add("Diana")`, `employees.remove(0)` --
-are reflected in both controls. A model's domain can also be replaced at runtime:
-`setDomain(...)` binds it to a fixed domain, while `setSource(...)` binds it to any
-`DomainSource`, such as a shared `DomainSources.mutable(...)` handle or an editor.
-That makes it straightforward to show, hide or swap a section of the UI as other
-state changes.
+are reflected in both controls. The list is copy-on-write, so each new domain
+shares its items with the previous one, and a control's item list refers to the
+domain's own list rather than a copy. A model's domain can also be replaced at
+runtime: `setDomain(...)` binds it to a fixed domain, while `setSource(...)` binds
+it to any `DomainSource`, such as an editor or a shared
+`DomainSources.mutable(...)` handle. That makes it straightforward to show, hide
+or swap a section of the UI as other state changes.
 
 > This example can be found in the fx-samples module as ListDomainSampleApplication.java.
 

@@ -494,7 +494,7 @@ class FlexTest {
     final double W = horizontal ? 200 : 70;
     final double H = horizontal ? 70 : 200;
 
-    Flex flex = horizontal ? Flex.hflex() : Flex.vflex();
+    Flex flex = horizontal ? Flex.hflex().build() : Flex.vflex().build();
 
     Region c1 = horizontal ? new MockResizable(20, 10, 20, 10) : new MockResizable(10, 20, 10, 20);
     Region c2 = horizontal ? new MockResizable(20, 10, 20, 30) : new MockResizable(10, 20, 30, 20);
@@ -565,7 +565,7 @@ class FlexTest {
     final double W = 70;
     final double H = 200;
 
-    Flex flex = Flex.vflex();
+    Flex flex = Flex.vflex().build();
 
     Region c1 = new MockResizable(10, 20, 10, 20);
     Region c2 = new MockResizable(10, 20, 30, 20);
@@ -910,7 +910,7 @@ class FlexTest {
     final double W = 50;
     final double H = 80;
 
-    Flex flex = Flex.hflex();
+    Flex flex = Flex.hflex().build();
 
     Region c1 = new MockResizable(1, 1, 50, 20, 5000, 30);  // capped at a max height of 30
 
@@ -965,8 +965,8 @@ class FlexTest {
     final double W = 220;
     final double H = 40;
 
-    Flex row1 = Flex.hflex();
-    Flex row2 = Flex.hflex();
+    Flex row1 = Flex.hflex().build();
+    Flex row2 = Flex.hflex().build();
 
     Region c1 = new MockResizable(1, 1, 30, 20);
     Region c2 = new MockResizable(1, 1, 20, 20);
@@ -979,7 +979,7 @@ class FlexTest {
     row1.getChildren().addAll(c1, c2);
     row2.getChildren().addAll(c3, c4);
 
-    Flex flex = Flex.vflex(row1, row2);
+    Flex flex = Flex.vflex().with(row1, row2);
 
     flex.alignedProperty().set(true);
     flex.resize(W, H);
@@ -1066,12 +1066,12 @@ class FlexTest {
     final double W = 220;
     final double H = 70;
 
-    Flex flex = Flex.vflex();
+    Flex flex = Flex.vflex().build();
 
     flex.alignedProperty().set(true);
 
-    Flex row1 = Flex.hflex();
-    Flex row2 = Flex.hflex();
+    Flex row1 = Flex.hflex().build();
+    Flex row2 = Flex.hflex().build();
 
     Region c1 = new MockResizable(1, 1, 40, 20);
     Region c2 = new MockResizable(1, 1, 100, 20);
@@ -1082,7 +1082,7 @@ class FlexTest {
     row1.setSpacing(SPACING / 2);  // should be ignored as row2 has higher spacing
     row2.setSpacing(SPACING);
 
-    Flex group = Flex.hflex(c4, c5);
+    Flex group = Flex.hflex().with(c4, c5);
 
     flex.getChildren().addAll(row1, row2);
     row1.getChildren().addAll(c1, c2);
@@ -1206,16 +1206,16 @@ class FlexTest {
     Region c4 = new MockResizable(1, 1, 100, 20);
     Region c5 = new MockResizable(1, 1, 50, 20);
 
-    Flex row1 = Flex.hflex(c1, c2);
+    Flex row1 = Flex.hflex().with(c1, c2);
 
     // The nested HFlex representing column 1 inside row2
-    Flex group = Flex.hflex(c4, c5);
-    Flex row2 = Flex.hflex(c3, group);
+    Flex group = Flex.hflex().with(c4, c5);
+    Flex row2 = Flex.hflex().with(c3, group);
 
     // Grouping container of same type (VFlex, but unaligned)
     // This is the wrapper that MUST be skipped when resolving row2's coordinator!
-    Flex groupWrapper = Flex.vflex(row2);
-    Flex flex = Flex.vflex(row1, groupWrapper);
+    Flex groupWrapper = Flex.vflex().with(row2);
+    Flex flex = Flex.vflex().with(row1, groupWrapper);
 
     // Constructed hierarchy:
     // flex (VFlex, aligned)
@@ -1347,16 +1347,16 @@ class FlexTest {
     Region c6 = new MockResizable(1, 1, 40, 20);
     Region c7 = new MockResizable(1, 1, 100, 20);
 
-    Flex group = Flex.hflex(c4, c5);
+    Flex group = Flex.hflex().with(c4, c5);
 
-    Flex row1 = Flex.hflex(c1, c2);
-    Flex row2 = Flex.hflex(c3, group);
-    Flex row3 = Flex.hflex(c6, c7);
+    Flex row1 = Flex.hflex().with(c1, c2);
+    Flex row2 = Flex.hflex().with(c3, group);
+    Flex row3 = Flex.hflex().with(c6, c7);
 
     row1.setSpacing(SPACING / 2);  // should be ignored as row2 has higher spacing
     row2.setSpacing(SPACING);
 
-    Flex flex = Flex.vflex(row1, row2, row3);
+    Flex flex = Flex.vflex().with(row1, row2, row3);
     flex.alignedProperty().set(true);
 
     double top = 5;
@@ -1410,16 +1410,16 @@ class FlexTest {
     Region c6 = new MockResizable(1, 1, 40, 20);
     Region c7 = new MockResizable(1, 1, 100, 20);
 
-    Flex group = Flex.vflex(c4, c5);
+    Flex group = Flex.vflex().with(c4, c5);
 
-    Flex row1 = Flex.hflex(c1, c2);
-    Flex row2 = Flex.hflex(c3, group);
-    Flex row3 = Flex.hflex(c6, c7);
+    Flex row1 = Flex.hflex().with(c1, c2);
+    Flex row2 = Flex.hflex().with(c3, group);
+    Flex row3 = Flex.hflex().with(c6, c7);
 
     row1.setSpacing(SPACING / 2);  // should be ignored as row2 has higher spacing
     row2.setSpacing(SPACING);
 
-    Flex flex = Flex.vflex(row1, row2, row3);
+    Flex flex = Flex.vflex().with(row1, row2, row3);
 
     flex.alignedProperty().set(true);
 
@@ -1519,12 +1519,12 @@ class FlexTest {
     final double W = 220;
     final double H = 70;
 
-    Flex flex = Flex.vflex();
+    Flex flex = Flex.vflex().build();
 
     flex.alignedProperty().set(true);
 
-    Flex row1 = Flex.hflex();
-    Flex row2 = Flex.hflex();
+    Flex row1 = Flex.hflex().build();
+    Flex row2 = Flex.hflex().build();
 
     Region c1 = new MockResizable(1, 1, 40, 20);
     Region c2 = new MockResizable(1, 1, 100, 20);
@@ -1535,7 +1535,7 @@ class FlexTest {
     row1.setSpacing(SPACING / 2);  // should be ignored as row2 has higher spacing
     row2.setSpacing(SPACING);
 
-    Flex group = Flex.hflex(c4, c5);
+    Flex group = Flex.hflex().with(c4, c5);
 
     flex.getChildren().addAll(row1, row2);
     row1.getChildren().addAll(c1, c2);
@@ -1568,8 +1568,8 @@ class FlexTest {
     Region title = new MockResizable(1, 1, 100, 20);
     Region subtitle = new MockResizable(1, 1, 100, 16);
 
-    Flex textGroup = Flex.vflex(title, subtitle);
-    Flex flex = Flex.hflex(icon, textGroup);
+    Flex textGroup = Flex.vflex().with(title, subtitle);
+    Flex flex = Flex.hflex().with(icon, textGroup);
 
     flex.alignedProperty().set(true);
 
@@ -1642,9 +1642,9 @@ class FlexTest {
       }
     };
 
-    Flex h1 = Flex.hflex(eager);
-    Flex v = Flex.vflex(h1);
-    Flex root = Flex.hflex(v);
+    Flex h1 = Flex.hflex().with(eager);
+    Flex v = Flex.vflex().with(h1);
+    Flex root = Flex.hflex().with(v);
 
     // the requestLayout() fires while the innermost computeSpans() is on the
     // stack -- must not throw ConcurrentModificationException

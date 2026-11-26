@@ -33,11 +33,11 @@ import org.int4.fx.layout.internal.Layoutable;
  * Unlike {@code HBox} and {@code VBox}, whose orientation is fixed, a Flex's
  * {@link #setOrientation(Orientation) orientation} can be changed at any time,
  * and is reflected in the {@code :horizontal} and {@code :vertical}
- * pseudo-classes, so a single Flex can be used in place of either. The static
- * {@link #hflex(Node...)} and {@link #vflex(Node...)} factories construct a
- * Flex with a given orientation directly:
+ * pseudo-classes, so a single Flex can be used in place of either. The
+ * {@link #hflex(String...)} and {@link #vflex(String...)} builder factories
+ * create a Flex with a given orientation:
  * <pre>{@code
- *     Flex row = Flex.hflex(new Label("Name:"), new TextField());
+ *     Flex row = Flex.hflex().with(new Label("Name:"), new TextField());
  *     row.setSpacing(8);
  * }</pre>
  * If the Flex has a border and/or padding set, then the contents will be laid
@@ -129,20 +129,6 @@ import org.int4.fx.layout.internal.Layoutable;
 public class Flex extends Region {
 
   /**
-   * Creates a builder for a horizontal Flex.
-   * <p>
-   * This is the standard builder entry point for Flex. Use {@link Flexes} when
-   * composing builder groups.
-   *
-   * @param styleClasses the style classes, cannot be {@code null} but can be empty
-   * @return a fluent builder, never {@code null}
-   * @throws NullPointerException if {@code styleClasses} is {@code null}
-   */
-  public static FlexBuilder of(String... styleClasses) {
-    return of(Orientation.HORIZONTAL, styleClasses);
-  }
-
-  /**
    * Creates a builder for a Flex with the given orientation.
    *
    * @param orientation the initial orientation, can be {@code null} to use
@@ -156,25 +142,25 @@ public class Flex extends Region {
   }
 
   /**
-   * Creates a horizontal Flex with the given children.
+   * Creates a builder for a horizontal Flex.
    *
-   * @param nodes the children, cannot be {@code null} and cannot contain {@code null}
-   * @return a new horizontal Flex, never {@code null}
-   * @throws NullPointerException if {@code nodes} is {@code null} or contains {@code null}
+   * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if {@code styleClasses} is {@code null}
    */
-  public static Flex hflex(Node... nodes) {
-    return new Flex(Orientation.HORIZONTAL, nodes);
+  public static FlexBuilder hflex(String... styleClasses) {
+    return of(Orientation.HORIZONTAL, styleClasses);
   }
 
   /**
-   * Creates a vertical Flex with the given children.
+   * Creates a builder for a vertical Flex.
    *
-   * @param nodes the children, cannot be {@code null} and cannot contain {@code null}
-   * @return a new vertical Flex, never {@code null}
-   * @throws NullPointerException if {@code nodes} is {@code null} or contains {@code null}
+   * @param styleClasses the style classes, cannot be {@code null} but can be empty
+   * @return a fluent builder, never {@code null}
+   * @throws NullPointerException if {@code styleClasses} is {@code null}
    */
-  public static Flex vflex(Node... nodes) {
-    return new Flex(Orientation.VERTICAL, nodes);
+  public static FlexBuilder vflex(String... styleClasses) {
+    return of(Orientation.VERTICAL, styleClasses);
   }
 
   /**

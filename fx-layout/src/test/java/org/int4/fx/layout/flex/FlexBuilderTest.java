@@ -49,7 +49,7 @@ class FlexBuilderTest {
   void shouldCreateBuilderWithOf() {
     Region c1 = new MockResizable(10, 10);
 
-    Flex horizontal = Flex.of("form").with(c1);
+    Flex horizontal = Flex.of(Orientation.HORIZONTAL, "form").with(c1);
     Flex vertical = Flex.of(Orientation.VERTICAL, "form").build();
 
     assertThat(horizontal.getOrientation()).isEqualTo(Orientation.HORIZONTAL);

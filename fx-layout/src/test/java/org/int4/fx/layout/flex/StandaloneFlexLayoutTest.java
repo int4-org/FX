@@ -169,7 +169,7 @@ public class StandaloneFlexLayoutTest {
     Region title2 = new MockResizable(1, 1, 60, 30);
     Region subtitle2 = new MockResizable(1, 1, 60, 10);
 
-    Flex flexCol = Flex.vflex(title1, subtitle1);              // Node-based column
+    Flex flexCol = Flex.vflex().with(title1, subtitle1);              // Node-based column
     FlexLayout flCol = FlexLayout.vertical(title2, subtitle2); // bare column
     FlexLayout root = FlexLayout.horizontal(flexCol, flCol);
 

@@ -22,13 +22,13 @@ import javafx.scene.control.TextField;
 
 import org.int4.fx.layout.flex.Flex;
 
-Flex form = Flex.vflex(
-    Flex.hflex(new Label("Name"), new TextField()),
-    Flex.hflex(new Label("Email"), new TextField())
-);
+Flex form = Flex.vflex().nodes(
+    Flex.hflex().nodes(new Label("Name"), new TextField()),
+    Flex.hflex().nodes(new Label("Email"), new TextField())
+).build();
 ```
 
-`Flex.hflex(...)` creates a horizontal Flex and `Flex.vflex(...)` creates a vertical one. The no-argument constructor defaults to horizontal; `new Flex(Orientation.VERTICAL, ...)` constructs a vertical Flex directly.
+`Flex.hflex(...)` and `Flex.vflex(...)` create builders for a horizontal and a vertical Flex respectively. Configure children with `nodes(...)` and call `build()`, or use `with(...)` to create the Flex in one step. The no-argument constructor defaults to horizontal; `new Flex(Orientation.VERTICAL, ...)` constructs a vertical Flex directly.
 
 ## Fluent builder
 
@@ -48,12 +48,12 @@ Flex form = FLEXES.vflex("form")
     .build();
 ```
 
-`Flexes.FLEXES` exposes `flex(...)`, `hflex(...)`, and `vflex(...)`. A builder can also be obtained directly with `Flex.of(...)` or `new FlexBuilder(...)`. `FlexBuilder` extends the standard region builder, so styling, visibility, and size configuration work as with other builders.
+`Flexes.FLEXES` exposes `flex(...)`, `hflex(...)`, and `vflex(...)`. A builder can also be obtained directly with `Flex.of(Orientation, ...)` or `new FlexBuilder(...)`. `FlexBuilder` extends the standard region builder, so styling, visibility, and size configuration work as with other builders.
 
 ## Changing orientation
 
 ```java
-Flex row = Flex.hflex(new Label("Name"), new TextField());
+Flex row = Flex.hflex().with(new Label("Name"), new TextField());
 
 row.setOrientation(Orientation.VERTICAL);
 row.setOrientation(Orientation.HORIZONTAL);
@@ -85,16 +85,26 @@ The minimum and preferred sizes along the orientation are the sum of the childre
 
 ## Aligned mode
 
-Setting `aligned` makes separate Flex rows share a common grid: labels line up with labels and inputs with inputs.
+Setting `aligned` makes separate Flex rows share a common grid: labels line up with labels and inputs with inputs, even when the labels differ in length.
 
 ```java
-Flex row1 = Flex.hflex(new Label("Name"), new TextField());
-Flex row2 = Flex.hflex(new Label("Email address"), new TextField());
+import static org.int4.fx.builders.CoreFX.FX;
 
-Flex form = Flex.vflex(row1, row2);
-
-form.setAligned(true);
+Flex form = Flex.vflex().aligned()
+    .nodes(
+        Flex.hflex().with(
+            FX.label().text("Name"),
+            FX.textField()
+        ),
+        Flex.hflex().with(
+            FX.label().text("Email address"),
+            FX.textField()
+        )
+    )
+    .build();
 ```
+
+Both text fields start at the same offset, in a column sized by the widest label.
 
 Without aligned mode, each row sizes its cells independently:
 
@@ -136,8 +146,8 @@ The `:horizontal` and `:vertical` pseudo-classes reflect the current orientation
 
 ## API overview
 
-- `Flex.of(String...)`, `Flex.of(Orientation, String...)`
-- `Flex.hflex(Node...)`, `Flex.vflex(Node...)`
+- `Flex.of(Orientation, String...)`
+- `Flex.hflex(String...)`, `Flex.vflex(String...)`
 - `Flex.getGrow(Node)`, `Flex.setGrow(Node, Priority)`
 - `getOrientation()`, `setOrientation(Orientation)`
 - `isAligned()`, `setAligned(boolean)`, `alignedProperty()`
